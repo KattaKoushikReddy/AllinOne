@@ -1,0 +1,1232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<title>The Java Handbook — learn Java, with code</title>
+
+<style>
+  :root{
+    --paper:#fbfbfd;
+    --paper-2:#f5f5f7;
+    --ink:#1d1d1f;
+    --ink-soft:#6e6e73;
+    --line:#d2d2d7;
+    --roast:#0071e3;
+    --amber:#0071e3;
+    --amber-2:#0a84ff;
+    --sage:#34c759;
+    --code-bg:#1d1d1f;
+    --code-bg-2:#262628;
+    --code-line:#38383a;
+    --t-default:#f5f5f7;
+    --t-kw:#e6925b;
+    --t-type:#7fb3a0;
+    --t-str:#a7cd8c;
+    --t-num:#e3b44a;
+    --t-com:#8a8a8e;
+    --t-ann:#cb9bd6;
+    --radius:14px;
+    --maxw:1180px;
+    --sidebar:268px;
+    --display:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Inter","Helvetica Neue",Helvetica,Arial,sans-serif;
+    --body:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Inter","Helvetica Neue",Helvetica,Arial,sans-serif;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+  }
+  [data-theme="dark"]{
+    --paper:#000000;
+    --paper-2:#1c1c1e;
+    --ink:#f5f5f7;
+    --ink-soft:#a1a1a6;
+    --line:#38383a;
+    --roast:#2997ff;
+    --amber:#2997ff;
+    --amber-2:#0a84ff;
+  }
+  [data-theme="dark"] .runner .out{background:#0a0a0a}
+  .themebtn3{
+    width:34px;height:34px;border-radius:9px;border:1px solid var(--line);background:var(--paper-2);
+    color:var(--ink-soft);cursor:pointer;display:flex;align-items:center;justify-content:center;
+    transition:background .15s,color .15s;position:fixed;top:16px;right:16px;z-index:90;
+  }
+  .themebtn3:hover{color:var(--ink)}
+  .themebtn3 svg{width:16px;height:16px}
+  .themebtn3 .moon{display:none}
+  [data-theme="dark"] .themebtn3 .sun{display:none}
+  [data-theme="dark"] .themebtn3 .moon{display:block}
+
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--body);
+    font-size:16px;
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--roast)}
+
+  /* scroll progress */
+  #progress{
+    position:fixed;top:0;left:0;height:3px;width:0%;
+    background:linear-gradient(90deg,var(--amber),var(--amber-2));
+    z-index:60;transition:width .12s linear;
+  }
+
+  .skip{position:absolute;left:-9999px;top:0;background:var(--ink);color:var(--paper);padding:10px 14px;border-radius:8px;z-index:80}
+  .skip:focus{left:12px;top:12px}
+
+  /* ---------- layout ---------- */
+  .shell{display:flex;max-width:var(--maxw);margin:0 auto;gap:0;align-items:flex-start}
+
+  /* ---------- sidebar ---------- */
+  .nav{
+    position:sticky;top:0;height:100vh;width:var(--sidebar);flex:0 0 var(--sidebar);
+    padding:26px 18px 40px;overflow-y:auto;border-right:1px solid var(--line);
+    background:linear-gradient(180deg,var(--paper) 0%, var(--paper-2) 100%);
+  }
+  .brand{display:flex;align-items:center;gap:11px;margin-bottom:6px;text-decoration:none;color:var(--ink)}
+  .hub-link{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;font-weight:500;color:var(--ink-soft);text-decoration:none;margin:0 0 14px;transition:color .15s;}
+  .hub-link:hover{color:var(--roast);}
+  .brand .cup{width:34px;height:34px;flex:0 0 34px}
+  .brand b{font-family:var(--display);font-weight:700;font-size:18px;letter-spacing:-.02em}
+  .brand small{display:block;font-family:var(--mono);font-size:10.5px;color:var(--ink-soft);letter-spacing:.04em}
+  .search{margin:18px 0 16px;position:relative}
+  .search input{
+    width:100%;padding:9px 12px 9px 32px;border:1px solid var(--line);border-radius:9px;
+    background:var(--paper);color:var(--ink);font-family:var(--mono);font-size:12.5px;
+  }
+  .search input:focus{outline:2px solid var(--amber);outline-offset:1px}
+  .search svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);opacity:.5}
+
+  .nav-group{margin:14px 0 4px;font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--ink-soft);padding:0 6px}
+  .nav a{
+    display:flex;gap:9px;align-items:baseline;text-decoration:none;color:var(--ink-soft);
+    font-size:13.5px;padding:6px 8px;border-radius:8px;line-height:1.35;
+  }
+  .nav a .n{font-family:var(--mono);font-size:11px;color:var(--amber);min-width:20px}
+  .nav a:hover{background:rgba(0,113,227,.08);color:var(--ink)}
+  .nav a.active{background:rgba(0,113,227,.10);color:var(--amber)}
+  .nav a.active .n{color:var(--amber-2)}
+  .nav a.hidden{display:none}
+
+  /* ---------- main ---------- */
+  .main{flex:1 1 auto;min-width:0;padding:0 clamp(20px,4vw,56px) 120px}
+
+  /* hero */
+  .hero{padding:64px 0 40px;border-bottom:1px solid var(--line)}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--amber);margin:0 0 14px}
+  .hero h1{font-family:var(--display);font-weight:700;letter-spacing:-.03em;line-height:1.02;
+    font-size:clamp(38px,6.4vw,66px);margin:0 0 18px}
+  .hero h1 .hl{color:var(--roast)}
+  .hero p.lede{font-size:clamp(16px,2vw,19px);max-width:60ch;color:var(--ink);margin:0 0 26px}
+  .hero-cta{display:flex;flex-wrap:wrap;gap:12px}
+  .btn{display:inline-flex;align-items:center;gap:8px;font-family:var(--display);font-weight:600;
+    font-size:14.5px;text-decoration:none;padding:11px 18px;border-radius:10px;border:1px solid transparent;cursor:pointer}
+  .btn-primary{background:var(--ink);color:var(--paper)}
+  .btn-primary:hover{background:var(--roast)}
+  .btn-ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+  .btn-ghost:hover{border-color:var(--roast)}
+
+  .hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:36px;align-items:center}
+  @media (max-width:880px){.hero-grid{grid-template-columns:1fr;gap:26px}}
+
+  /* run demo */
+  .runner{border-radius:var(--radius);overflow:hidden;border:1px solid var(--code-line);
+    background:var(--code-bg);box-shadow:0 30px 60px -30px rgba(0,0,0,.35)}
+  .runner .bar{display:flex;align-items:center;gap:8px;padding:11px 14px;background:var(--code-bg-2);border-bottom:1px solid var(--code-line)}
+  .dot{width:11px;height:11px;border-radius:50%}
+  .dot.r{background:#e0654d}.dot.y{background:#e0b54a}.dot.g{background:#6fb16f}
+  .runner .fname{margin-left:6px;font-family:var(--mono);font-size:12px;color:#8e8e93}
+  .runner .run{margin-left:auto;font-family:var(--display);font-weight:600;font-size:12.5px;
+    background:var(--amber);color:#ffffff;border:none;border-radius:7px;padding:5px 12px;cursor:pointer}
+  .runner .run:hover{background:var(--amber-2)}
+  .runner pre{margin:0;padding:18px 18px 6px;font-family:var(--mono);font-size:13px;line-height:1.6;color:var(--t-default);white-space:pre;overflow-x:auto;min-height:150px}
+  .runner .caret{display:inline-block;width:8px;height:16px;background:var(--amber);vertical-align:-3px;animation:blink 1s steps(1) infinite}
+  @keyframes blink{50%{opacity:0}}
+  .runner .out{border-top:1px solid var(--code-line);background:#161618;padding:12px 18px;
+    font-family:var(--mono);font-size:12.5px;color:#9bd1a8;min-height:20px}
+  .runner .out .prompt{color:#6a8f9b}
+
+  /* sections */
+  section.topic{padding:52px 0 8px;border-bottom:1px solid var(--line);scroll-margin-top:14px}
+  .crumb{font-family:var(--mono);font-size:12px;color:var(--ink-soft);letter-spacing:.02em;margin:0 0 8px}
+  .crumb .num{color:var(--amber);font-weight:700;margin-right:10px}
+  section.topic h2{font-family:var(--display);font-weight:700;letter-spacing:-.02em;
+    font-size:clamp(26px,3.4vw,34px);margin:0 0 14px;line-height:1.1}
+  section.topic h3{font-family:var(--display);font-weight:600;font-size:18px;margin:30px 0 6px}
+  section.topic p{max-width:72ch;margin:0 0 14px}
+  section.topic ul{max-width:72ch;padding-left:20px}
+  section.topic li{margin:5px 0}
+  code.inline{font-family:var(--mono);font-size:.88em;background:var(--paper-2);border:1px solid var(--line);
+    padding:1px 6px;border-radius:6px;color:var(--roast)}
+  .note{border-left:3px solid var(--amber);background:rgba(0,113,227,.06);padding:12px 16px;border-radius:0 10px 10px 0;margin:16px 0;max-width:72ch}
+  .note b{font-family:var(--display)}
+
+  /* code block */
+  .code{margin:18px 0;border-radius:var(--radius);overflow:hidden;border:1px solid var(--code-line);background:var(--code-bg)}
+  .code .bar{display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--code-bg-2);border-bottom:1px solid var(--code-line)}
+  .code .fname{margin-left:6px;font-family:var(--mono);font-size:12px;color:#8e8e93}
+  .code .copy{margin-left:auto;font-family:var(--mono);font-size:11.5px;color:#a1a1a6;background:transparent;
+    border:1px solid var(--code-line);border-radius:7px;padding:4px 10px;cursor:pointer}
+  .code .copy:hover{border-color:var(--amber);color:var(--amber-2)}
+  .code .copy.done{color:#9bd1a8;border-color:#3f6b4c}
+  .code pre{margin:0;padding:16px 18px;overflow-x:auto}
+  .code code{font-family:var(--mono);font-size:13px;line-height:1.62;color:var(--t-default);white-space:pre;display:block}
+
+  .tok-kw{color:var(--t-kw)}
+  .tok-type{color:var(--t-type)}
+  .tok-string{color:var(--t-str)}
+  .tok-number{color:var(--t-num)}
+  .tok-comment{color:var(--t-com);font-style:italic}
+  .tok-annotation{color:var(--t-ann)}
+
+  /* tables (cheat sheet) */
+  .tbl{width:100%;border-collapse:collapse;margin:14px 0;font-size:14px;max-width:760px}
+  .tbl th,.tbl td{text-align:left;padding:8px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  .tbl th{font-family:var(--display);font-weight:600;color:var(--roast)}
+  .tbl td code{font-family:var(--mono);font-size:12.5px;color:var(--roast)}
+
+  footer{max-width:var(--maxw);margin:0 auto;padding:40px clamp(20px,4vw,56px);color:var(--ink-soft);font-size:13.5px;border-top:1px solid var(--line)}
+  footer b{font-family:var(--display);color:var(--ink)}
+
+  /* mobile nav */
+  .menu-btn{display:none}
+  @media (max-width:840px){
+    .nav{position:fixed;z-index:50;left:0;top:0;transform:translateX(-100%);transition:transform .25s ease;
+      box-shadow:0 0 60px rgba(0,0,0,.25)}
+    .nav.open{transform:translateX(0)}
+    .menu-btn{display:inline-flex;position:fixed;z-index:55;top:14px;left:14px;align-items:center;gap:8px;
+      background:var(--ink);color:var(--paper);border:none;border-radius:10px;padding:9px 13px;font-family:var(--display);font-weight:600;cursor:pointer}
+    .main{padding-top:8px}
+    .hero{padding-top:64px}
+    .scrim{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:45}
+    .scrim.show{display:block}
+  }
+  @media (prefers-reduced-motion:reduce){.runner .caret{animation:none}.nav{transition:none}}
+</style>
+</head>
+<body>
+<button class="themebtn3" id="themeBtn3" aria-label="Toggle dark mode" title="Toggle dark mode">
+  <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.6M12 18.9v2.6M4.6 4.6l1.8 1.8M17.6 17.6l1.8 1.8M2.5 12h2.6M18.9 12h2.6M4.6 19.4l1.8-1.8M17.6 6.4l1.8-1.8"/></svg>
+  <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8Z"/></svg>
+</button>
+<div id="progress"></div>
+<a class="skip" href="#intro">Skip to content</a>
+<button class="menu-btn" id="menuBtn" aria-label="Open menu">☰ Topics</button>
+<div class="scrim" id="scrim"></div>
+
+<div class="shell">
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="nav" id="nav" aria-label="Topics">
+    <a href="index.html" class="hub-link">← Study Hub</a>
+    <a class="brand" href="#top">
+      <svg class="cup" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M11 19h22v12a9 9 0 0 1-9 9h-4a9 9 0 0 1-9-9V19Z" fill="#6f4a2f"/>
+        <path d="M33 21h3a5 5 0 0 1 0 10h-3" stroke="#6f4a2f" stroke-width="3" fill="none"/>
+        <path d="M17 6c-2 3 1 4 0 7M24 5c-2 3 1 4 0 7" stroke="#c97b22" stroke-width="2.4" stroke-linecap="round"/>
+      </svg>
+      <span><b>Java Handbook</b><small>learn it · with code</small></span>
+    </a>
+
+    <div class="search">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4-4"/></svg>
+      <input id="filter" type="search" placeholder="Filter topics…" aria-label="Filter topics">
+    </div>
+
+    <nav id="toc"></nav>
+  </aside>
+
+  <!-- ============ MAIN ============ -->
+  <main class="main" id="top">
+    <!-- HERO -->
+    <header class="hero">
+      <div class="hero-grid">
+        <div>
+          <p class="eyebrow">$ java -version &nbsp;//&nbsp; write once, run anywhere</p>
+          <h1>Everything in <span class="hl">Java</span>,<br>one page at a time.</h1>
+          <p class="lede">A hands-on reference from your first <code class="inline">Hello, World!</code> to streams, generics and threads. Every concept comes with code you can read, copy, and run.</p>
+          <div class="hero-cta">
+            <a class="btn btn-primary" href="#setup">Start from setup →</a>
+            <a class="btn btn-ghost" href="#cheatsheet">Jump to cheat sheet</a>
+          </div>
+        </div>
+
+        <div class="runner" id="runner">
+          <div class="bar">
+            <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+            <span class="fname">HelloWorld.java</span>
+            <button class="run" id="runBtn">▶ Run</button>
+          </div>
+          <pre id="runCode"></pre>
+          <div class="out" id="runOut"><span class="prompt">$</span> <span style="color:#8a7868">click Run</span></div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Each topic's code lives in a hidden text-block that JS reads, highlights, and renders -->
+
+    <!-- 01 -->
+    <section class="topic" id="intro" data-num="01" data-title="What is Java">
+      <p class="crumb"><span class="num">01</span>Foundations ▸ What is Java</p>
+      <h2>What is Java?</h2>
+      <p>Java is a <b>statically typed, object-oriented</b> language that compiles to platform-neutral <b>bytecode</b>. That bytecode runs on the <b>Java Virtual Machine (JVM)</b>, which is why the same compiled program runs on Windows, macOS, and Linux without changes — the famous “write once, run anywhere.”</p>
+      <ul>
+        <li><b>JDK</b> — Java Development Kit: the compiler (<code class="inline">javac</code>), tools, and the JRE. You install this to write Java.</li>
+        <li><b>JRE</b> — Java Runtime Environment: the JVM plus core libraries needed to <i>run</i> programs.</li>
+        <li><b>JVM</b> — the engine that loads, verifies, and executes bytecode, and manages memory via garbage collection.</li>
+      </ul>
+      <div class="note"><b>The flow:</b> <code class="inline">.java</code> source → <code class="inline">javac</code> compiles → <code class="inline">.class</code> bytecode → the JVM runs it.</div>
+    </section>
+
+    <!-- 02 -->
+    <section class="topic" id="setup" data-num="02" data-title="Install & Run">
+      <p class="crumb"><span class="num">02</span>Foundations ▸ Install &amp; Run</p>
+      <h2>Install &amp; run your first program</h2>
+      <p>Install a JDK (Temurin / Oracle / OpenJDK). Verify it, then compile and run from the terminal.</p>
+      <div class="code" data-lang="java"><div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">terminal</span><button class="copy">Copy</button></div><pre><code></code></pre><script type="text/x-java"># Check the compiler and runtime are installed
+java -version
+javac -version
+
+# Compile a source file into bytecode (creates HelloWorld.class)
+javac HelloWorld.java
+
+# Run the compiled class (note: no .class extension)
+java HelloWorld
+
+# Java 11+ shortcut: compile + run a single file in one step
+java HelloWorld.java</script></div>
+      <div class="code"><div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">HelloWorld.java</span><button class="copy">Copy</button></div><pre><code></code></pre><script type="text/x-java">public class HelloWorld {
+    // Execution always begins in main()
+    public static void main(String[] args) {
+        System.out.println("Hello, World!");
+    }
+}</script></div>
+    </section>
+
+    <!-- 03 -->
+    <section class="topic" id="structure" data-num="03" data-title="Program Structure">
+      <p class="crumb"><span class="num">03</span>Foundations ▸ Program Structure</p>
+      <h2>Anatomy of a program</h2>
+      <p>Every line of the entry point matters. Here is what each keyword is doing.</p>
+      <div class="code"><div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">App.java</span><button class="copy">Copy</button></div><pre><code></code></pre><script type="text/x-java">package com.example;          // optional: groups classes into a namespace
+
+import java.util.List;        // pull in classes from other packages
+
+public class App {            // file name must match the public class
+    public static void main(String[] args) {
+        //  public  -> callable from anywhere (the JVM needs this)
+        //  static  -> belongs to the class, no object required
+        //  void    -> returns nothing
+        //  String[] args -> command-line arguments
+        System.out.println("Args received: " + args.length);
+    }
+}</script></div>
+    </section>
+
+    <!-- 04 -->
+    <section class="topic" id="variables" data-num="04" data-title="Variables & Types">
+      <p class="crumb"><span class="num">04</span>Foundations ▸ Variables &amp; Types</p>
+      <h2>Variables &amp; data types</h2>
+      <p>Java has 8 <b>primitive</b> types (stored by value) and everything else is a <b>reference</b> type (objects, stored by reference).</p>
+      <div class="code"><div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">Types.java</span><button class="copy">Copy</button></div><pre><code></code></pre><script type="text/x-java">// ---- Primitives ----
+int    age      = 30;            // 32-bit integer
+long   distance = 9_000_000_000L;// 64-bit (suffix L)
+double price    = 19.99;         // 64-bit floating point
+float  ratio    = 1.5f;          // 32-bit (suffix f)
+char   grade    = 'A';           // single 16-bit character
+boolean active  = true;          // true / false
+byte   b        = 127;           // 8-bit
+short  s        = 32000;         // 16-bit
+
+// ---- Reference types ----
+String name = "Ada";             // an object, not a primitive
+int[]  nums = {1, 2, 3};
+
+// ---- Type inference (Java 10+) ----
+var count = 42;                  // compiler infers int
+var label = "items";             // compiler infers String
+
+// ---- Constants ----
+final double PI = 3.14159;       // cannot be reassigned
+
+System.out.println(name + " scored " + grade);</script></div>
+      <div class="note"><b>Tip:</b> use underscores to make big numbers readable: <code class="inline">1_000_000</code>.</div>
+    </section>
+
+    <!-- 05 -->
+    <section class="topic" id="operators" data-num="05" data-title="Operators">
+      <p class="crumb"><span class="num">05</span>Foundations ▸ Operators</p>
+      <h2>Operators</h2>
+      <div class="code"><div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">Operators.java</span><button class="copy">Copy</button></div><pre><code></code></pre><script type="text/x-java">int a = 7, b = 3;
+
+// Arithmetic
+System.out.println(a + b);   // 10
+System.out.println(a / b);   // 2  (integer division!)
+System.out.println(a % b);   // 1  (remainder)
+System.out.println(7.0 / 3); // 2.333...
+
+// Comparison  ->  boolean
+System.out.println(a > b);   // true
+System.out.println(a == b);  // false
+
+// Logical
+boolean ok = (a > 0) && (b > 0);   // AND
+boolean any = (a > 0) || (b < 0);  // OR
+boolean no  = !ok;                 // NOT
+
+// Assignment shortcuts
+a += 5;   // a = a + 5
+a++;      // increment by 1
+
+// Ternary: condition ? ifTrue : ifFalse
+String sign = (a >= 0) ? "positive" : "negative";</script></div>
+    </section>
+
+    <!-- 06 -->
+    <section class="topic" id="strings" data-num="06" data-title="Strings">
+      <p class="crumb"><span class="num">06</span>Foundations ▸ Strings</p>
+      <h2>Strings</h2>
+      <p>Strings are <b>immutable</b> objects. Building strings in a loop? Use <code class="inline">StringBuilder</code> to avoid creating throwaway objects.</p>
+      <div class="code"><div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">Strings.java</span><button class="copy">Copy</button></div><pre><code></code></pre><script type="text/x-java">String s = "Hello, Java";
+
+s.length();              // 11
+s.toUpperCase();         // "HELLO, JAVA"
+s.charAt(0);             // 'H'
+s.substring(7);          // "Java"
+s.contains("Java");      // true
+s.replace("Java", "World"); // "Hello, World"
+s.split(", ");           // ["Hello", "Java"]
+s.trim();                // remove leading/trailing spaces
+"  hi  ".strip();        // Java 11+, Unicode-aware trim
+String.join("-", "a", "b", "c"); // "a-b-c"
+
+// Compare CONTENT with equals(), never ==
+"cat".equals("cat");        // true
+"cat".equalsIgnoreCase("CAT"); // true
+
+// Formatting
+String msg = String.format("%s is %d", "age", 30);
+
+// Text block (Java 15+) — multi-line, keeps formatting
+String json = """
+    {
+      "name": "Ada",
+      "active": true
+    }""";
+
+// Efficient concatenation
+StringBuilder sb = new StringBuilder();
+for (int i = 0; i < 3; i++) sb.append(i).append(",");
+System.out.println(sb.toString()); // 0,1,2,</script></div>
+    </section>
+
+    <!-- 07 -->
+    <section class="topic" id="io" data-num="07" data-title="Input & Output">
+      <p class="crumb"><span class="num">07</span>Foundations ▸ Input &amp; Output</p>
+      <h2>Console input &amp; output</h2>
+      <div class="code"><div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">Io.java</span><button class="copy">Copy</button></div><pre><code></code></pre><script type="text/x-java">import java.util.Scanner;
+
+public class Io {
+    public static void main(String[] args) {
+        // Output
+        System.out.print("No newline. ");
+        System.out.println("With newline.");
+        System.out.printf("Pi is about %.2f%n", 3.14159); // formatted
+
+        // Input
+        Scanner in = new Scanner(System.in);
+        System.out.print("Your name: ");
+        String name = in.nextLine();
+        System.out.print("Your age: ");
+        int age = in.nextInt();
+
+        System.out.println("Hi " + name + ", next year you'll be " + (age + 1));
+        in.close();
+    }
+}</script></div>
+    </section>
+
+    <!-- 08 -->
+    <section class="topic" id="control" data-num="08" data-title="Control Flow">
+      <p class="crumb"><span class="num">08</span>Control &amp; Methods ▸ Control Flow</p>
+      <h2>Conditionals</h2>
+      <div class="code"><div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">Control.java</span><button class="copy">Copy</button></div><pre><code></code></pre><script type="text/x-java">int score = 82;
+
+if (score >= 90) {
+    System.out.println("A");
+} else if (score >= 80) {
+    System.out.println("B");
+} else {
+    System.out.println("C or below");
+}
+
+// Classic switch
+String day = "TUE";
+switch (day) {
+    case "SAT":
+    case "SUN":
+        System.out.println("Weekend");
+        break;
+    default:
+        System.out.println("Weekday");
+}
+
+// Switch expression (Java 14+) — returns a value, no break needed
+String type = switch (day) {
+    case "SAT", "SUN" -> "Weekend";
+    default           -> "Weekday";
+};
+System.out.println(type);</script></div>
+    </section>
+
+    <!-- 09 -->
+    <section class="topic" id="loops" data-num="09" data-title="Loops">
+      <p class="crumb"><span class="num">09</span>Control &amp; Methods ▸ Loops</p>
+      <h2>Loops</h2>
+      <div class="code"><div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">Loops.java</span><button class="copy">Copy</button></div><pre><code></code></pre><script type="text/x-java">// for: when you know the count
+for (int i = 0; i < 3; i++) {
+    System.out.println("i = " + i);
+}
+
+// while: repeat until a condition is false
+int n = 5;
+while (n > 0) {
+    System.out.print(n + " ");
+    n--;
+}
+
+// do-while: runs the body at least once
+int x = 0;
+do {
+    System.out.println("runs once minimum");
+} while (x > 0);
+
+// enhanced for ("for-each"): iterate a collection/array
+int[] nums = {10, 20, 30};
+for (int value : nums) {
+    System.out.println(value);
+}
+
+// break stops the loop; continue skips to the next iteration
+for (int i = 0; i < 10; i++) {
+    if (i == 5) break;
+    if (i % 2 == 0) continue;
+    System.out.println("odd: " + i);
+}</script></div>
+    </section>
+
+    <!-- 10 -->
+    <section class="topic" id="methods" data-num="10" data-title="Methods">
+      <p class="crumb"><span class="num">10</span>Control &amp; Methods ▸ Methods</p>
+      <h2>Methods</h2>
+      <p>Methods package reusable behavior. They can be <b>overloaded</b> (same name, different parameters) and accept a variable number of arguments with <b>varargs</b>.</p>
+      <div class="code"><div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">Methods.java</span><button class="copy">Copy</button></div><pre><code></code></pre><script type="text/x-java">public class Methods {
+
+    // returns a value
+    static int square(int n) {
+        return n * n;
+    }
+
+    // overloading: same name, different signature
+    static double square(double n) { return n * n; }
+
+    // varargs: accept any number of ints
+    static int sum(int... values) {
+        int total = 0;
+        for (int v : values) total += v;
+        return total;
+    }
+
+    // recursion: a method calling itself
+    static long factorial(int n) {
+        return (n <= 1) ? 1 : n * factorial(n - 1);
+    }
+
+    public static void main(String[] args) {
+        System.out.println(square(5));        // 25
+        System.out.println(square(2.5));      // 6.25
+        System.out.println(sum(1, 2, 3, 4));  // 10
+        System.out.println(factorial(5));     // 120
+    }
+}</script></div>
+    </section>
+
+    <!-- 11 -->
+    <section class="topic" id="arrays" data-num="11" data-title="Arrays">
+      <p class="crumb"><span class="num">11</span>Control &amp; Methods ▸ Arrays</p>
+      <h2>Arrays</h2>
+      <p>Arrays are fixed-size, indexed from 0. For a resizable list, jump to <a href="#collections">Collections</a>.</p>
+      <div class="code"><div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">Arrays.java</span><button class="copy">Copy</button></div><pre><code></code></pre><script type="text/x-java">import java.util.Arrays;
+
+// Declare + initialize
+int[] nums = {5, 2, 8, 1};
+String[] names = new String[3];   // [null, null, null]
+names[0] = "Ada";
+
+System.out.println(nums.length);  // 4
+System.out.println(nums[2]);      // 8
+
+// Useful Arrays utilities
+Arrays.sort(nums);                // [1, 2, 5, 8]
+System.out.println(Arrays.toString(nums));
+int idx = Arrays.binarySearch(nums, 5); // index of 5
+
+// 2D array (a grid / matrix)
+int[][] grid = {
+    {1, 2, 3},
+    {4, 5, 6}
+};
+System.out.println(grid[1][2]);   // 6
+for (int[] row : grid) {
+    System.out.println(Arrays.toString(row));
+}</script></div>
+    </section>
+
+    <!-- 12 -->
+    <section class="topic" id="oop" data-num="12" data-title="Classes & Objects">
+      <p class="crumb"><span class="num">12</span>Object-Oriented ▸ Classes &amp; Objects</p>
+      <h2>Classes &amp; objects</h2>
+      <p>A class is a blueprint; an object is an instance of it. <b>Encapsulation</b> means keeping fields <code class="inline">private</code> and exposing controlled access.</p>
+      <div class="code"><div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">BankAccount.java</span><button class="copy">Copy</button></div><pre><code></code></pre><script type="text/x-java">public class BankAccount {
+    private String owner;     // private = hidden from outside
+    private double balance;
+
+    // Constructor: runs when you create the object
+    public BankAccount(String owner, double opening) {
+        this.owner = owner;       // "this" = the current object
+        this.balance = opening;
+    }
+
+    // Behavior
+    public void deposit(double amount) {
+        if (amount > 0) balance += amount;
+    }
+
+    public boolean withdraw(double amount) {
+        if (amount <= balance) {
+            balance -= amount;
+            return true;
+        }
+        return false;
+    }
+
+    // Getter (controlled read access)
+    public double getBalance() { return balance; }
+
+    public static void main(String[] args) {
+        BankAccount acc = new BankAccount("Ada", 100);
+        acc.deposit(50);
+        acc.withdraw(30);
+        System.out.println(acc.getBalance()); // 120.0
+    }
+}</script></div>
+    </section>
+
+    <!-- 13 -->
+    <section class="topic" id="inheritance" data-num="13" data-title="Inheritance & Polymorphism">
+      <p class="crumb"><span class="num">13</span>Object-Oriented ▸ Inheritance &amp; Polymorphism</p>
+      <h2>Inheritance &amp; polymorphism</h2>
+      <p>A subclass <code class="inline">extends</code> a superclass to reuse and specialize behavior. <b>Polymorphism</b> lets one reference type point to many concrete types and call the right overridden method.</p>
+      <div class="code"><div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">Animals.java</span><button class="copy">Copy</button></div><pre><code></code></pre><script type="text/x-java">class Animal {
+    protected String name;
+    Animal(String name) { this.name = name; }
+
+    String speak() { return name + " makes a sound"; }
+}
+
+class Dog extends Animal {
+    Dog(String name) { super(name); }   // call parent constructor
+
+    @Override                            // override the parent method
+    String speak() { return name + " says Woof"; }
+}
+
+class Cat extends Animal {
+    Cat(String name) { super(name); }
+    @Override String speak() { return name + " says Meow"; }
+}
+
+public class Animals {
+    public static void main(String[] args) {
+        // Polymorphism: an Animal reference, different real objects
+        Animal[] zoo = { new Dog("Rex"), new Cat("Mia"), new Animal("Thing") };
+        for (Animal a : zoo) {
+            System.out.println(a.speak()); // calls the correct version
+        }
+    }
+}</script></div>
+    </section>
+
+    <!-- 14 -->
+    <section class="topic" id="abstraction" data-num="14" data-title="Abstraction & Interfaces">
+      <p class="crumb"><span class="num">14</span>Object-Oriented ▸ Abstraction &amp; Interfaces</p>
+      <h2>Abstract classes &amp; interfaces</h2>
+      <p>An <b>abstract class</b> can hold shared state plus unimplemented methods. An <b>interface</b> is a pure contract — a class can implement many of them.</p>
+      <div class="code"><div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">Shapes.java</span><button class="copy">Copy</button></div><pre><code></code></pre><script type="text/x-java">// Interface = a contract of capabilities
+interface Drawable {
+    void draw();                       // abstract by default
+    default String hint() {            // default method (Java 8+)
+        return "I can be drawn";
+    }
+}
+
+// Abstract class = partial implementation, cannot be instantiated
+abstract class Shape implements Drawable {
+    abstract double area();            // subclasses must define this
+}
+
+class Circle extends Shape {
+    double r;
+    Circle(double r) { this.r = r; }
+
+    @Override double area() { return Math.PI * r * r; }
+    @Override public void draw() { System.out.println("Drawing a circle"); }
+}
+
+public class Shapes {
+    public static void main(String[] args) {
+        Shape c = new Circle(2);
+        c.draw();
+        System.out.printf("area = %.2f%n", c.area());
+        System.out.println(c.hint());
+    }
+}</script></div>
+    </section>
+
+    <!-- 15 -->
+    <section class="topic" id="exceptions" data-num="15" data-title="Exceptions">
+      <p class="crumb"><span class="num">15</span>Robust Code ▸ Exceptions</p>
+      <h2>Exception handling</h2>
+      <p>Wrap risky code in <code class="inline">try</code>, react in <code class="inline">catch</code>, and clean up in <code class="inline">finally</code>. <b>try-with-resources</b> auto-closes things like files.</p>
+      <div class="code"><div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">Exceptions.java</span><button class="copy">Copy</button></div><pre><code></code></pre><script type="text/x-java">// Custom checked exception
+class InsufficientFundsException extends Exception {
+    InsufficientFundsException(String msg) { super(msg); }
+}
+
+public class Exceptions {
+
+    static void withdraw(double balance, double amount)
+            throws InsufficientFundsException {
+        if (amount > balance) {
+            throw new InsufficientFundsException("Not enough money");
+        }
+    }
+
+    public static void main(String[] args) {
+        try {
+            int[] a = new int[2];
+            System.out.println(a[5]);          // throws at runtime
+        } catch (ArrayIndexOutOfBoundsException e) {
+            System.out.println("Caught: " + e.getMessage());
+        } finally {
+            System.out.println("Always runs (cleanup)");
+        }
+
+        try {
+            withdraw(100, 250);
+        } catch (InsufficientFundsException e) {
+            System.out.println("Declined: " + e.getMessage());
+        }
+    }
+}</script></div>
+    </section>
+
+    <!-- 16 -->
+    <section class="topic" id="collections" data-num="16" data-title="Collections">
+      <p class="crumb"><span class="num">16</span>Robust Code ▸ Collections</p>
+      <h2>Collections framework</h2>
+      <p>Resizable, feature-rich data structures. The big three: <b>List</b> (ordered), <b>Set</b> (unique), <b>Map</b> (key→value).</p>
+      <div class="code"><div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">Collections.java</span><button class="copy">Copy</button></div><pre><code></code></pre><script type="text/x-java">import java.util.*;
+
+// List: ordered, allows duplicates
+List<String> fruits = new ArrayList<>();
+fruits.add("apple");
+fruits.add("banana");
+fruits.add("apple");
+System.out.println(fruits.get(0));     // apple
+System.out.println(fruits.size());     // 3
+
+// Set: no duplicates
+Set<String> unique = new HashSet<>(fruits);
+System.out.println(unique);            // [banana, apple] (order varies)
+
+// Map: key -> value
+Map<String, Integer> ages = new HashMap<>();
+ages.put("Ada", 36);
+ages.put("Alan", 41);
+System.out.println(ages.get("Ada"));   // 36
+ages.getOrDefault("Bob", 0);           // 0 if missing
+
+// Iterating
+for (String f : fruits) System.out.println(f);
+for (Map.Entry<String, Integer> e : ages.entrySet()) {
+    System.out.println(e.getKey() + " -> " + e.getValue());
+}</script></div>
+    </section>
+
+    <!-- 17 -->
+    <section class="topic" id="generics" data-num="17" data-title="Generics">
+      <p class="crumb"><span class="num">17</span>Robust Code ▸ Generics</p>
+      <h2>Generics</h2>
+      <p>Generics let a class or method work with a <i>type parameter</i>, giving you compile-time type safety without casting.</p>
+      <div class="code"><div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">Generics.java</span><button class="copy">Copy</button></div><pre><code></code></pre><script type="text/x-java">// A generic container — T is a placeholder for any type
+class Box<T> {
+    private T value;
+    public void set(T value) { this.value = value; }
+    public T get() { return value; }
+}
+
+public class Generics {
+
+    // A generic method
+    static <E> E first(List<E> list) {
+        return list.get(0);
+    }
+
+    public static void main(String[] args) {
+        Box<String> b = new Box<>();
+        b.set("hello");
+        String s = b.get();            // no cast needed
+        System.out.println(s.toUpperCase());
+
+        List<Integer> nums = List.of(3, 4, 5);
+        System.out.println(first(nums)); // 3
+    }
+}</script></div>
+    </section>
+
+    <!-- 18 -->
+    <section class="topic" id="lambdas" data-num="18" data-title="Lambdas & Streams">
+      <p class="crumb"><span class="num">18</span>Modern Java ▸ Lambdas &amp; Streams</p>
+      <h2>Lambdas &amp; Streams</h2>
+      <p>Lambdas are compact anonymous functions. <b>Streams</b> let you process collections declaratively — filter, map, and reduce data in a pipeline.</p>
+      <div class="code"><div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">Streams.java</span><button class="copy">Copy</button></div><pre><code></code></pre><script type="text/x-java">import java.util.*;
+import java.util.stream.*;
+
+public class Streams {
+    public static void main(String[] args) {
+
+        // Lambda implementing a functional interface
+        Runnable task = () -> System.out.println("running");
+        task.run();
+
+        List<String> names = List.of("Ada", "Alan", "Grace", "Bob");
+
+        // Stream pipeline: filter -> sort -> map -> collect
+        List<String> result = names.stream()
+            .filter(n -> n.length() > 3)        // keep long names
+            .sorted()                            // alphabetical
+            .map(String::toUpperCase)            // method reference
+            .collect(Collectors.toList());
+        System.out.println(result);              // [ALAN, GRACE]
+
+        // Aggregations
+        long count = names.stream().filter(n -> n.startsWith("A")).count();
+        int totalLen = names.stream().mapToInt(String::length).sum();
+        System.out.println("A-names: " + count + ", total chars: " + totalLen);
+
+        // Group into a Map
+        Map<Integer, List<String>> byLength = names.stream()
+            .collect(Collectors.groupingBy(String::length));
+        System.out.println(byLength);
+
+        // Optional: a safe "maybe a value" container
+        Optional<String> longest = names.stream()
+            .max(Comparator.comparingInt(String::length));
+        longest.ifPresent(System.out::println);  // Grace
+    }
+}</script></div>
+    </section>
+
+    <!-- 19 -->
+    <section class="topic" id="fileio" data-num="19" data-title="File I/O">
+      <p class="crumb"><span class="num">19</span>Modern Java ▸ File I/O</p>
+      <h2>Reading &amp; writing files</h2>
+      <p>The modern <code class="inline">java.nio.file</code> API makes file work concise. try-with-resources guarantees the stream is closed.</p>
+      <div class="code"><div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">Files.java</span><button class="copy">Copy</button></div><pre><code></code></pre><script type="text/x-java">import java.io.*;
+import java.nio.file.*;
+import java.util.List;
+
+public class FilesDemo {
+    public static void main(String[] args) throws IOException {
+        Path path = Path.of("notes.txt");
+
+        // Write (simple, whole-file)
+        Files.writeString(path, "line one\nline two\n");
+
+        // Read whole file
+        String text = Files.readString(path);
+        System.out.println(text);
+
+        // Read line by line
+        List<String> lines = Files.readAllLines(path);
+        System.out.println("Lines: " + lines.size());
+
+        // Buffered reading for large files (auto-closed)
+        try (BufferedReader br = Files.newBufferedReader(path)) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                System.out.println(">> " + line);
+            }
+        }
+    }
+}</script></div>
+    </section>
+
+    <!-- 20 -->
+    <section class="topic" id="concurrency" data-num="20" data-title="Concurrency">
+      <p class="crumb"><span class="num">20</span>Modern Java ▸ Concurrency</p>
+      <h2>Threads &amp; concurrency</h2>
+      <p>Run work in parallel with threads. Prefer an <code class="inline">ExecutorService</code> over managing raw threads, and guard shared state to avoid race conditions.</p>
+      <div class="code"><div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">Concurrency.java</span><button class="copy">Copy</button></div><pre><code></code></pre><script type="text/x-java">import java.util.concurrent.*;
+
+public class Concurrency {
+
+    public static void main(String[] args) throws Exception {
+
+        // 1) A thread from a lambda (Runnable)
+        Thread t = new Thread(() -> System.out.println("hi from thread"));
+        t.start();
+        t.join();   // wait for it to finish
+
+        // 2) A pool of worker threads
+        ExecutorService pool = Executors.newFixedThreadPool(3);
+
+        Future<Integer> result = pool.submit(() -> {
+            int sum = 0;
+            for (int i = 1; i <= 100; i++) sum += i;
+            return sum;            // runs on a worker thread
+        });
+        System.out.println("Sum = " + result.get()); // 5050
+
+        pool.shutdown();
+    }
+}
+
+// Protecting shared state
+class Counter {
+    private int count = 0;
+    public synchronized void inc() { count++; } // one thread at a time
+    public synchronized int get() { return count; }
+}</script></div>
+    </section>
+
+    <!-- 21 -->
+    <section class="topic" id="modern" data-num="21" data-title="Modern Java">
+      <p class="crumb"><span class="num">21</span>Modern Java ▸ New Features</p>
+      <h2>Modern Java features</h2>
+      <p>Recent versions trimmed boilerplate. Here are the ones you will reach for constantly.</p>
+      <div class="code"><div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="fname">Modern.java</span><button class="copy">Copy</button></div><pre><code></code></pre><script type="text/x-java">import java.util.List;
+
+public class Modern {
+
+    // record (Java 16+): immutable data carrier.
+    // Auto-generates constructor, getters, equals, hashCode, toString.
+    record Point(int x, int y) {}
+
+    // enum: a fixed set of constants, can hold data + methods
+    enum Planet {
+        EARTH(9.8), MARS(3.7);
+        final double gravity;
+        Planet(double g) { this.gravity = g; }
+    }
+
+    sealed interface Vehicle permits Car, Bike {}   // restricts subtypes
+    record Car(int doors) implements Vehicle {}
+    record Bike(boolean electric) implements Vehicle {}
+
+    public static void main(String[] args) {
+        Point p = new Point(3, 4);
+        System.out.println(p);         // Point[x=3, y=4]
+        System.out.println(p.x());     // 3
+
+        System.out.println(Planet.MARS.gravity); // 3.7
+
+        // Pattern matching in switch (Java 21+)
+        Vehicle v = new Car(4);
+        String desc = switch (v) {
+            case Car c  -> "Car with " + c.doors() + " doors";
+            case Bike b -> "Bike (electric=" + b.electric() + ")";
+        };
+        System.out.println(desc);
+
+        // var + enhanced for
+        var items = List.of("a", "b", "c");
+        for (var item : items) System.out.print(item);
+    }
+}</script></div>
+    </section>
+
+    <!-- 22 -->
+    <section class="topic" id="cheatsheet" data-num="22" data-title="Cheat Sheet">
+      <p class="crumb"><span class="num">22</span>Reference ▸ Cheat Sheet</p>
+      <h2>Quick cheat sheet</h2>
+
+      <h3>Primitive types</h3>
+      <table class="tbl">
+        <tr><th>Type</th><th>Size</th><th>Example</th></tr>
+        <tr><td><code>byte</code></td><td>8-bit</td><td><code>byte b = 100;</code></td></tr>
+        <tr><td><code>int</code></td><td>32-bit</td><td><code>int i = 42;</code></td></tr>
+        <tr><td><code>long</code></td><td>64-bit</td><td><code>long l = 99L;</code></td></tr>
+        <tr><td><code>double</code></td><td>64-bit float</td><td><code>double d = 3.14;</code></td></tr>
+        <tr><td><code>boolean</code></td><td>1-bit</td><td><code>boolean ok = true;</code></td></tr>
+        <tr><td><code>char</code></td><td>16-bit</td><td><code>char c = 'A';</code></td></tr>
+      </table>
+
+      <h3>Access modifiers</h3>
+      <table class="tbl">
+        <tr><th>Modifier</th><th>Visible from</th></tr>
+        <tr><td><code>public</code></td><td>anywhere</td></tr>
+        <tr><td><code>protected</code></td><td>same package + subclasses</td></tr>
+        <tr><td><i>(default)</i></td><td>same package only</td></tr>
+        <tr><td><code>private</code></td><td>same class only</td></tr>
+      </table>
+
+      <h3>Collections at a glance</h3>
+      <table class="tbl">
+        <tr><th>Need</th><th>Use</th></tr>
+        <tr><td>Ordered, indexable list</td><td><code>ArrayList</code></td></tr>
+        <tr><td>Unique elements</td><td><code>HashSet</code></td></tr>
+        <tr><td>Key → value lookup</td><td><code>HashMap</code></td></tr>
+        <tr><td>Sorted keys</td><td><code>TreeMap</code></td></tr>
+        <tr><td>Queue / stack</td><td><code>ArrayDeque</code></td></tr>
+      </table>
+
+      <div class="note"><b>Golden rules:</b> compare objects with <code class="inline">.equals()</code> not <code class="inline">==</code>; close resources with try-with-resources; prefer interfaces (<code class="inline">List</code>) over concrete types (<code class="inline">ArrayList</code>) in declarations; keep fields <code class="inline">private</code>.</div>
+    </section>
+
+  </main>
+</div>
+
+<footer>
+  <p><b>The Java Handbook</b> — a self-contained reference. Every snippet is standard Java you can paste into a <code class="inline">.java</code> file and compile with <code class="inline">javac</code>.</p>
+  <p style="margin-top:6px;opacity:.8">Compile: <code class="inline">javac File.java</code> &nbsp;·&nbsp; Run: <code class="inline">java File</code> &nbsp;·&nbsp; One-shot (Java 11+): <code class="inline">java File.java</code></p>
+</footer>
+
+<script>
+/* ---------------- Lightweight Java syntax highlighter ---------------- */
+(function () {
+  var KEYWORDS = ("abstract assert boolean break byte case catch char class const continue default do double " +
+    "else enum extends final finally float for goto if implements import instanceof int interface long native " +
+    "new package private protected public return short static strictfp super switch synchronized this throw throws " +
+    "transient try void volatile while var record yield sealed permits non-sealed true false null").split(/\s+/);
+  var KW_RE = new RegExp("\\b(" + KEYWORDS.join("|") + ")\\b", "g");
+
+  function highlight(code) {
+    // 1) escape HTML
+    code = code.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    // 2) stash comments / strings / chars / annotations / numbers so later regexes skip them
+    var store = [];
+    function stash(cls, text) {
+      var id = store.length;
+      store.push('<span class="tok-' + cls + '">' + text + "</span>");
+      return "\u0000" + id + "\u0000";
+    }
+    code = code.replace(/\/\*[\s\S]*?\*\//g, function (m) { return stash("comment", m); });
+    code = code.replace(/(^|[^:])\/\/[^\n]*/g, function (m, p1) { return p1 + stash("comment", m.slice(p1.length)); });
+    code = code.replace(/"(?:\\.|[^"\\\n])*"/g, function (m) { return stash("string", m); });
+    code = code.replace(/'(?:\\.|[^'\\\n])*'/g, function (m) { return stash("string", m); });
+    code = code.replace(/@\w+/g, function (m) { return stash("annotation", m); });
+    code = code.replace(/\b(0[xX][0-9a-fA-F_]+|\d[\d_]*\.?[\d_]*(?:[eE][+-]?\d+)?[fFdDlL]?)\b/g,
+      function (m) { return stash("number", m); });
+    // 3) keywords + capitalized types on the remaining text
+    code = code.replace(KW_RE, function (m) { return '<span class="tok-kw">' + m + "</span>"; });
+    code = code.replace(/\b([A-Z][A-Za-z0-9_]*)\b/g, function (m) { return '<span class="tok-type">' + m + "</span>"; });
+    // 4) restore stashed tokens
+    code = code.replace(/\u0000(\d+)\u0000/g, function (m, i) { return store[+i]; });
+    return code;
+  }
+
+  document.querySelectorAll(".code").forEach(function (block) {
+    var src = block.querySelector('script[type="text/x-java"]');
+    if (!src) return;
+    var raw = src.textContent.replace(/^\n/, "").replace(/\s+$/, "");
+    var codeEl = block.querySelector("code");
+    var lang = block.getAttribute("data-lang");
+    // terminal blocks: show plain, don't Java-highlight shell
+    codeEl.innerHTML = (lang === "java" || block.querySelector(".fname").textContent.indexOf("terminal") > -1)
+      ? raw.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+      : highlight(raw);
+    // copy button
+    var btn = block.querySelector(".copy");
+    if (btn) {
+      btn.addEventListener("click", function () {
+        navigator.clipboard.writeText(raw).then(function () {
+          btn.textContent = "Copied ✓"; btn.classList.add("done");
+          setTimeout(function () { btn.textContent = "Copy"; btn.classList.remove("done"); }, 1400);
+        });
+      });
+    }
+  });
+})();
+
+/* ---------------- Build the sidebar table of contents ---------------- */
+(function () {
+  var groups = {};
+  var order = [];
+  document.querySelectorAll("section.topic").forEach(function (s) {
+    var crumb = s.querySelector(".crumb").textContent;
+    var group = crumb.split("▸")[0].replace(/^\s*\d+\s*/, "").trim();
+    if (!groups[group]) { groups[group] = []; order.push(group); }
+    groups[group].push({ id: s.id, num: s.dataset.num, title: s.dataset.title });
+  });
+  var toc = document.getElementById("toc");
+  order.forEach(function (g) {
+    var label = document.createElement("div");
+    label.className = "nav-group"; label.textContent = g;
+    toc.appendChild(label);
+    groups[g].forEach(function (item) {
+      var a = document.createElement("a");
+      a.href = "#" + item.id;
+      a.dataset.id = item.id;
+      a.innerHTML = '<span class="n">' + item.num + '</span><span class="lbl">' + item.title + "</span>";
+      toc.appendChild(a);
+    });
+  });
+
+  /* active-section highlight on scroll */
+  var links = {};
+  toc.querySelectorAll("a").forEach(function (a) { links[a.dataset.id] = a; });
+  var obs = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (e.isIntersecting) {
+        Object.values(links).forEach(function (l) { l.classList.remove("active"); });
+        if (links[e.target.id]) links[e.target.id].classList.add("active");
+      }
+    });
+  }, { rootMargin: "-10% 0px -75% 0px", threshold: 0 });
+  document.querySelectorAll("section.topic").forEach(function (s) { obs.observe(s); });
+
+  /* filter box */
+  var filter = document.getElementById("filter");
+  filter.addEventListener("input", function () {
+    var q = filter.value.toLowerCase().trim();
+    toc.querySelectorAll("a").forEach(function (a) {
+      var hit = a.textContent.toLowerCase().indexOf(q) > -1;
+      a.classList.toggle("hidden", q && !hit);
+    });
+    toc.querySelectorAll(".nav-group").forEach(function (g) {
+      // hide a group label if all its links are hidden
+      var sib = g.nextElementSibling, anyVisible = false;
+      while (sib && sib.tagName === "A") {
+        if (!sib.classList.contains("hidden")) anyVisible = true;
+        sib = sib.nextElementSibling;
+      }
+      g.style.display = anyVisible || !q ? "" : "none";
+    });
+  });
+})();
+
+/* ---------------- Mobile drawer ---------------- */
+(function () {
+  var nav = document.getElementById("nav");
+  var btn = document.getElementById("menuBtn");
+  var scrim = document.getElementById("scrim");
+  function close() { nav.classList.remove("open"); scrim.classList.remove("show"); }
+  btn.addEventListener("click", function () {
+    nav.classList.toggle("open"); scrim.classList.toggle("show");
+  });
+  scrim.addEventListener("click", close);
+  nav.addEventListener("click", function (e) { if (e.target.closest("a")) close(); });
+})();
+
+/* ---------------- Scroll progress bar ---------------- */
+(function () {
+  var bar = document.getElementById("progress");
+  function update() {
+    var h = document.documentElement;
+    var max = h.scrollHeight - h.clientHeight;
+    bar.style.width = (max > 0 ? (h.scrollTop / max) * 100 : 0) + "%";
+  }
+  window.addEventListener("scroll", update, { passive: true });
+  update();
+})();
+
+/* ---------------- Hero "Run" demo (typewriter, then output) ---------------- */
+(function () {
+  var codeEl = document.getElementById("runCode");
+  var outEl = document.getElementById("runOut");
+  var runBtn = document.getElementById("runBtn");
+  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  var src =
+'public class HelloWorld {\n' +
+'    public static void main(String[] args) {\n' +
+'        for (int i = 1; i <= 3; i++) {\n' +
+'            System.out.println("Hello, World! " + i);\n' +
+'        }\n' +
+'    }\n' +
+'}';
+
+  function colorize(text) {
+    // reuse a tiny highlight pass (escape + keyword/string/number)
+    text = text.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+    var store = [];
+    text = text.replace(/"(?:\\.|[^"\\\n])*"/g, function(m){store.push('<span class="tok-string">'+m+'</span>');return "\u0000"+(store.length-1)+"\u0000";});
+    text = text.replace(/\b(\d+)\b/g, function(m){store.push('<span class="tok-number">'+m+'</span>');return "\u0000"+(store.length-1)+"\u0000";});
+    text = text.replace(/\b(public|class|static|void|int|for|new|return)\b/g, '<span class="tok-kw">$1</span>');
+    text = text.replace(/\b([A-Z][A-Za-z0-9_]*)\b/g, '<span class="tok-type">$1</span>');
+    text = text.replace(/\u0000(\d+)\u0000/g, function(m,i){return store[+i];});
+    return text;
+  }
+
+  function showOutput() {
+    outEl.innerHTML =
+      '<span class="prompt">$ java HelloWorld</span>\n' +
+      'Hello, World! 1\nHello, World! 2\nHello, World! 3';
+    outEl.style.whiteSpace = "pre";
+  }
+
+  function instant() {
+    codeEl.innerHTML = colorize(src);
+    showOutput();
+  }
+
+  var typing = false;
+  function typeOut() {
+    if (typing) return;
+    typing = true;
+    outEl.innerHTML = '<span class="prompt">$</span> <span style="color:#8a7868">compiling…</span>';
+    var i = 0;
+    function step() {
+      i++;
+      codeEl.innerHTML = colorize(src.slice(0, i)) + '<span class="caret"></span>';
+      if (i < src.length) {
+        setTimeout(step, 12);
+      } else {
+        codeEl.innerHTML = colorize(src);
+        setTimeout(function () { showOutput(); typing = false; }, 350);
+      }
+    }
+    step();
+  }
+
+  // initial render: show the code, await Run
+  codeEl.innerHTML = colorize(src);
+  runBtn.addEventListener("click", function () { reduce ? instant() : typeOut(); });
+})();
+
+/* ---------- theme ---------- */
+(function(){
+  function getSaved(){ try{ return localStorage.getItem('javahandbook_theme'); }catch(e){ return null; } }
+  function setSaved(t){ try{ localStorage.setItem('javahandbook_theme', t); }catch(e){} }
+  const saved = getSaved() || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', saved);
+  const btn = document.getElementById('themeBtn3');
+  if(btn){
+    btn.addEventListener('click', function(){
+      const now = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', now);
+      setSaved(now);
+    });
+  }
+})();
+</script>
+</body>
+</html>

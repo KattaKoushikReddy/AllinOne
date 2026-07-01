@@ -1,0 +1,1253 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Synapse — master AI from scratch</title>
+<style>
+  :root{
+    --bg:#fbfbfd; --card:#ffffff; --ink:#1d1d1f; --muted:#6e6e73; --muted-2:#86868b;
+    --line:#d2d2d7; --line-soft:#e8e8ed;
+    --blue:#0071e3; --blue-2:#0077ed; --blue-soft:#ebf3ff; --blue-ink:#0058b0;
+    --green:#34c759; --green-soft:#e7f7ec; --green-ink:#1d7a37;
+    --amber-soft:#fdf0e0; --amber-ink:#9a5b00;
+    --rad:18px; --rad-sm:12px;
+    --shadow:0 4px 24px rgba(0,0,0,.06); --shadow-lg:0 12px 48px rgba(0,0,0,.12);
+    --font:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue",Helvetica,Arial,sans-serif;
+  }
+  [data-theme="dark"]{
+    --bg:#000000; --card:#1c1c1e; --ink:#f5f5f7; --muted:#a1a1a6; --muted-2:#86868b;
+    --line:#48484a; --line-soft:#2c2c2e;
+    --blue:#2997ff; --blue-2:#0a84ff; --blue-soft:rgba(41,151,255,.16); --blue-ink:#7cc0ff;
+    --green:#30d158; --green-soft:rgba(48,209,88,.16); --green-ink:#4edb7a;
+    --amber-soft:rgba(227,167,60,.16); --amber-ink:#e3a73c;
+    --shadow:0 4px 24px rgba(0,0,0,.5); --shadow-lg:0 12px 48px rgba(0,0,0,.6);
+  }
+  [data-theme="dark"] nav{background:rgba(0,0,0,.72)}
+  [data-theme="dark"] .cmp-nav{background:rgba(0,0,0,.82)}
+  [data-theme="dark"] .seg{background:rgba(120,120,128,.24)}
+  [data-theme="dark"] .seg button.on{background:#2c2c2e}
+  .themebtn2{
+    width:34px;height:34px;border-radius:9px;border:1px solid var(--line);background:var(--card);
+    color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;
+    flex:none;transition:background .15s,color .15s;margin-right:6px;
+  }
+  .themebtn2:hover{color:var(--ink)}
+  .themebtn2 svg{width:16px;height:16px}
+  .themebtn2 .moon{display:none}
+  [data-theme="dark"] .themebtn2 .sun{display:none}
+  [data-theme="dark"] .themebtn2 .moon{display:block}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;min-height:100%}
+  body{background:var(--bg);color:var(--ink);font-family:var(--font);-webkit-font-smoothing:antialiased;line-height:1.5}
+
+  nav{position:sticky;top:0;z-index:50;background:rgba(245,245,247,.72);
+    backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);
+    border-bottom:1px solid var(--line-soft)}
+  .nav-in{max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:16px;padding:0 clamp(14px,4vw,32px);height:54px}
+  .brand{display:flex;align-items:center;gap:9px;font-weight:600;font-size:17px;letter-spacing:-.02em;margin-right:auto}
+  .hub-btn{display:flex;align-items:center;font-size:13px;font-weight:500;color:var(--muted);text-decoration:none;margin-right:14px;padding:6px 10px;border-radius:8px;transition:background .15s,color .15s;white-space:nowrap}
+  .hub-btn:hover{background:rgba(120,120,128,.12);color:var(--ink)}
+  .brand svg{width:24px;height:24px}
+  .seg{display:flex;background:rgba(120,120,128,.12);border-radius:9px;padding:2px;font-size:13px;max-width:100%;flex:1 1 auto;min-width:0;overflow-x:auto;scrollbar-width:none}
+  .seg::-webkit-scrollbar{display:none}
+  .seg button{border:none;background:none;color:var(--ink);padding:5px 14px;border-radius:7px;cursor:pointer;font-family:inherit;font-weight:500;transition:.2s;white-space:nowrap}
+  .seg button.on{background:var(--card);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+  .progress-mini{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .pm-track{width:60px;height:5px;background:rgba(120,120,128,.2);border-radius:99px;overflow:hidden}
+  .pm-fill{height:100%;width:0;background:var(--green);border-radius:99px;transition:width .5s cubic-bezier(.3,1,.4,1)}
+  @media (max-width:720px){.progress-mini{display:none}}
+  @media (max-width:560px){.nav-in{gap:10px}.seg{font-size:12px}.seg button{padding:6px 10px}}
+  @media (max-width:430px){.brand .bn{display:none}.seg button{padding:6px 9px}}
+
+  .hero{max-width:1100px;margin:0 auto;padding:60px clamp(16px,4vw,32px) 22px;text-align:center}
+  .hero h1{font-size:clamp(33px,6vw,56px);font-weight:700;letter-spacing:-.035em;margin:0 0 14px;line-height:1.05}
+  .hero p{font-size:clamp(16px,2.4vw,21px);color:var(--muted);max-width:640px;margin:0 auto;letter-spacing:-.01em}
+  .stats{display:flex;gap:30px;justify-content:center;flex-wrap:wrap;margin:30px 0 4px}
+  .stat b{display:block;font-size:26px;font-weight:700;letter-spacing:-.02em}
+  .stat span{font-size:13px;color:var(--muted)}
+  .tools{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:26px}
+  .field{position:relative}
+  .field svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);opacity:.4}
+  input[type=search]{font-family:inherit;font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:11px;padding:10px 14px 10px 36px;width:230px;outline:none;color:var(--ink)}
+  input[type=search]:focus{border-color:var(--blue);box-shadow:0 0 0 4px rgba(0,113,227,.14)}
+  select,.btn{font-family:inherit;font-size:14px;background:var(--card);border:1px solid var(--line);border-radius:11px;padding:10px 14px;color:var(--ink);cursor:pointer;outline:none;font-weight:500}
+  .btn:hover{background:#fafafa}
+
+  main{max-width:860px;margin:0 auto;padding:6px clamp(16px,4vw,28px) 120px}
+  .howto{display:flex;align-items:center;gap:11px;justify-content:center;max-width:660px;margin:6px auto 30px;background:var(--card);border:1px solid var(--line-soft);border-radius:14px;padding:13px 18px;font-size:13.5px;color:var(--muted);line-height:1.5;box-shadow:var(--shadow)}
+  .howto svg{flex:none;color:var(--blue)}
+  .timeline{position:relative}
+  .tl-line{position:absolute;left:19px;top:20px;bottom:20px;width:2px;background:var(--line-soft);z-index:0}
+  .stage{position:relative;z-index:1;margin-bottom:14px}
+  .stage-row{display:flex;align-items:center;gap:16px;cursor:pointer;user-select:none;outline:none}
+  .stage-row:focus-visible .stage-card{box-shadow:0 0 0 4px rgba(0,113,227,.2)}
+  .tl-node{width:40px;height:40px;border-radius:50%;flex:none;display:grid;place-items:center;background:#e8e8ed}
+  .tl-node b{width:32px;height:32px;border-radius:50%;background:var(--card);display:grid;place-items:center;font-size:12.5px;font-weight:700;color:var(--muted-2);font-variant-numeric:tabular-nums}
+  .tl-node.done b{background:var(--green);color:#fff}
+  .stage-card{flex:1;display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--line-soft);border-radius:16px;padding:14px 18px;box-shadow:var(--shadow);transition:.22s}
+  .stage-row:hover .stage-card{transform:translateY(-1px);box-shadow:var(--shadow-lg)}
+  .stage-ico{width:38px;height:38px;border-radius:11px;flex:none;display:grid;place-items:center}
+  .stage-ico svg{width:21px;height:21px}
+  .stage-text{flex:1;min-width:0}
+  .stage-name{font-weight:600;font-size:17px;letter-spacing:-.02em}
+  .stage-meta{font-size:13px;color:var(--muted)}
+  .stage-count{font-size:13px;font-weight:600;color:var(--muted-2);font-variant-numeric:tabular-nums}
+  .stage-chev{color:var(--muted-2);transition:transform .3s;flex:none}
+  .stage.open .stage-chev{transform:rotate(90deg)}
+  .stage-topics{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-left:56px;max-height:0;overflow:hidden;opacity:0;transition:opacity .3s,max-height .5s ease}
+  .stage.open .stage-topics{max-height:2600px;opacity:1;margin-top:14px}
+  @media (max-width:600px){.stage-topics{grid-template-columns:1fr;margin-left:0}}
+  .node{text-align:left;cursor:pointer;background:var(--card);border:1px solid var(--line-soft);border-radius:var(--rad);padding:16px 18px;box-shadow:var(--shadow);transition:.22s;outline:none;position:relative}
+  .node:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg)}
+  .node:focus-visible{box-shadow:0 0 0 4px rgba(0,113,227,.2)}
+  .node h3{font-size:16px;margin:0 0 6px;font-weight:600;letter-spacing:-.02em;padding-right:24px}
+  .node .sub{font-size:13.5px;color:var(--muted);margin:0 0 14px;line-height:1.45}
+  .node .tags{display:flex;gap:7px;flex-wrap:wrap}
+  .pill{font-size:11px;font-weight:600;padding:4px 10px;border-radius:99px;background:rgba(120,120,128,.1);color:var(--muted)}
+  .pill.beginner{color:var(--green-ink);background:var(--green-soft)}
+  .pill.intermediate{color:var(--blue-ink);background:var(--blue-soft)}
+  .pill.advanced{color:var(--amber-ink);background:var(--amber-soft)}
+  .node .check{position:absolute;top:16px;right:16px;width:22px;height:22px;border-radius:50%;border:1.5px solid var(--line);transition:.2s;display:grid;place-items:center}
+  .node[data-done="1"] .check{background:var(--green);border-color:var(--green)}
+  .node[data-done="1"] .check svg{opacity:1}
+  .node .check svg{opacity:0;transition:.2s}
+  .node[data-done="1"]{border-color:#bce8c6}
+  .node.dim{opacity:.34}.node.hit{box-shadow:0 0 0 2px var(--blue)}
+  .hint{text-align:center;color:var(--muted-2);font-size:13px;margin:0 0 30px}
+
+  .view{display:none}.view.on{display:block}
+
+  /* Compare */
+  .cmp-nav{position:sticky;top:54px;z-index:30;background:rgba(245,245,247,.85);backdrop-filter:blur(14px);
+    border-bottom:1px solid var(--line-soft);padding:11px clamp(14px,4vw,32px)}
+  .cmp-nav-in{max-width:920px;margin:0 auto;display:flex;gap:8px;overflow-x:auto;scrollbar-width:none}
+  .cmp-nav-in::-webkit-scrollbar{display:none}
+  .cmp-nav a{flex:none;font-size:13px;font-weight:500;color:var(--muted);background:var(--card);border:1px solid var(--line);border-radius:99px;padding:7px 13px;text-decoration:none;white-space:nowrap;transition:.15s}
+  .cmp-nav a:hover{border-color:var(--muted-2);color:var(--ink)}
+  .cmp{max-width:880px;margin:0 auto;padding:0 clamp(16px,4vw,32px) 120px}
+  .cmp-block{padding:42px 0 8px;border-bottom:1px solid var(--line-soft)}
+  .cmp-block:last-child{border-bottom:none}
+  .cmp-block h2{font-size:clamp(24px,4vw,32px);font-weight:700;letter-spacing:-.03em;margin:0 0 8px;scroll-margin-top:120px}
+  .cmp-block .lead{font-size:16px;color:var(--muted);line-height:1.6;margin:0 0 22px;max-width:640px}
+  .diagram{background:var(--card);border:1px solid var(--line-soft);border-radius:16px;padding:20px;box-shadow:var(--shadow);margin-bottom:22px;overflow-x:auto}
+  .diagram svg{display:block;width:100%;height:auto;max-width:100%}
+  .ctable-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:22px;border-radius:14px}
+  .ctable{width:100%;border-collapse:separate;border-spacing:0;background:var(--card);border:1px solid var(--line-soft);border-radius:14px;overflow:hidden;box-shadow:var(--shadow);font-size:14px}
+  .ctable th,.ctable td{padding:13px 16px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line-soft)}
+  .ctable thead th{background:var(--bg);font-weight:600;font-size:13px;letter-spacing:-.01em}
+  .ctable thead th:first-child{color:var(--muted)}
+  .ctable tbody tr:last-child td{border-bottom:none}
+  .ctable td:first-child{font-weight:600;color:var(--ink);width:130px}
+  .ctable td{color:var(--muted);line-height:1.5}
+  .when{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:16px}
+  .when .w{background:var(--card);border:1px solid var(--line-soft);border-radius:14px;padding:15px 17px;box-shadow:var(--shadow)}
+  .when .w .wl{font-size:13px;font-weight:700;margin-bottom:6px}
+  .when .w .wt{font-size:13.5px;color:var(--muted);line-height:1.5}
+  .when .w.a .wl{color:var(--blue-ink)}.when .w.b .wl{color:var(--green-ink)}.when .w.c .wl{color:var(--amber-ink)}
+  .relrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:13px;color:var(--muted)}
+  .relchip{background:var(--blue-soft);color:var(--blue-ink);border-radius:99px;padding:6px 12px;cursor:pointer;font-weight:500;border:none;font-family:inherit;font-size:13px}
+  .relchip:hover{background:#d7e7fb}
+
+  /* Glossary */
+  .gcats{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:22px auto 8px;max-width:760px;padding:0 16px}
+  .gcat{font-size:13px;font-weight:500;border:1px solid var(--line);background:var(--card);border-radius:99px;padding:7px 14px;cursor:pointer;color:var(--muted);transition:.18s}
+  .gcat:hover{border-color:var(--muted-2)}.gcat.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+  .gloss{max-width:760px;margin:24px auto 120px;padding:0 clamp(16px,4vw,32px)}
+  .gletter{font-size:13px;font-weight:700;color:var(--blue);letter-spacing:.06em;margin:26px 0 6px;position:sticky;top:54px;background:var(--bg);padding:8px 0}
+  .gitem{background:var(--card);border:1px solid var(--line-soft);border-radius:14px;padding:16px 18px;margin-bottom:10px;box-shadow:var(--shadow)}
+  .gitem .gt{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+  .gitem .gname{font-size:16px;font-weight:600}
+  .gitem .gtag{font-size:10.5px;font-weight:600;color:var(--muted-2);text-transform:uppercase;letter-spacing:.04em;background:rgba(120,120,128,.1);padding:3px 8px;border-radius:6px}
+  .gitem .gdef{font-size:14px;color:var(--muted);line-height:1.55}
+  .gempty{text-align:center;color:var(--muted);padding:40px;font-size:15px}
+
+  /* Paths */
+  .paths{max-width:780px;margin:20px auto 120px;padding:0 clamp(16px,4vw,32px);display:flex;flex-direction:column;gap:16px}
+  .path{background:var(--card);border:1px solid var(--line-soft);border-radius:18px;padding:20px 22px;box-shadow:var(--shadow)}
+  .path-head{display:flex;align-items:center;gap:14px}
+  .path-ico{width:42px;height:42px;border-radius:12px;flex:none;display:grid;place-items:center}
+  .path-ico svg{width:23px;height:23px}
+  .path-title{font-size:18.5px;font-weight:700;letter-spacing:-.02em}
+  .path-tag{font-size:13.5px;color:var(--muted);margin-top:1px;line-height:1.4}
+  .path-prog{margin-left:auto;align-self:flex-start;font-size:12px;font-weight:600;color:var(--muted-2);background:#f0f0f2;padding:5px 11px;border-radius:99px;flex:none}
+  .path-steps{display:flex;flex-wrap:wrap;gap:8px 6px;margin-top:16px;align-items:center}
+  .pstep{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:500;border:1px solid var(--line);background:var(--card);border-radius:99px;padding:6px 13px;cursor:pointer;color:var(--ink);transition:.15s;font-family:inherit}
+  .pstep:hover{border-color:var(--blue);color:var(--blue)}
+  .pstep.done{background:var(--green-soft);border-color:#bce8c6;color:var(--green-ink)}
+  .pstep .pn{font-size:11px;color:var(--muted-2);font-weight:700}
+  .pstep.done .pn{color:var(--green-ink)}
+  .parrow{color:#c7c7cc;flex:none}
+
+  /* Project callout */
+  .project{background:linear-gradient(135deg,#eef4ff,#f1faf3);border:1px solid #dbe7fb;border-radius:14px;padding:15px 17px;margin:2px 0 4px}
+  .project .pl{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--blue-ink);margin-bottom:6px}
+  .project .pt{font-size:14.5px;color:var(--muted);line-height:1.55}
+
+  /* Sheet */
+  .scrim{position:fixed;inset:0;background:rgba(0,0,0,.32);opacity:0;pointer-events:none;transition:.3s;z-index:60}
+  .scrim.show{opacity:1;pointer-events:auto}
+  .sheet{position:fixed;top:0;right:0;height:100%;width:min(500px,100%);z-index:70;background:var(--card);box-shadow:-30px 0 80px rgba(0,0,0,.2);transform:translateX(103%);transition:transform .42s cubic-bezier(.32,.72,0,1);display:flex;flex-direction:column}
+  .sheet.show{transform:none}
+  @media (max-width:540px){.sheet{width:100%;top:auto;bottom:0;height:93%;border-radius:20px 20px 0 0;transform:translateY(103%)}.sheet.show{transform:none}}
+  .sh-head{padding:26px 28px 18px;border-bottom:1px solid var(--line-soft);position:relative}
+  .crumb{font-size:13px;color:var(--muted);margin-bottom:8px}.crumb b{color:var(--ink);font-weight:600}
+  .sh-head h2{margin:0;font-size:26px;font-weight:700;letter-spacing:-.03em;line-height:1.12}
+  .sh-head .row{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+  .x{position:absolute;top:20px;right:20px;width:30px;height:30px;border-radius:50%;border:none;background:rgba(120,120,128,.12);color:var(--muted);font-size:15px;cursor:pointer;display:grid;place-items:center}
+  .x:hover{background:rgba(120,120,128,.22)}
+  .sh-body{padding:22px 28px 28px;overflow:auto;flex:1}
+  .sh-body h4{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted-2);margin:26px 0 10px}
+  .sh-body h4:first-child{margin-top:0}
+  .lede{font-size:16px;line-height:1.55;color:var(--ink)}
+  .lesson p{font-size:15px;line-height:1.62;color:var(--muted);margin:0 0 13px}
+  .lesson ul{margin:0 0 13px;padding-left:20px}
+  .lesson li{font-size:15px;line-height:1.55;color:var(--muted);margin-bottom:6px}
+  .lesson strong{color:var(--ink);font-weight:600}
+  .lesson .dg{background:#f5f5f7;border-radius:12px;padding:14px;margin:4px 0 15px}
+  .lesson .dg svg{display:block;width:100%;height:auto}
+  .sheet-dg{background:#f5f5f7;border-radius:14px;padding:14px 16px;margin-bottom:6px}
+  .sheet-dg svg{display:block;width:100%;height:auto}
+  .flow{display:flex;flex-direction:column}
+  .fstep{display:flex;gap:13px;align-items:flex-start;position:relative;padding-bottom:15px}
+  .fstep:not(:last-child)::before{content:"";position:absolute;left:12px;top:25px;bottom:-1px;width:2px;background:var(--line-soft)}
+  .fstep .fn{width:25px;height:25px;flex:none;border-radius:50%;background:var(--blue);color:#fff;font-size:12px;font-weight:700;display:grid;place-items:center;z-index:1}
+  .fstep .ft{font-size:14px;color:var(--muted);line-height:1.5;padding-top:3px}
+  .example{background:var(--amber-soft);border:1px solid #f0e2c8;border-radius:12px;padding:14px 16px;font-size:14px;line-height:1.6;color:var(--muted)}
+  .pitfalls{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:9px}
+  .pitfalls li{position:relative;padding-left:26px;font-size:14px;line-height:1.5;color:var(--muted)}
+  .pitfalls li::before{content:"!";position:absolute;left:0;top:1px;width:17px;height:17px;border-radius:50%;background:#fde6e6;color:#c0392b;font-size:11px;font-weight:700;display:grid;place-items:center}
+  .recall{display:flex;flex-direction:column;gap:8px}
+  .rc{border:1px solid var(--line-soft);border-radius:12px;overflow:hidden;background:var(--card)}
+  .rq{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left;background:none;border:0;padding:13px 15px;font:inherit;font-size:14px;font-weight:600;color:var(--ink);cursor:pointer}
+  .rchev{flex:none;color:var(--muted-2);transition:transform .25s}
+  .rc.open .rchev{transform:rotate(180deg)}
+  .ra{max-height:0;overflow:hidden;opacity:0;transition:max-height .3s,opacity .25s,padding .3s;padding:0 15px;font-size:14px;line-height:1.55;color:var(--muted)}
+  .rc.open .ra{max-height:260px;opacity:1;padding:0 15px 13px;border-top:1px solid var(--line-soft);padding-top:12px}
+  .demobox{background:#f5f5f7;border-radius:14px;padding:14px}
+  .demobox .gd-svg{display:block;width:100%;height:auto;background:var(--card);border-radius:10px;border:1px solid var(--line-soft)}
+  .demo-row{display:flex;align-items:center;gap:10px;margin-top:12px;flex-wrap:wrap}
+  .demo-row label{font-size:13px;color:var(--muted);display:flex;gap:6px;align-items:center}
+  .demo-row input[type=range]{flex:1;min-width:130px;accent-color:var(--blue)}
+  .demo-btn{font:inherit;font-size:13px;font-weight:600;border:0;border-radius:9px;padding:8px 14px;background:var(--blue);color:#fff;cursor:pointer}
+  .demo-btn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}
+  .gd-stat{font-size:12px;color:var(--muted-2);font-variant-numeric:tabular-nums;font-family:ui-monospace,SFMono-Regular,monospace}
+  .demo-note{font-size:12.5px;color:var(--muted);line-height:1.5;margin:10px 0 0}
+  .tok-in{width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:inherit;font-size:14px;resize:vertical;background:var(--card);color:var(--ink)}
+  .tok-out{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;min-height:30px}
+  .tok{font-size:12.5px;padding:5px 9px;border-radius:7px;color:#1d1d1f;font-family:ui-monospace,SFMono-Regular,monospace}
+  .para{font-size:15px;line-height:1.6;color:var(--muted);margin:0 0 12px}
+  .concept{margin-bottom:14px}.concept .ch{font-size:14.5px;font-weight:600;margin-bottom:2px}
+  .concept .cd{font-size:14px;color:var(--muted);line-height:1.5}
+  .terms{display:flex;flex-direction:column;gap:10px}
+  .term{background:#f5f5f7;border-radius:12px;padding:12px 14px}
+  .term .tn{font-weight:600;font-size:14px;margin-bottom:2px}.term .td{font-size:13.5px;color:var(--muted);line-height:1.5}
+  .apps{display:flex;flex-wrap:wrap;gap:8px}
+  .app{font-size:13px;background:var(--blue-soft);color:var(--blue-ink);border-radius:99px;padding:6px 12px;font-weight:500}
+  .prereqs{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{font-size:13px;background:var(--card);border:1px solid var(--line);border-radius:99px;padding:6px 12px;cursor:pointer;color:var(--muted);transition:.15s;font-weight:500}
+  .chip:hover{border-color:var(--blue);color:var(--blue)}
+  .chip.met{color:var(--green-ink);border-color:#bce8c6;background:var(--green-soft)}
+  .res{display:flex;flex-direction:column;gap:8px}
+  .res a{display:flex;align-items:center;gap:12px;text-decoration:none;color:var(--ink);background:#f5f5f7;border-radius:12px;padding:12px 14px;transition:.15s}
+  .res a:hover{background:#ededf0}
+  .res .kind{font-size:10px;text-transform:uppercase;letter-spacing:.05em;font-weight:700;color:var(--muted-2);width:46px;flex:none}
+  .res .rt{font-size:14px;font-weight:500;flex:1}
+  .res .free{font-size:11px;color:var(--green-ink);font-weight:600}.res .paid{font-size:11px;color:var(--amber-ink);font-weight:600}
+  .res .ext{opacity:.4;flex:none}
+  .sh-foot{padding:16px 28px;border-top:1px solid var(--line-soft)}
+  .mark{width:100%;border:none;border-radius:12px;padding:14px;font-size:16px;font-weight:600;cursor:pointer;font-family:inherit;background:var(--blue);color:#fff;transition:.2s}
+  .mark:hover{background:var(--blue-2)}.mark.done{background:var(--green-soft);color:var(--green-ink)}
+
+  footer{position:fixed;bottom:0;left:0;right:0;text-align:center;font-size:12px;color:var(--muted-2);padding:10px;background:linear-gradient(0deg,var(--bg) 60%,transparent);pointer-events:none;z-index:20}
+  @media (max-width:600px){
+    .hero{padding-top:40px}
+    .hero .tools{margin-top:20px;gap:8px}
+    .field{flex:1 1 100%}
+    .field input[type=search]{width:100%}
+    select,.btn{flex:1 1 auto}
+    .stats{gap:20px}
+    .howto{padding:12px 14px;font-size:12.5px;gap:9px}
+    .stage-row{gap:11px}
+    .tl-line{left:16px}
+    .tl-node{width:34px;height:34px}
+    .tl-node b{width:27px;height:27px;font-size:11px}
+    .stage-card{padding:12px 13px;gap:11px}
+    .stage-ico{width:34px;height:34px}.stage-ico svg{width:19px;height:19px}
+    .stage-name{font-size:15.5px}.stage-meta{font-size:12.5px}
+    .sh-head{padding:22px 18px 16px}.sh-body{padding:18px 18px 26px}.sh-foot{padding:14px 18px}
+    .sh-head h2{font-size:23px}
+    .sheet-dg{overflow-x:auto;-webkit-overflow-scrolling:touch;padding:12px}
+    .sheet-dg svg{min-width:340px}
+    .lesson .dg{overflow-x:auto}.lesson .dg svg{min-width:330px}
+    .diagram{padding:14px}
+    .diagram svg{min-width:380px}
+    .ctable{min-width:540px}
+    .ctable td:first-child{width:110px}
+    .ctable th,.ctable td{padding:11px 12px}
+    .path{padding:17px 16px}
+    .path-title{font-size:17px}
+  }
+</style>
+
+<nav>
+  <div class="nav-in">
+    <a href="index.html" class="hub-btn">← Hub</a>
+    <div class="brand">
+      <svg viewBox="0 0 32 32" fill="none"><circle cx="6" cy="9" r="2.6" fill="#0071e3"/><circle cx="6" cy="23" r="2.6" fill="#0071e3"/><circle cx="16" cy="16" r="3" fill="#1d1d1f"/><circle cx="26" cy="9" r="2.6" fill="#34c759"/><circle cx="26" cy="23" r="2.6" fill="#0071e3"/><g stroke="#c7c7cc" stroke-width="1.3"><line x1="6" y1="9" x2="16" y2="16"/><line x1="6" y1="23" x2="16" y2="16"/><line x1="26" y1="9" x2="16" y2="16"/><line x1="26" y1="23" x2="16" y2="16"/></g></svg>
+      <span class="bn">Synapse</span>
+    </div>
+    <div class="seg">
+      <button class="on" data-view="map">Roadmap</button>
+      <button data-view="paths">Paths</button>
+      <button data-view="cmp">Compare</button>
+      <button data-view="gloss">Glossary</button>
+    </div>
+    <div class="progress-mini"><div class="pm-track"><div class="pm-fill" id="pf"></div></div><span><b id="pdone">0</b>/<span id="ptot">0</span></span></div>
+    <button class="themebtn2" id="themeBtn2" aria-label="Toggle dark mode" title="Toggle dark mode">
+      <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.6M12 18.9v2.6M4.6 4.6l1.8 1.8M17.6 17.6l1.8 1.8M2.5 12h2.6M18.9 12h2.6M4.6 19.4l1.8-1.8M17.6 6.4l1.8-1.8"/></svg>
+      <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8Z"/></svg>
+    </button>
+  </div>
+</nav>
+
+<section class="view on" id="view-map">
+  <div class="hero">
+    <h1>Master AI, from absolute zero.</h1>
+    <p>One connected path through everything that matters — math and code, machine learning, deep learning, language models, vision, agents, and shipping it all. Real lessons, side-by-side comparisons, and free resources at every step.</p>
+    <div class="stats">
+      <div class="stat"><b>8</b><span>stages</span></div>
+      <div class="stat"><b id="ntopics">18</b><span>topics to master</span></div>
+      <div class="stat"><b>8</b><span>deep comparisons</span></div>
+      <div class="stat"><b>100%</b><span>free to learn</span></div>
+    </div>
+    <div class="tools">
+      <div class="field"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#86868b" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.5" y2="16.5"/></svg><input type="search" id="search" placeholder="Search topics" autocomplete="off"></div>
+      <select id="level"><option value="all">All levels</option><option value="beginner">Beginner</option><option value="intermediate">Intermediate</option><option value="advanced">Advanced</option></select>
+      <button class="btn" id="expandAll">Expand all</button>
+      <button class="btn" id="reset">Reset progress</button>
+    </div>
+  </div>
+  <main id="map">
+    <div class="howto"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.1h6c0-.8.4-1.6 1-2.1A7 7 0 0 0 12 2z"/></svg><span>Work top to bottom — each stage builds on the last. Tap any topic for its full lesson, a project to build, and free resources. Finish all 18 to go from zero to advanced.</span></div>
+    <div id="blocks"></div>
+  </main>
+</section>
+
+<section class="view" id="view-paths">
+  <div class="hero" style="padding-bottom:6px"><h1>Pick a goal. Get a path.</h1><p>Not sure where to begin? Choose what you want to become and follow a focused, ordered track through just the topics that matter for it.</p></div>
+  <div class="paths" id="pathList"></div>
+</section>
+
+<section class="view" id="view-cmp">
+  <div class="hero" style="padding-bottom:6px"><h1>The things people mix up.</h1><p>The most-confused ideas in AI, set side by side — with diagrams, tables, and clear guidance on when to use which.</p></div>
+  <div class="cmp-nav"><div class="cmp-nav-in" id="cmpNav"></div></div>
+  <div class="cmp" id="cmpList"></div>
+</section>
+
+<section class="view" id="view-gloss">
+  <div class="hero" style="padding-bottom:6px"><h1>Every term, explained.</h1><p>The full vocabulary of this roadmap — each word you'll meet, in plain language.</p>
+    <div class="tools" style="margin-top:22px"><div class="field"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#86868b" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.5" y2="16.5"/></svg><input type="search" id="gsearch" placeholder="Search terms" autocomplete="off"></div></div>
+  </div>
+  <div class="gcats" id="gcats"></div>
+  <div class="gloss" id="glossList"></div>
+</section>
+
+<div class="scrim" id="scrim"></div>
+<aside class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="Topic detail"></aside>
+<footer>Prototype · progress kept for this session · a free, open path to learning AI</footer>
+
+<script>
+/* ===================== GLOSSARY ===================== */
+const G = {
+  vector:["Vector","Math","An ordered list of numbers, like [3, 1, 4]. In ML almost everything — a data point, a word, an image — is a vector the model does arithmetic on."],
+  matrix:["Matrix","Math","A grid of numbers (rows × columns). Neural-network layers are matrices, and learning is mostly matrix arithmetic."],
+  scalar:["Scalar","Math","A single number, as opposed to a vector or matrix."],
+  tensor:["Tensor","Math","A container for numbers of any dimension — scalar, vector, matrix, or higher. Deep-learning libraries operate on tensors."],
+  matmul:["Matrix multiplication","Math","Combining two matrices into a third — the core operation that pushes data through a network layer."],
+  derivative:["Derivative","Math","How fast a quantity changes as you nudge its input. Training uses derivatives to find which direction reduces error."],
+  chainrule:["Chain rule","Math","A calculus rule for differentiating nested functions — exactly what backpropagation uses to send error back through layers."],
+  gradient:["Gradient","Math","A vector of derivatives pointing toward steepest increase. Models learn by stepping the opposite way."],
+  partial:["Partial derivative","Math","The derivative with respect to one input while others are held fixed. Gradients are made of these."],
+  distribution:["Probability distribution","Math","A description of how likely each value is. Models often output a distribution over answers rather than one guess."],
+  bayes:["Bayes' theorem","Math","A formula for updating a belief after seeing evidence. It underpins probabilistic reasoning in ML."],
+  expectation:["Expectation","Math","The long-run average of a random quantity, weighting each outcome by its probability."],
+  variance:["Variance","Math","How spread out values are around their average. High variance = jumpy data or predictions."],
+  sampling:["Sampling","Math","Drawing examples from a population or distribution, e.g. random rows of data or a random generated output."],
+  numpy:["NumPy","Tools","A Python library for fast numerical arrays — math on whole arrays instead of slow loops."],
+  pandas:["Pandas","Tools","A Python library for tables of data, used to load, clean, and explore datasets."],
+  vectorization:["Vectorisation","Tools","Replacing element-by-element loops with whole-array operations that run far faster."],
+  dataframe:["DataFrame","Tools","Pandas' table object — labelled rows and columns, like a spreadsheet in code."],
+  eda:["Exploratory data analysis (EDA)","Data","The first look at a dataset — summaries and charts to understand its shape and gaps before modelling."],
+  feature:["Feature","Data","An input variable the model learns from, e.g. a house's size or a pixel's brightness."],
+  label:["Label","Data","The correct answer attached to a training example. Supervised learning needs labels."],
+  split:["Train/validation/test split","Data","Dividing data into a part to learn from, a part to tune on, and a held-out part for an honest final score."],
+  missing:["Missing values","Data","Empty entries that must be filled in or handled before training."],
+  normalization:["Normalisation","Data","Rescaling features to a common range so none dominates just because of its units."],
+  supervised:["Supervised learning","ML","Learning from labelled examples (input + answer) to predict answers for new inputs."],
+  unsupervised:["Unsupervised learning","ML","Finding structure in unlabelled data, e.g. grouping similar items together."],
+  reinforcement:["Reinforcement learning","ML","Learning by trial and error: an agent acts and learns from rewards and penalties."],
+  classification:["Classification","ML","Predicting which category something belongs to, e.g. cat vs dog."],
+  regression:["Regression","ML","Predicting a continuous number, e.g. a temperature or a price."],
+  clustering:["Clustering","ML","Grouping data points by similarity without predefined labels."],
+  biasvar:["Bias–variance tradeoff","ML","The balance between a model too simple to fit the data and one so flexible it memorises noise."],
+  overfitting:["Overfitting","ML","When a model memorises training data and fails on new data — it learned noise, not pattern."],
+  underfitting:["Underfitting","ML","When a model is too simple to capture the real pattern, doing poorly even on training data."],
+  regularization:["Regularisation","ML","Techniques that discourage a model from becoming too complex, helping it generalise."],
+  linreg:["Linear regression","ML","A model fitting a straight-line relationship between inputs and a numeric output."],
+  logreg:["Logistic regression","ML","Despite the name, a classification model that outputs class probabilities."],
+  dtree:["Decision tree","ML","A model that predicts by asking a sequence of yes/no questions about features."],
+  rforest:["Random forest","ML","Many decision trees combined by voting — more accurate and stable than one tree."],
+  boosting:["Gradient boosting","ML","Building models one after another, each fixing the last one's mistakes. Powers XGBoost."],
+  svm:["Support vector machine (SVM)","ML","A model that separates classes by the widest possible gap."],
+  knn:["k-nearest neighbours (k-NN)","ML","Classifies a point by the labels of its closest neighbours."],
+  kmeans:["k-means","ML","A clustering method grouping data into k clusters around their centres."],
+  pca:["Principal component analysis (PCA)","ML","Compresses many features into a few that capture most of the variation."],
+  hyperparameter:["Hyperparameter","ML","A setting you choose before training (e.g. learning rate), not learned by the model."],
+  crossval:["Cross-validation","ML","Testing on several different data splits for a more reliable performance estimate."],
+  precision:["Precision","ML","Of everything flagged positive, the fraction that truly was. High precision = few false alarms."],
+  recall:["Recall","ML","Of everything truly positive, the fraction caught. High recall = few misses."],
+  f1:["F1 score","ML","A single number balancing precision and recall."],
+  rocauc:["ROC–AUC","ML","A score from 0.5 (random) to 1 (perfect) for how well a model ranks positives above negatives."],
+  confusion:["Confusion matrix","ML","A table of correct vs incorrect predictions per class, showing exactly where a model errs."],
+  accuracy:["Accuracy","ML","The fraction of predictions that are correct. Misleading when classes are imbalanced."],
+  nn:["Neural network","DL","Connected layers of simple units that together learn complex patterns from data."],
+  perceptron:["Perceptron","DL","The simplest neural unit: it weights inputs, sums them, and fires through an activation."],
+  layer:["Layer","DL","A group of neurons at one stage; data flows from layer to layer."],
+  weight:["Weight","DL","A learned number controlling how strongly one neuron affects another. Training adjusts weights."],
+  biasterm:["Bias (term)","DL","A learned offset inside a neuron, shifting its output independently of the inputs."],
+  activation:["Activation function","DL","A small non-linear function at each neuron that lets a network model curves."],
+  relu:["ReLU","DL","A popular activation passing positives through and zeroing negatives. Simple and fast."],
+  sigmoid:["Sigmoid","DL","Squashes any number into 0–1, often read as a probability."],
+  softmax:["Softmax","DL","Turns scores into probabilities that sum to 1, for multi-class outputs."],
+  forward:["Forward pass","DL","Running input through the network to produce a prediction."],
+  backprop:["Backpropagation","DL","The algorithm computing how much each weight caused the error, using the chain rule."],
+  loss:["Loss function","DL","A number measuring how wrong a prediction is. Training shrinks it."],
+  gd:["Gradient descent","DL","Repeatedly nudging weights downhill along the gradient to reduce loss."],
+  optimizer:["Optimiser","DL","The algorithm (e.g. Adam) deciding how to update weights from gradients."],
+  lr:["Learning rate","DL","How big a step the optimiser takes. Too large overshoots; too small is slow."],
+  epoch:["Epoch","DL","One full pass through the entire training dataset."],
+  batch:["Batch","DL","A small group of examples processed together before a weight update."],
+  dropout:["Dropout","DL","A regulariser that randomly switches off neurons in training to prevent over-reliance."],
+  batchnorm:["Batch normalisation","DL","Rescaling values inside a network during training for speed and stability."],
+  cnn:["Convolutional neural network (CNN)","DL","A network for images that scans for local patterns like edges and shapes."],
+  convolution:["Convolution","DL","Sliding a small filter across an image to detect a feature wherever it appears."],
+  pooling:["Pooling","DL","Shrinking an image representation by summarising small regions."],
+  rnn:["Recurrent neural network (RNN)","DL","A network for sequences, carrying information forward step by step."],
+  lstm:["LSTM","DL","An RNN with gates that help it remember over longer sequences."],
+  embedding:["Embedding","DL","A learned vector representing meaning, placing similar things close together."],
+  autograd:["Autograd","DL","Automatic differentiation — the framework computes gradients so you never derive them by hand."],
+  gpu:["GPU","DL","A processor that does deep learning's parallel matrix math far faster than a CPU."],
+  tokenization:["Tokenisation","NLP","Breaking text into small pieces (tokens) a model can process."],
+  token:["Token","NLP","One chunk of text (often a word piece) a model reads or generates at a time."],
+  wordembed:["Word embedding","NLP","A vector representing a word's meaning, placing similar words near each other."],
+  attention:["Attention","NLP","A mechanism letting a model focus on the most relevant parts of the input for each output."],
+  selfattention:["Self-attention","NLP","Attention within one sequence, letting each word weigh every other to build context."],
+  transformer:["Transformer","NLP","The architecture behind modern language models, built on attention. Parallel and great at long-range context."],
+  encoder:["Encoder","NLP","The part of a model that reads and compresses input into a rich representation."],
+  decoder:["Decoder","NLP","The part that generates output one token at a time. LLMs are mostly decoders."],
+  pretraining:["Pretraining","NLP","Training a model on huge general text first, before any task-specific tuning."],
+  finetuning:["Fine-tuning","NLP","Further training a pretrained model on a smaller, specific dataset to specialise it."],
+  insttuning:["Instruction tuning","NLP","Fine-tuning on examples of following instructions so a model responds helpfully."],
+  rlhf:["RLHF","NLP","Reinforcement learning from human feedback — using human preferences to make answers helpful and safe."],
+  prompt:["Prompt","NLP","The text instruction you give a language model to steer its response."],
+  zeroshot:["Zero-shot","NLP","Asking a model to do a task with no examples, using only its general knowledge."],
+  fewshot:["Few-shot","NLP","Showing a few examples inside the prompt to guide the answers."],
+  cot:["Chain-of-thought","NLP","Prompting step-by-step reasoning, which improves harder problems."],
+  rag:["Retrieval-augmented generation (RAG)","NLP","Fetching relevant documents at query time and feeding them in, so answers are grounded and current."],
+  contextwindow:["Context window","NLP","The most text a model can consider at once — its short-term memory limit."],
+  hallucination:["Hallucination","NLP","When a model produces fluent but false or invented information."],
+  llm:["Large language model (LLM)","NLP","A very large model trained on text that understands and generates language."],
+  parameter:["Parameter","NLP","One of the learned numbers (weights) inside a model. Modern LLMs have billions."],
+  channel:["Image channel","CV","One colour layer of an image (e.g. red, green, blue). Models see images as stacks of channels."],
+  featuremap:["Feature map","CV","A convolution's output — a grid showing where a feature was detected."],
+  transfer:["Transfer learning","CV","Reusing a model trained on a big dataset as a head start for a new task with little data."],
+  vit:["Vision Transformer (ViT)","CV","Applying the Transformer to images by splitting them into patches treated like tokens."],
+  detection:["Object detection","CV","Finding and locating objects with bounding boxes, e.g. YOLO."],
+  segmentation:["Segmentation","CV","Labelling an image pixel by pixel, outlining each object."],
+  gan:["GAN","CV","Generative adversarial network — a generator and a critic competing to produce realistic images."],
+  diffusion:["Diffusion model","CV","A generative model creating images by starting from noise and repeatedly removing it."],
+  clip:["CLIP","CV","A model linking images and text in a shared space, enabling search and guidance by description."],
+  multimodal:["Multimodal","CV","A model handling more than one data type at once, e.g. images and text together."],
+  agent:["Agent","Agents","An AI that plans, takes actions, and uses tools in a loop to reach a goal — not just answering once."],
+  react:["Reason–act loop (ReAct)","Agents","A pattern where a model alternates reasoning and acting, repeating until done."],
+  toolcalling:["Tool / function calling","Agents","Letting a model invoke external functions (search, code, APIs) to act, not just produce text."],
+  agentmemory:["Memory (agents)","Agents","How an agent retains information — short-term within a task, or long-term across sessions."],
+  planning:["Planning","Agents","Breaking a goal into an ordered set of smaller steps to execute."],
+  reflection:["Reflection","Agents","An agent reviewing its own output to catch and correct mistakes."],
+  multiagent:["Multi-agent","Agents","Several specialised agents collaborating, each handling part of a task."],
+  orchestration:["Orchestration","Agents","Coordinating the models, tools, and steps of an AI system to run reliably together."],
+  guardrails:["Guardrails","Agents","Rules and checks keeping an AI system's behaviour safe and in-bounds."],
+  deployment:["Deployment","MLOps","Putting a trained model into a live system real users can use."],
+  inference:["Inference","MLOps","Running a trained model to make predictions, as opposed to training it."],
+  api:["API","MLOps","An interface letting other software send inputs to your model and get predictions back."],
+  docker:["Docker / containerisation","MLOps","Packaging a model with everything it needs so it runs the same anywhere."],
+  drift:["Model drift","MLOps","When real-world data drifts from training data, slowly degrading accuracy."],
+  versioning:["Versioning","MLOps","Tracking versions of data, code, and models for reproducibility and rollbacks."],
+  cicd:["CI/CD","MLOps","Automated pipelines that test and ship model and code changes reliably."],
+  monitoring:["Monitoring","MLOps","Watching a live model's inputs, outputs, and performance to catch problems early."],
+  bias:["Bias (fairness)","Safety","Systematic unfairness in behaviour, often inherited and amplified from skewed data."],
+  fairness:["Fairness","Safety","The goal of a model treating different groups of people equitably."],
+  interpretability:["Interpretability","Safety","How well we can understand a model's internal workings."],
+  explainability:["Explainability","Safety","Giving a human-understandable reason for a particular decision."],
+  alignment:["Alignment","Safety","Making an AI system's goals and behaviour match human intentions and values."],
+  robustness:["Robustness","Safety","Staying reliable under unusual, noisy, or adversarial inputs."],
+};
+
+/* ===================== DIAGRAM HELPERS (shared SVG snippets) ===================== */
+const DG = {
+  nn:`<svg viewBox="0 0 400 170" font-family="-apple-system,sans-serif">
+    <g stroke="#d2d2d7" stroke-width="1">
+    ${[40,85,130].map(y=>[150,250,350].map(x=>`<line x1="60" y1="${y}" x2="${x}" y2="${85}"/>`).join('')).join('')}</g>
+    <g stroke="#0071e3" stroke-width="1" opacity=".5">${[40,85,130].map(y=>`<line x1="150" y1="${y}" x2="250" y2="85"/><line x1="250" y1="85" x2="350" y2="${y}"/>`).join('')}</g>
+    ${[40,85,130].map(y=>`<circle cx="60" cy="${y}" r="9" fill="#e6f0fd" stroke="#0071e3"/>`).join('')}
+    ${[40,85,130].map(y=>`<circle cx="150" cy="${y}" r="9" fill="#fff" stroke="#1d1d1f"/>`).join('')}
+    <circle cx="250" cy="85" r="9" fill="#fff" stroke="#1d1d1f"/>
+    ${[40,85,130].map(y=>`<circle cx="350" cy="${y}" r="9" fill="#e7f7ec" stroke="#34c759"/>`).join('')}
+    <text x="60" y="158" fill="#6e6e73" font-size="11" text-anchor="middle">input</text>
+    <text x="200" y="158" fill="#6e6e73" font-size="11" text-anchor="middle">hidden layers</text>
+    <text x="350" y="158" fill="#6e6e73" font-size="11" text-anchor="middle">output</text></svg>`,
+  gd:`<svg viewBox="0 0 380 150" font-family="-apple-system,sans-serif">
+    <path d="M30 20 Q190 200 350 20" fill="none" stroke="#d2d2d7" stroke-width="2"/>
+    ${[[60,55],[110,92],[160,116],[200,121]].map((p,i)=>`<circle cx="${p[0]}" cy="${p[1]}" r="6" fill="#0071e3" opacity="${.4+i*.2}"/>`).join('')}
+    <circle cx="190" cy="122" r="7" fill="#34c759"/>
+    ${[[60,55,110,92],[110,92,160,116],[160,116,190,122]].map(a=>`<line x1="${a[0]}" y1="${a[1]}" x2="${a[2]}" y2="${a[3]}" stroke="#0071e3" stroke-width="1.5" marker-end="url(#ar)"/>`).join('')}
+    <defs><marker id="ar" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0 0L6 3L0 6Z" fill="#0071e3"/></marker></defs>
+    <text x="190" y="140" fill="#34c759" font-size="11" text-anchor="middle">lowest loss</text>
+    <text x="40" y="18" fill="#6e6e73" font-size="11">high loss</text></svg>`,
+  attn:`<svg viewBox="0 0 380 130" font-family="-apple-system,sans-serif">
+    ${[40,140,240,340].map((x,i,a)=>a.map(x2=>x!==x2?`<line x1="${x}" y1="40" x2="${x2}" y2="40" stroke="#0071e3" stroke-width="1" opacity=".28"/>`:'').join('')).join('')}
+    ${["The","cat","sat","down"].map((w,i)=>`<circle cx="${40+i*100}" cy="40" r="13" fill="#e6f0fd" stroke="#0071e3"/><text x="${40+i*100}" y="44" font-size="11" text-anchor="middle" fill="#0058b0">${w}</text>`).join('')}
+    <text x="190" y="100" fill="#6e6e73" font-size="11" text-anchor="middle">every word attends to every other word</text></svg>`
+};
+
+const DIAG={
+ math:`<svg viewBox="0 0 440 180" font-family="-apple-system,sans-serif"><rect x="10" y="20" width="130" height="64" rx="10" fill="#e6f0fd" stroke="#0071e3"/><text x="75" y="46" text-anchor="middle" font-size="12" font-weight="600" fill="#0058b0">Linear Algebra</text><text x="75" y="66" text-anchor="middle" font-size="10" fill="#0058b0">vectors · matrices</text><rect x="155" y="20" width="130" height="64" rx="10" fill="#e7f7ec" stroke="#34c759"/><text x="220" y="46" text-anchor="middle" font-size="12" font-weight="600" fill="#1d7a37">Calculus</text><text x="220" y="66" text-anchor="middle" font-size="10" fill="#1d7a37">gradients · slopes</text><rect x="300" y="20" width="130" height="64" rx="10" fill="#fff7e0" stroke="#d99a2b"/><text x="365" y="46" text-anchor="middle" font-size="12" font-weight="600" fill="#9a5b00">Probability</text><text x="365" y="66" text-anchor="middle" font-size="10" fill="#9a5b00">uncertainty</text><line x1="75" y1="84" x2="200" y2="118" stroke="#c7c7cc" stroke-width="1.5" marker-end="url(#m)"/><line x1="220" y1="84" x2="220" y2="118" stroke="#c7c7cc" stroke-width="1.5" marker-end="url(#m)"/><line x1="365" y1="84" x2="240" y2="118" stroke="#c7c7cc" stroke-width="1.5" marker-end="url(#m)"/><rect x="140" y="122" width="160" height="40" rx="10" fill="#1d1d1f"/><text x="220" y="147" text-anchor="middle" font-size="12.5" font-weight="600" fill="#fff">a model that learns</text><defs><marker id="m" markerWidth="8" markerHeight="8" refX="5" refY="3" orient="auto"><path d="M0 0L6 3L0 6Z" fill="#c7c7cc"/></marker></defs></svg>`,
+ py:`<svg viewBox="0 0 440 150" font-family="-apple-system,sans-serif"><rect x="4" y="12" width="432" height="120" rx="12" fill="none" stroke="#d2d2d7" stroke-dasharray="4 4"/><text x="16" y="28" font-size="10" fill="#86868b">all inside a notebook (Jupyter / Colab)</text><rect x="8" y="50" width="92" height="46" rx="9" fill="#f0f0f2" stroke="#c7c7cc"/><text x="54" y="78" text-anchor="middle" font-size="11.5" fill="#6e6e73">raw data</text><rect x="118" y="50" width="92" height="46" rx="9" fill="#e6f0fd" stroke="#0071e3"/><text x="164" y="73" text-anchor="middle" font-size="11.5" font-weight="600" fill="#0058b0">Pandas</text><text x="164" y="88" text-anchor="middle" font-size="9.5" fill="#0058b0">clean · shape</text><rect x="228" y="50" width="92" height="46" rx="9" fill="#e7f7ec" stroke="#34c759"/><text x="274" y="73" text-anchor="middle" font-size="11.5" font-weight="600" fill="#1d7a37">NumPy</text><text x="274" y="88" text-anchor="middle" font-size="9.5" fill="#1d7a37">fast math</text><rect x="338" y="50" width="92" height="46" rx="9" fill="#1d1d1f"/><text x="384" y="78" text-anchor="middle" font-size="11.5" font-weight="600" fill="#fff">model</text><line x1="100" y1="73" x2="116" y2="73" stroke="#c7c7cc" stroke-width="1.5" marker-end="url(#m)"/><line x1="210" y1="73" x2="226" y2="73" stroke="#c7c7cc" stroke-width="1.5" marker-end="url(#m)"/><line x1="320" y1="73" x2="336" y2="73" stroke="#c7c7cc" stroke-width="1.5" marker-end="url(#m)"/><defs><marker id="m" markerWidth="8" markerHeight="8" refX="5" refY="3" orient="auto"><path d="M0 0L6 3L0 6Z" fill="#c7c7cc"/></marker></defs></svg>`,
+ data:`<svg viewBox="0 0 440 150" font-family="-apple-system,sans-serif"><g font-size="11"><rect x="6" y="14" width="92" height="38" rx="9" fill="#e6f0fd" stroke="#0071e3"/><text x="52" y="37" text-anchor="middle" fill="#0058b0">collect</text><rect x="116" y="14" width="92" height="38" rx="9" fill="#e6f0fd" stroke="#0071e3"/><text x="162" y="37" text-anchor="middle" fill="#0058b0">explore</text><rect x="226" y="14" width="92" height="38" rx="9" fill="#e6f0fd" stroke="#0071e3"/><text x="272" y="37" text-anchor="middle" fill="#0058b0">clean</text><rect x="336" y="14" width="98" height="38" rx="9" fill="#e7f7ec" stroke="#34c759"/><text x="385" y="37" text-anchor="middle" fill="#1d7a37">split</text></g><line x1="98" y1="33" x2="114" y2="33" stroke="#c7c7cc" stroke-width="1.5" marker-end="url(#m)"/><line x1="208" y1="33" x2="224" y2="33" stroke="#c7c7cc" stroke-width="1.5" marker-end="url(#m)"/><line x1="318" y1="33" x2="334" y2="33" stroke="#c7c7cc" stroke-width="1.5" marker-end="url(#m)"/><text x="220" y="82" text-anchor="middle" font-size="11" fill="#6e6e73">the split keeps your final score honest</text><rect x="40" y="96" width="252" height="34" rx="7" fill="#cfe6ff"/><text x="166" y="117" text-anchor="middle" font-size="11" font-weight="600" fill="#0058b0">Train  70%</text><rect x="296" y="96" width="54" height="34" rx="7" fill="#cdeed6"/><text x="323" y="117" text-anchor="middle" font-size="10" font-weight="600" fill="#1d7a37">Val 15</text><rect x="354" y="96" width="54" height="34" rx="7" fill="#f0e2c8"/><text x="381" y="117" text-anchor="middle" font-size="10" font-weight="600" fill="#9a5b00">Test 15</text><defs><marker id="m" markerWidth="8" markerHeight="8" refX="5" refY="3" orient="auto"><path d="M0 0L6 3L0 6Z" fill="#c7c7cc"/></marker></defs></svg>`,
+ mlcore:`<svg viewBox="0 0 440 210" font-family="-apple-system,sans-serif"><rect x="150" y="8" width="140" height="34" rx="9" fill="#1d1d1f"/><text x="220" y="30" text-anchor="middle" font-size="11.5" fill="#fff">Do you have labels?</text><line x1="190" y1="42" x2="120" y2="64" stroke="#c7c7cc" stroke-width="1.4" marker-end="url(#m)"/><text x="138" y="58" font-size="9.5" fill="#86868b">yes</text><line x1="250" y1="42" x2="320" y2="64" stroke="#c7c7cc" stroke-width="1.4" marker-end="url(#m)"/><text x="290" y="58" font-size="9.5" fill="#86868b">no</text><rect x="40" y="66" width="150" height="34" rx="9" fill="#e6f0fd" stroke="#0071e3"/><text x="115" y="88" text-anchor="middle" font-size="11" font-weight="600" fill="#0058b0">Supervised</text><rect x="270" y="66" width="150" height="34" rx="9" fill="#e7f7ec" stroke="#34c759"/><text x="345" y="88" text-anchor="middle" font-size="11" font-weight="600" fill="#1d7a37">Unsupervised</text><line x1="80" y1="100" x2="55" y2="124" stroke="#c7c7cc" stroke-width="1.4" marker-end="url(#m)"/><line x1="150" y1="100" x2="175" y2="124" stroke="#c7c7cc" stroke-width="1.4" marker-end="url(#m)"/><rect x="6" y="126" width="98" height="32" rx="8" fill="#fff" stroke="#0071e3"/><text x="55" y="146" text-anchor="middle" font-size="10" fill="#0058b0">Classification</text><rect x="118" y="126" width="90" height="32" rx="8" fill="#fff" stroke="#0071e3"/><text x="163" y="146" text-anchor="middle" font-size="10" fill="#0058b0">Regression</text><text x="55" y="172" text-anchor="middle" font-size="9" fill="#86868b">category</text><text x="163" y="172" text-anchor="middle" font-size="9" fill="#86868b">number</text><rect x="270" y="126" width="150" height="32" rx="8" fill="#fff" stroke="#34c759"/><text x="345" y="146" text-anchor="middle" font-size="10" fill="#1d7a37">clustering · PCA</text><rect x="110" y="184" width="220" height="22" rx="7" fill="#fff7e0" stroke="#d99a2b"/><text x="220" y="199" text-anchor="middle" font-size="9.5" fill="#9a5b00">learning from rewards? → Reinforcement</text><defs><marker id="m" markerWidth="8" markerHeight="8" refX="5" refY="3" orient="auto"><path d="M0 0L6 3L0 6Z" fill="#c7c7cc"/></marker></defs></svg>`,
+ algos:`<svg viewBox="0 0 440 196" font-family="-apple-system,sans-serif"><rect x="160" y="6" width="120" height="30" rx="9" fill="#1d1d1f"/><text x="220" y="26" text-anchor="middle" font-size="11.5" fill="#fff">Algorithms</text><line x1="190" y1="36" x2="120" y2="56" stroke="#c7c7cc" stroke-width="1.4"/><line x1="250" y1="36" x2="320" y2="56" stroke="#c7c7cc" stroke-width="1.4"/><rect x="50" y="58" width="140" height="28" rx="8" fill="#e6f0fd" stroke="#0071e3"/><text x="120" y="77" text-anchor="middle" font-size="10.5" font-weight="600" fill="#0058b0">Supervised</text><rect x="250" y="58" width="140" height="28" rx="8" fill="#e7f7ec" stroke="#34c759"/><text x="320" y="77" text-anchor="middle" font-size="10.5" font-weight="600" fill="#1d7a37">Unsupervised</text><g font-size="9.5" fill="#0058b0"><rect x="14" y="100" width="96" height="24" rx="7" fill="#fff" stroke="#cfe0f5"/><text x="62" y="116" text-anchor="middle">Linear/Logistic</text><rect x="14" y="130" width="96" height="24" rx="7" fill="#fff" stroke="#cfe0f5"/><text x="62" y="146" text-anchor="middle">Decision Tree</text><rect x="120" y="100" width="100" height="24" rx="7" fill="#fff" stroke="#cfe0f5"/><text x="170" y="116" text-anchor="middle">Random Forest</text><rect x="120" y="130" width="100" height="24" rx="7" fill="#fff" stroke="#cfe0f5"/><text x="170" y="146" text-anchor="middle">Boosting · SVM</text></g><g font-size="9.5" fill="#1d7a37"><rect x="252" y="100" width="136" height="24" rx="7" fill="#fff" stroke="#cdeed6"/><text x="320" y="116" text-anchor="middle">k-means (clustering)</text><rect x="252" y="130" width="136" height="24" rx="7" fill="#fff" stroke="#cdeed6"/><text x="320" y="146" text-anchor="middle">PCA (compression)</text></g><text x="220" y="182" text-anchor="middle" font-size="10.5" fill="#86868b">start simple, add complexity only if it pays off</text></svg>`,
+ eval:`<svg viewBox="0 0 440 180" font-family="-apple-system,sans-serif"><text x="220" y="16" text-anchor="middle" font-size="11.5" font-weight="600" fill="#1d1d1f">5-fold cross-validation</text><g font-size="9" text-anchor="middle">${[0,1,2,3,4].map(r=>{let y=28+r*27;let cells='';for(let c=0;c<5;c++){const test=c===r;cells+=`<rect x="${40+c*72}" y="${y}" width="68" height="21" rx="5" fill="${test?'#ff9500':'#cfe0f5'}"/><text x="${74+c*72}" y="${y+14}" fill="${test?'#fff':'#0058b0'}">${test?'test':'train'}</text>`;}return cells;}).join('')}</g><text x="220" y="174" text-anchor="middle" font-size="10" fill="#86868b">each fold takes a turn as the test set; average the scores</text></svg>`,
+ nn:`<svg viewBox="0 0 440 200" font-family="-apple-system,sans-serif"><rect x="20" y="20" width="180" height="50" rx="11" fill="#e6f0fd" stroke="#0071e3"/><text x="110" y="42" text-anchor="middle" font-size="12" font-weight="600" fill="#0058b0">1 · Forward pass</text><text x="110" y="58" text-anchor="middle" font-size="9.5" fill="#0058b0">input → prediction</text><rect x="240" y="20" width="180" height="50" rx="11" fill="#fde6e6" stroke="#d04a4a"/><text x="330" y="42" text-anchor="middle" font-size="12" font-weight="600" fill="#b03a3a">2 · Loss</text><text x="330" y="58" text-anchor="middle" font-size="9.5" fill="#b03a3a">how wrong was it?</text><rect x="240" y="130" width="180" height="50" rx="11" fill="#fff7e0" stroke="#d99a2b"/><text x="330" y="152" text-anchor="middle" font-size="12" font-weight="600" fill="#9a5b00">3 · Backprop</text><text x="330" y="168" text-anchor="middle" font-size="9.5" fill="#9a5b00">blame each weight</text><rect x="20" y="130" width="180" height="50" rx="11" fill="#e7f7ec" stroke="#34c759"/><text x="110" y="152" text-anchor="middle" font-size="12" font-weight="600" fill="#1d7a37">4 · Update</text><text x="110" y="168" text-anchor="middle" font-size="9.5" fill="#1d7a37">step weights downhill</text><line x1="200" y1="45" x2="238" y2="45" stroke="#c7c7cc" stroke-width="1.6" marker-end="url(#m)"/><line x1="330" y1="70" x2="330" y2="128" stroke="#c7c7cc" stroke-width="1.6" marker-end="url(#m)"/><line x1="240" y1="155" x2="202" y2="155" stroke="#c7c7cc" stroke-width="1.6" marker-end="url(#m)"/><line x1="110" y1="130" x2="110" y2="72" stroke="#34c759" stroke-width="1.6" marker-end="url(#mg)"/><text x="118" y="105" font-size="9" fill="#1d7a37">repeat</text><defs><marker id="m" markerWidth="8" markerHeight="8" refX="5" refY="3" orient="auto"><path d="M0 0L6 3L0 6Z" fill="#c7c7cc"/></marker><marker id="mg" markerWidth="8" markerHeight="8" refX="5" refY="3" orient="auto"><path d="M0 0L6 3L0 6Z" fill="#34c759"/></marker></defs></svg>`,
+ frame:`<svg viewBox="0 0 440 200" font-family="-apple-system,sans-serif"><rect x="20" y="20" width="180" height="50" rx="11" fill="#e6f0fd" stroke="#0071e3"/><text x="110" y="42" text-anchor="middle" font-size="12" font-weight="600" fill="#0058b0">get a batch</text><text x="110" y="58" text-anchor="middle" font-size="9.5" fill="#0058b0">DataLoader</text><rect x="240" y="20" width="180" height="50" rx="11" fill="#e7f7ec" stroke="#34c759"/><text x="330" y="42" text-anchor="middle" font-size="12" font-weight="600" fill="#1d7a37">forward → loss</text><text x="330" y="58" text-anchor="middle" font-size="9.5" fill="#1d7a37">prediction error</text><rect x="240" y="130" width="180" height="50" rx="11" fill="#fff7e0" stroke="#d99a2b"/><text x="330" y="152" text-anchor="middle" font-size="11.5" font-weight="600" fill="#9a5b00">loss.backward()</text><text x="330" y="168" text-anchor="middle" font-size="9.5" fill="#9a5b00">autograd</text><rect x="20" y="130" width="180" height="50" rx="11" fill="#fde6f0" stroke="#c2487f"/><text x="110" y="152" text-anchor="middle" font-size="11.5" font-weight="600" fill="#a0306a">optimizer.step()</text><text x="110" y="168" text-anchor="middle" font-size="9.5" fill="#a0306a">update weights</text><line x1="200" y1="45" x2="238" y2="45" stroke="#c7c7cc" stroke-width="1.6" marker-end="url(#m)"/><line x1="330" y1="70" x2="330" y2="128" stroke="#c7c7cc" stroke-width="1.6" marker-end="url(#m)"/><line x1="240" y1="155" x2="202" y2="155" stroke="#c7c7cc" stroke-width="1.6" marker-end="url(#m)"/><line x1="110" y1="130" x2="110" y2="72" stroke="#0071e3" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#mb)"/><text x="118" y="105" font-size="9" fill="#0058b0">repeat</text><defs><marker id="m" markerWidth="8" markerHeight="8" refX="5" refY="3" orient="auto"><path d="M0 0L6 3L0 6Z" fill="#c7c7cc"/></marker><marker id="mb" markerWidth="8" markerHeight="8" refX="5" refY="3" orient="auto"><path d="M0 0L6 3L0 6Z" fill="#0071e3"/></marker></defs></svg>`,
+ arch:`<svg viewBox="0 0 440 200" font-family="-apple-system,sans-serif"><rect x="140" y="14" width="160" height="30" rx="8" fill="#f0f0f2" stroke="#c7c7cc"/><text x="220" y="34" text-anchor="middle" font-size="10.5" fill="#6e6e73">input embeddings + position</text><rect x="120" y="58" width="200" height="92" rx="12" fill="none" stroke="#d2d2d7" stroke-dasharray="4 4"/><rect x="140" y="64" width="160" height="34" rx="8" fill="#e6f0fd" stroke="#0071e3"/><text x="220" y="85" text-anchor="middle" font-size="11" font-weight="600" fill="#0058b0">Self-Attention</text><rect x="140" y="110" width="160" height="34" rx="8" fill="#e7f7ec" stroke="#34c759"/><text x="220" y="131" text-anchor="middle" font-size="11" font-weight="600" fill="#1d7a37">Feed-Forward</text><rect x="140" y="160" width="160" height="30" rx="8" fill="#1d1d1f"/><text x="220" y="180" text-anchor="middle" font-size="11" fill="#fff">output</text><line x1="220" y1="44" x2="220" y2="62" stroke="#c7c7cc" stroke-width="1.5" marker-end="url(#m)"/><line x1="220" y1="98" x2="220" y2="108" stroke="#c7c7cc" stroke-width="1.5" marker-end="url(#m)"/><line x1="220" y1="144" x2="220" y2="158" stroke="#c7c7cc" stroke-width="1.5" marker-end="url(#m)"/><text x="332" y="104" font-size="10" fill="#86868b">× N</text><text x="332" y="118" font-size="10" fill="#86868b">layers</text><defs><marker id="m" markerWidth="8" markerHeight="8" refX="5" refY="3" orient="auto"><path d="M0 0L6 3L0 6Z" fill="#c7c7cc"/></marker></defs></svg>`,
+ nlpbase:`<svg viewBox="0 0 440 130" font-family="-apple-system,sans-serif"><g font-size="10.5"><rect x="6" y="40" width="84" height="44" rx="9" fill="#f0f0f2" stroke="#c7c7cc"/><text x="48" y="60" text-anchor="middle" fill="#6e6e73">text</text><text x="48" y="74" text-anchor="middle" font-size="8.5" fill="#86868b">"I love it"</text><rect x="106" y="40" width="84" height="44" rx="9" fill="#e6f0fd" stroke="#0071e3"/><text x="148" y="60" text-anchor="middle" font-weight="600" fill="#0058b0">tokens</text><text x="148" y="74" text-anchor="middle" font-size="8.5" fill="#0058b0">[I][love][it]</text><rect x="206" y="40" width="92" height="44" rx="9" fill="#e7f7ec" stroke="#34c759"/><text x="252" y="60" text-anchor="middle" font-weight="600" fill="#1d7a37">embeddings</text><text x="252" y="74" text-anchor="middle" font-size="8.5" fill="#1d7a37">vectors</text><rect x="314" y="40" width="120" height="44" rx="9" fill="#fff7e0" stroke="#d99a2b"/><text x="374" y="60" text-anchor="middle" font-weight="600" fill="#9a5b00">self-attention</text><text x="374" y="74" text-anchor="middle" font-size="8.5" fill="#9a5b00">adds context</text></g><line x1="90" y1="62" x2="104" y2="62" stroke="#c7c7cc" stroke-width="1.5" marker-end="url(#m)"/><line x1="190" y1="62" x2="204" y2="62" stroke="#c7c7cc" stroke-width="1.5" marker-end="url(#m)"/><line x1="298" y1="62" x2="312" y2="62" stroke="#c7c7cc" stroke-width="1.5" marker-end="url(#m)"/><defs><marker id="m" markerWidth="8" markerHeight="8" refX="5" refY="3" orient="auto"><path d="M0 0L6 3L0 6Z" fill="#c7c7cc"/></marker></defs></svg>`,
+ llm:`<svg viewBox="0 0 440 150" font-family="-apple-system,sans-serif"><g font-size="10"><rect x="6" y="26" width="98" height="40" rx="9" fill="#e6f0fd" stroke="#0071e3"/><text x="55" y="44" text-anchor="middle" font-weight="600" fill="#0058b0">Pretrain</text><text x="55" y="58" text-anchor="middle" font-size="8.5" fill="#0058b0">next-token</text><rect x="120" y="26" width="98" height="40" rx="9" fill="#e7f7ec" stroke="#34c759"/><text x="169" y="44" text-anchor="middle" font-weight="600" fill="#1d7a37">Instruction</text><text x="169" y="58" text-anchor="middle" font-size="8.5" fill="#1d7a37">tune</text><rect x="234" y="26" width="98" height="40" rx="9" fill="#fff7e0" stroke="#d99a2b"/><text x="283" y="44" text-anchor="middle" font-weight="600" fill="#9a5b00">RLHF</text><text x="283" y="58" text-anchor="middle" font-size="8.5" fill="#9a5b00">align</text><rect x="348" y="26" width="86" height="40" rx="9" fill="#1d1d1f"/><text x="391" y="50" text-anchor="middle" font-weight="600" fill="#fff">deploy</text></g><line x1="104" y1="46" x2="118" y2="46" stroke="#c7c7cc" stroke-width="1.5" marker-end="url(#m)"/><line x1="218" y1="46" x2="232" y2="46" stroke="#c7c7cc" stroke-width="1.5" marker-end="url(#m)"/><line x1="332" y1="46" x2="346" y2="46" stroke="#c7c7cc" stroke-width="1.5" marker-end="url(#m)"/><text x="220" y="98" text-anchor="middle" font-size="10.5" fill="#6e6e73">to apply it, pick a lever:</text><rect x="110" y="110" width="220" height="26" rx="8" fill="#eef4ff" stroke="#cfe0f5"/><text x="220" y="127" text-anchor="middle" font-size="10" fill="#0058b0">prompt → RAG → fine-tune</text><defs><marker id="m" markerWidth="8" markerHeight="8" refX="5" refY="3" orient="auto"><path d="M0 0L6 3L0 6Z" fill="#c7c7cc"/></marker></defs></svg>`,
+ prompt:`<svg viewBox="0 0 440 150" font-family="-apple-system,sans-serif"><g font-size="10.5"><rect x="20" y="30" width="100" height="40" rx="9" fill="#e6f0fd" stroke="#0071e3"/><text x="70" y="54" text-anchor="middle" font-weight="600" fill="#0058b0">prompt</text><rect x="170" y="30" width="100" height="40" rx="9" fill="#f0f0f2" stroke="#c7c7cc"/><text x="220" y="54" text-anchor="middle" fill="#6e6e73">model</text><rect x="320" y="30" width="100" height="40" rx="9" fill="#e7f7ec" stroke="#34c759"/><text x="370" y="54" text-anchor="middle" font-weight="600" fill="#1d7a37">output</text></g><line x1="120" y1="50" x2="168" y2="50" stroke="#c7c7cc" stroke-width="1.6" marker-end="url(#m)"/><line x1="270" y1="50" x2="318" y2="50" stroke="#c7c7cc" stroke-width="1.6" marker-end="url(#m)"/><path d="M370 70 Q370 118 220 118 Q70 118 70 72" fill="none" stroke="#0071e3" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#mb)"/><text x="220" y="114" text-anchor="middle" font-size="10" fill="#0058b0">score on an eval set → refine the prompt</text><defs><marker id="m" markerWidth="8" markerHeight="8" refX="5" refY="3" orient="auto"><path d="M0 0L6 3L0 6Z" fill="#c7c7cc"/></marker><marker id="mb" markerWidth="8" markerHeight="8" refX="5" refY="3" orient="auto"><path d="M0 0L6 3L0 6Z" fill="#0071e3"/></marker></defs></svg>`,
+ cvbase:`<svg viewBox="0 0 440 150" font-family="-apple-system,sans-serif"><g font-size="10"><rect x="6" y="40" width="80" height="46" rx="9" fill="#f0f0f2" stroke="#c7c7cc"/><text x="46" y="60" text-anchor="middle" fill="#6e6e73">pixels</text><text x="46" y="74" text-anchor="middle" font-size="8.5" fill="#86868b">RGB grids</text><rect x="100" y="40" width="80" height="46" rx="9" fill="#e6f0fd" stroke="#0071e3"/><text x="140" y="67" text-anchor="middle" fill="#0058b0">edges</text><rect x="194" y="40" width="80" height="46" rx="9" fill="#e7f7ec" stroke="#34c759"/><text x="234" y="67" text-anchor="middle" fill="#1d7a37">shapes</text><rect x="288" y="40" width="80" height="46" rx="9" fill="#fff7e0" stroke="#d99a2b"/><text x="328" y="67" text-anchor="middle" fill="#9a5b00">objects</text><rect x="382" y="48" width="52" height="30" rx="7" fill="#1d1d1f"/><text x="408" y="67" text-anchor="middle" font-size="9" fill="#fff">"cat"</text></g><line x1="86" y1="63" x2="98" y2="63" stroke="#c7c7cc" stroke-width="1.4" marker-end="url(#m)"/><line x1="180" y1="63" x2="192" y2="63" stroke="#c7c7cc" stroke-width="1.4" marker-end="url(#m)"/><line x1="274" y1="63" x2="286" y2="63" stroke="#c7c7cc" stroke-width="1.4" marker-end="url(#m)"/><line x1="368" y1="63" x2="380" y2="63" stroke="#c7c7cc" stroke-width="1.4" marker-end="url(#m)"/><text x="220" y="116" text-anchor="middle" font-size="10.5" fill="#86868b">each layer builds on the last — simple to complex</text><defs><marker id="m" markerWidth="8" markerHeight="8" refX="5" refY="3" orient="auto"><path d="M0 0L6 3L0 6Z" fill="#c7c7cc"/></marker></defs></svg>`,
+ cvtasks:`<svg viewBox="0 0 440 160" font-family="-apple-system,sans-serif"><g font-size="10.5" text-anchor="middle"><text x="73" y="18" font-weight="600" fill="#0058b0">Classification</text><rect x="20" y="28" width="106" height="80" rx="8" fill="#eef4ff" stroke="#cfe0f5"/><text x="73" y="72" font-size="11" fill="#0058b0">"cat"</text><text x="73" y="126" font-size="9" fill="#86868b">one label</text><text x="220" y="18" font-weight="600" fill="#1d7a37">Detection</text><rect x="167" y="28" width="106" height="80" rx="8" fill="#f1faf3" stroke="#cdeed6"/><rect x="185" y="46" width="40" height="40" rx="4" fill="none" stroke="#34c759" stroke-width="2"/><rect x="222" y="60" width="34" height="34" rx="4" fill="none" stroke="#34c759" stroke-width="2"/><text x="220" y="126" font-size="9" fill="#86868b">boxes + labels</text><text x="367" y="18" font-weight="600" fill="#9a5b00">Segmentation</text><rect x="314" y="28" width="106" height="80" rx="8" fill="#fff7e0" stroke="#f0e2c8"/><path d="M330 92 Q345 50 372 60 Q406 72 400 98 Z" fill="#f7c873" opacity=".75"/><text x="367" y="126" font-size="9" fill="#86868b">every pixel</text></g><text x="220" y="150" text-anchor="middle" font-size="10" fill="#86868b">more detail at each level</text></svg>`,
+ agbase:`<svg viewBox="0 0 440 200" font-family="-apple-system,sans-serif"><rect x="145" y="10" width="150" height="30" rx="9" fill="#1d1d1f"/><text x="220" y="30" text-anchor="middle" font-size="11.5" fill="#fff">Goal</text><rect x="40" y="64" width="150" height="44" rx="11" fill="#e6f0fd" stroke="#0071e3"/><text x="115" y="84" text-anchor="middle" font-size="11.5" font-weight="600" fill="#0058b0">Thought</text><text x="115" y="98" text-anchor="middle" font-size="9" fill="#0058b0">what next?</text><rect x="250" y="64" width="150" height="44" rx="11" fill="#e7f7ec" stroke="#34c759"/><text x="325" y="84" text-anchor="middle" font-size="11.5" font-weight="600" fill="#1d7a37">Action</text><text x="325" y="98" text-anchor="middle" font-size="9" fill="#1d7a37">use a tool</text><rect x="250" y="142" width="150" height="44" rx="11" fill="#fff7e0" stroke="#d99a2b"/><text x="325" y="162" text-anchor="middle" font-size="11.5" font-weight="600" fill="#9a5b00">Observation</text><text x="325" y="176" text-anchor="middle" font-size="9" fill="#9a5b00">read result</text><rect x="40" y="142" width="150" height="44" rx="11" fill="#fde6f0" stroke="#c2487f"/><text x="115" y="168" text-anchor="middle" font-size="10.5" font-weight="600" fill="#a0306a">Answer (when done)</text><line x1="190" y1="86" x2="248" y2="86" stroke="#c7c7cc" stroke-width="1.6" marker-end="url(#m)"/><line x1="325" y1="108" x2="325" y2="140" stroke="#c7c7cc" stroke-width="1.6" marker-end="url(#m)"/><path d="M250 164 Q200 150 200 120 Q200 96 192 90" fill="none" stroke="#0071e3" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#mb)"/><text x="158" y="128" font-size="9" fill="#0058b0">loop until solved</text><line x1="200" y1="40" x2="150" y2="62" stroke="#c7c7cc" stroke-width="1.4" marker-end="url(#m)"/><defs><marker id="m" markerWidth="8" markerHeight="8" refX="5" refY="3" orient="auto"><path d="M0 0L6 3L0 6Z" fill="#c7c7cc"/></marker><marker id="mb" markerWidth="8" markerHeight="8" refX="5" refY="3" orient="auto"><path d="M0 0L6 3L0 6Z" fill="#0071e3"/></marker></defs></svg>`,
+ agbuild:`<svg viewBox="0 0 440 190" font-family="-apple-system,sans-serif"><rect x="150" y="12" width="140" height="36" rx="10" fill="#1d1d1f"/><text x="220" y="35" text-anchor="middle" font-size="11.5" fill="#fff">Orchestrator</text><g font-size="10" text-anchor="middle"><rect x="20" y="78" width="92" height="40" rx="9" fill="#e6f0fd" stroke="#0071e3"/><text x="66" y="102" fill="#0058b0">LLM</text><rect x="124" y="78" width="92" height="40" rx="9" fill="#e7f7ec" stroke="#34c759"/><text x="170" y="102" fill="#1d7a37">tools</text><rect x="228" y="78" width="92" height="40" rx="9" fill="#fff7e0" stroke="#d99a2b"/><text x="274" y="102" fill="#9a5b00">memory</text><rect x="332" y="78" width="92" height="40" rx="9" fill="#fde6f0" stroke="#c2487f"/><text x="378" y="102" fill="#a0306a">retrieval</text></g>${[66,170,274,378].map(x=>`<line x1="220" y1="48" x2="${x}" y2="76" stroke="#c7c7cc" stroke-width="1.3" marker-end="url(#m)"/>`).join('')}<rect x="60" y="142" width="320" height="32" rx="9" fill="#fde6e6" stroke="#d04a4a"/><text x="220" y="162" text-anchor="middle" font-size="10.5" font-weight="600" fill="#b03a3a">Guardrails + evaluation wrap everything</text><defs><marker id="m" markerWidth="8" markerHeight="8" refX="5" refY="3" orient="auto"><path d="M0 0L6 3L0 6Z" fill="#c7c7cc"/></marker></defs></svg>`,
+ deploy:`<svg viewBox="0 0 440 200" font-family="-apple-system,sans-serif"><rect x="20" y="20" width="180" height="50" rx="11" fill="#e6f0fd" stroke="#0071e3"/><text x="110" y="42" text-anchor="middle" font-size="12" font-weight="600" fill="#0058b0">1 · Train + package</text><text x="110" y="58" text-anchor="middle" font-size="9.5" fill="#0058b0">Docker container</text><rect x="240" y="20" width="180" height="50" rx="11" fill="#e7f7ec" stroke="#34c759"/><text x="330" y="42" text-anchor="middle" font-size="12" font-weight="600" fill="#1d7a37">2 · Serve (API)</text><text x="330" y="58" text-anchor="middle" font-size="9.5" fill="#1d7a37">live inference</text><rect x="240" y="130" width="180" height="50" rx="11" fill="#fff7e0" stroke="#d99a2b"/><text x="330" y="152" text-anchor="middle" font-size="12" font-weight="600" fill="#9a5b00">3 · Monitor</text><text x="330" y="168" text-anchor="middle" font-size="9.5" fill="#9a5b00">watch for drift</text><rect x="20" y="130" width="180" height="50" rx="11" fill="#fde6e6" stroke="#d04a4a"/><text x="110" y="152" text-anchor="middle" font-size="12" font-weight="600" fill="#b03a3a">4 · Retrain</text><text x="110" y="168" text-anchor="middle" font-size="9.5" fill="#b03a3a">on fresh data</text><line x1="200" y1="45" x2="238" y2="45" stroke="#c7c7cc" stroke-width="1.6" marker-end="url(#m)"/><line x1="330" y1="70" x2="330" y2="128" stroke="#c7c7cc" stroke-width="1.6" marker-end="url(#m)"/><line x1="240" y1="155" x2="202" y2="155" stroke="#c7c7cc" stroke-width="1.6" marker-end="url(#m)"/><line x1="110" y1="130" x2="110" y2="72" stroke="#0071e3" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#mb)"/><text x="118" y="105" font-size="9" fill="#0058b0">repeat</text><defs><marker id="m" markerWidth="8" markerHeight="8" refX="5" refY="3" orient="auto"><path d="M0 0L6 3L0 6Z" fill="#c7c7cc"/></marker><marker id="mb" markerWidth="8" markerHeight="8" refX="5" refY="3" orient="auto"><path d="M0 0L6 3L0 6Z" fill="#0071e3"/></marker></defs></svg>`,
+ ethics:`<svg viewBox="0 0 440 170" font-family="-apple-system,sans-serif"><g font-size="10.5" text-anchor="middle"><rect x="20" y="30" width="110" height="44" rx="9" fill="#fde6e6" stroke="#d04a4a"/><text x="75" y="50" font-weight="600" fill="#b03a3a">Data</text><text x="75" y="64" font-size="9" fill="#b03a3a">skew / gaps</text><rect x="165" y="30" width="110" height="44" rx="9" fill="#fff7e0" stroke="#d99a2b"/><text x="220" y="50" font-weight="600" fill="#9a5b00">Model</text><text x="220" y="64" font-size="9" fill="#9a5b00">learns bias</text><rect x="310" y="30" width="110" height="44" rx="9" fill="#1d1d1f"/><text x="365" y="50" font-weight="600" fill="#fff">Decision</text><text x="365" y="64" font-size="9" fill="#ddd">real impact</text></g><line x1="130" y1="52" x2="163" y2="52" stroke="#c7c7cc" stroke-width="1.6" marker-end="url(#m)"/><line x1="275" y1="52" x2="308" y2="52" stroke="#c7c7cc" stroke-width="1.6" marker-end="url(#m)"/><g font-size="9.5" text-anchor="middle" fill="#1d7a37"><line x1="75" y1="74" x2="75" y2="104" stroke="#34c759" stroke-width="1.4" marker-end="url(#mg)"/><text x="75" y="120">audit data</text><line x1="220" y1="74" x2="220" y2="104" stroke="#34c759" stroke-width="1.4" marker-end="url(#mg)"/><text x="220" y="120">test fairness</text><line x1="365" y1="74" x2="365" y2="104" stroke="#34c759" stroke-width="1.4" marker-end="url(#mg)"/><text x="365" y="120">explain + review</text></g><text x="220" y="150" text-anchor="middle" font-size="10" fill="#86868b">catch bias at every stage, not at the end</text><defs><marker id="m" markerWidth="8" markerHeight="8" refX="5" refY="3" orient="auto"><path d="M0 0L6 3L0 6Z" fill="#c7c7cc"/></marker><marker id="mg" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0 0L6 3L0 6Z" fill="#34c759"/></marker></defs></svg>`
+};
+
+const DEEP={
+ math:{flow:["Represent your data as vectors and matrices","Pass it through the model with matrix multiplication","Measure how wrong the output is with a loss","Use derivatives to compute the gradient","Step the weights downhill to cut the error","Repeat until the loss stops improving"],example:"To fit a line y = wx + b to scattered points, start with random w and b, measure how far off you are (the loss), use calculus to find which way to nudge w and b, and take small steps. After many steps the line settles onto the data — that is training in miniature.",pitfalls:["Trying to memorise proofs instead of building intuition — aim to picture what each operation does.","Avoiding calculus because it looks scary; you really only need the idea of a slope and a gradient.","Forgetting that probability is about handling uncertainty, not just plugging into formulas."]},
+ py:{flow:["Write core Python: variables, loops, functions","Load data into a Pandas DataFrame","Clean and reshape it with Pandas","Run fast math on arrays with NumPy","Explore and visualise in a notebook"],example:"Reading a CSV of house prices is one line: df = pd.read_csv('houses.csv'). Then df.describe() instantly gives counts, averages, and ranges for every column — work that would take dozens of lines in raw Python.",pitfalls:["Writing slow Python loops where a vectorised NumPy or Pandas operation would be far faster.","Trying to memorise every function instead of learning to read the documentation.","Skipping a clean virtual environment, then fighting dependency conflicts later."]},
+ data:{flow:["Collect or load the raw data","Explore it with summaries and charts","Clean it: fix types, handle missing values, drop errors","Choose your features (inputs) and label (target)","Split into train, validation, and test sets"],example:"With 10,000 records you might put 70% in training, 15% in validation to tune choices, and 15% in test, touched only once at the very end. If you peek at the test set while tuning, your reported accuracy becomes a lie.",pitfalls:["Leaking test data into training — the most common way people fool themselves.","Filling missing values blindly (like with 0) without thinking about what is appropriate.","Forgetting to scale features that live on very different ranges."]},
+ mlcore:{flow:["Ask: do I have labelled answers?","If yes, it is supervised learning","Within supervised, is the answer a category or a number?","Category means classification; number means regression","If there are no labels, it is unsupervised","If it learns from rewards, it is reinforcement"],example:"Flagging a transaction as fraud (yes/no) from past labelled examples is supervised classification. Grouping shoppers into segments with no labels is unsupervised. Training a bot to win a game through rewards is reinforcement.",pitfalls:["Forcing a problem into supervised learning when you have no real labels.","Confusing classification (categories) with regression (numbers).","Reaching for reinforcement learning when a simpler supervised setup would do."]},
+ algos:{flow:["Start with a simple baseline like linear or logistic regression","Try tree-based models: random forest, gradient boosting","Compare them fairly on the same validation set","For unlabelled data, use k-means or PCA","Pick the simplest model that performs well"],example:"On a tabular dataset, logistic regression might hit 82% in seconds. A tuned gradient-boosting model might reach 89%. If that extra 7% is worth the added complexity, keep it; otherwise the simple model wins.",pitfalls:["Jumping to deep learning when boosting on tabular data is faster and often better.","Not tuning hyperparameters, then concluding a model is simply bad.","Comparing models on different splits, which makes the comparison meaningless."]},
+ eval:{flow:["Train the model on the training set","Predict on held-out data","Build a confusion matrix of right vs wrong","Compute precision, recall, and F1 — not just accuracy","Use cross-validation to confirm it is not a fluke"],example:"A test that says healthy for everyone is 99% accurate if a disease is rare — but its recall is 0%, so it catches no sick patients. That is exactly why you never trust accuracy alone.",pitfalls:["Reporting accuracy on imbalanced data and declaring victory.","Tuning on the test set instead of a separate validation set.","Ignoring which error costs more — a false alarm or a miss."]},
+ nn:{flow:["Forward pass: run input through the layers to a prediction","Compute the loss: how wrong was it?","Backpropagation: find each weight's share of the error","Update every weight a small step downhill","Repeat across many batches and epochs"],example:"Show the network a 7. It guesses 1 with 60% confidence — a big loss. Backprop traces that mistake to specific weights and nudges them. After thousands of digits, it reliably reads a 7.",pitfalls:["Learning rate too high makes training explode; too low makes it crawl.","Forgetting a non-linear activation, so many layers collapse into one.","Training so long the network memorises the data (overfitting)."]},
+ frame:{flow:["Define the model as a stack of layers","Pull a batch of data from a DataLoader","Forward pass, then compute the loss","Call loss.backward() so autograd fills in gradients","Call optimizer.step() to update weights, then repeat"],example:"The whole training loop is about five lines: get a batch, predict, compute loss, loss.backward(), optimizer.step(). Autograd handles every derivative, so you focus on the model, not the math.",pitfalls:["Forgetting optimizer.zero_grad(), so gradients pile up across steps.","Leaving the model in train mode during evaluation, which changes dropout and batchnorm.","Not moving both the model and the data to the GPU, then wondering why it is slow."]},
+ arch:{flow:["Match the architecture to your data's structure","Images with local patterns suit a CNN","Sequences (the older approach) suit an RNN or LSTM","Almost anything modern suits a Transformer","Add embeddings and normalisation to stabilise training"],example:"A CNN reading a photo first finds edges, then combines them into shapes, then into cat. A Transformer reading a sentence lets it look back at the cat to resolve what it refers to — all positions at once.",pitfalls:["Using an RNN for long sequences where a Transformer handles context far better.","Underestimating how much data and compute Transformers need.","Forgetting positional information, so a Transformer loses word order."]},
+ nlpbase:{flow:["Start with raw text","Tokenise it into word-pieces","Map each token to an embedding vector","Apply self-attention to build context","Output a representation a model can use"],example:"I love it becomes tokens [I, love, it], each turned into a vector. Self-attention lets it borrow meaning from love, so the model grasps the sentiment, not just the separate words.",pitfalls:["Assuming one token equals one word — it is often a word-fragment.","Treating embeddings as a fixed dictionary rather than learned meaning.","Ignoring context: the same word means different things in different sentences."]},
+ llm:{flow:["Pretrain on huge text by predicting the next token","Instruction-tune so it follows requests","Apply RLHF to align with human preferences","To use it: prompt, add RAG, or fine-tune","Deploy with evaluation and safety checks"],example:"Ask a raw pretrained model a question and it may just continue the text oddly. After instruction tuning and RLHF, the same weights answer helpfully — the model was shaped, not replaced.",pitfalls:["Trusting fluent answers — confidence is not correctness (hallucination).","Overflowing the context window and silently losing earlier information.","Fine-tuning when a good prompt or RAG would have been cheaper and enough."]},
+ prompt:{flow:["Write a clear, specific prompt","Add a few examples (few-shot) if needed","Ask for step-by-step reasoning on hard tasks","Request structured output for software to use","Score results on a fixed eval set, then iterate"],example:"Adding 'Let us think step by step' to a maths prompt can turn a wrong one-shot answer into a correct, reasoned one — no model change at all, just a better prompt.",pitfalls:["Vague prompts that leave the model guessing your intent.","Changing prompts by feel with no eval set to measure improvement.","Assuming a prompt that works once will work reliably at scale."]},
+ cvbase:{flow:["Read the image as colour-channel grids","Convolution detects edges in the early layers","Deeper layers combine edges into shapes and objects","Pooling shrinks the representation, keeping the signal","A final layer outputs the class"],example:"A network trained on millions of images already knows edges and textures. With transfer learning you reuse all of that and retrain only the last layer on your 300 photos — strong results from little data.",pitfalls:["Training from scratch when transfer learning would work with far less data.","Skipping image augmentation (flips, crops), so the model overfits.","Forgetting to resize and normalise inputs to what the model expects."]},
+ cvtasks:{flow:["Classification: one label for the whole image","Detection: boxes around each object, with labels","Segmentation: a label for every single pixel","Generation: create new images (GANs, diffusion)","Multimodal: link images and text (CLIP)"],example:"For a street photo, classification says street scene, detection draws boxes around each car and pedestrian, and segmentation colours every pixel by what it belongs to — more detail at each level.",pitfalls:["Using classification when you actually need to locate objects (detection).","Underestimating how much labelled data segmentation requires.","Expecting diffusion models to be fast — they trade speed for quality."]},
+ agbase:{flow:["Give the model a goal","It reasons about the next step (Thought)","It takes an Action by calling a tool","It reads the result (Observation)","It loops until the goal is met, then answers"],example:"Asked for the weather where the Eiffel Tower is, an agent thinks find the city, searches to get Paris, thinks get weather, calls a weather tool to get 18C, then answers. Two tool calls, one loop.",pitfalls:["Letting the loop run forever — always cap the number of steps.","Giving tools without clear descriptions of when to use each one.","No memory, so the agent forgets what it already tried."]},
+ agbuild:{flow:["Start with the simplest single-agent design","Add tools and retrieval (RAG) as needed","Split into multiple agents only if it truly helps","Add evaluation and logging for observability","Wrap everything in guardrails before shipping"],example:"A content pipeline might use a researcher agent that gathers facts and a writer agent that drafts from them — with a guardrail that blocks publishing if the sources are missing.",pitfalls:["Over-engineering with many agents when one would do.","No observability, so you cannot tell why it failed.","Errors compounding across steps because nothing checks the work in between."]},
+ deploy:{flow:["Wrap the trained model behind an API","Package it with Docker so it runs anywhere","Deploy and serve real predictions (inference)","Monitor inputs, outputs, and performance","Detect drift, retrain, and redeploy via CI/CD"],example:"A model that predicted shopping demand well in 2023 slowly gets worse as habits change — that is drift. Monitoring catches the decline, and a CI/CD pipeline retrains it on fresh data automatically.",pitfalls:["Shipping a model with no monitoring, then never noticing it has decayed.","Not versioning data and models, so results cannot be reproduced.","Ignoring latency and cost until users start complaining."]},
+ ethics:{flow:["Check the data for skew and gaps","Test outcomes across different groups (fairness)","Make decisions interpretable and explainable","Stress-test for robustness on unusual inputs","Keep humans in the loop for high-stakes calls"],example:"A hiring model trained on past hires can absorb the past's biases, quietly favouring one group. Auditing outcomes by group reveals the gap so you can fix the data or the model before it does harm.",pitfalls:["Assuming a model is objective just because it is mathematical.","Optimising only for accuracy while ignoring who it fails.","Treating ethics as a final checkbox instead of a concern throughout."]}
+};
+
+const RECALL={
+ math:[{q:"Why does training need calculus?",a:"To compute the gradient — the direction that lowers the loss — so the model knows which way to adjust each weight."},{q:"In ML, what is almost everything turned into?",a:"Vectors (and matrices) of numbers — a data point, a word, or an image all become vectors the model does arithmetic on."}],
+ py:[{q:"What is a DataFrame, and which library gives you one?",a:"A table-like structure of rows and columns, provided by Pandas."},{q:"Why prefer NumPy/Pandas over plain Python loops?",a:"They run vectorised operations in fast compiled code, often far quicker than equivalent Python loops."}],
+ data:[{q:"Why split data into train, validation, and test sets?",a:"So you can tune on validation and still get an honest final score on a test set the model never trained on."},{q:"What is data leakage?",a:"When information from the test or future data sneaks into training, making results look better than they truly are."}],
+ mlcore:[{q:"What question separates supervised from unsupervised learning?",a:"Whether you have labelled answers. Labels means supervised; no labels means unsupervised."},{q:"Classification vs regression — what's the difference?",a:"Classification predicts a category; regression predicts a number."}],
+ algos:[{q:"Why start with a simple baseline model?",a:"It's fast, sets a benchmark, and tells you whether extra complexity actually buys you anything."},{q:"Which algorithms suit unlabelled data?",a:"Unsupervised ones like k-means for clustering and PCA for finding structure."}],
+ eval:[{q:"Why isn't accuracy enough on imbalanced data?",a:"A model can score high accuracy by ignoring the rare class entirely; precision and recall expose that failure."},{q:"What does recall measure?",a:"Of all the actual positives, the fraction the model correctly caught."}],
+ nn:[{q:"What are the four repeating steps of training?",a:"Forward pass, compute loss, backpropagation, update weights — repeated over many batches."},{q:"What does backpropagation do?",a:"It assigns each weight its share of the error, so every weight knows which way to move."}],
+ frame:[{q:"What does loss.backward() do in PyTorch?",a:"It runs autograd to compute the gradient of the loss with respect to every weight."},{q:"Why call optimizer.zero_grad() each step?",a:"Otherwise gradients accumulate across steps instead of being computed fresh for the current batch."}],
+ arch:[{q:"Which architecture suits images, and why?",a:"A CNN — convolutions detect local patterns (edges, then shapes, then objects) that build up spatially."},{q:"What problem does self-attention solve?",a:"It lets every position in a sequence look at every other position to build context, all at once."}],
+ nlpbase:[{q:"What are the stages from text to model input?",a:"Text becomes tokens, tokens become embeddings, then self-attention adds context."},{q:"Does one token equal one word?",a:"No — tokens are often word-fragments (subwords), so one word can be several tokens."}],
+ llm:[{q:"What are the main training stages of a modern LLM?",a:"Pretraining (next-token prediction), instruction tuning, then RLHF to align with human preferences."},{q:"What is hallucination?",a:"When a model produces fluent, confident text that is actually wrong — fluency is not correctness."}],
+ prompt:[{q:"What does few-shot prompting mean?",a:"Including a few worked examples in the prompt so the model can pattern-match the task."},{q:"Why do you need an eval set when prompting?",a:"To measure objectively whether a prompt change actually improved results, instead of judging by feel."}],
+ cvbase:[{q:"What is transfer learning, and why is it useful?",a:"Reusing a model pretrained on millions of images and retraining only the last layers — strong results from little data."},{q:"What does a convolution detect in early layers?",a:"Simple local features like edges, which deeper layers combine into shapes and objects."}],
+ cvtasks:[{q:"Classification vs detection vs segmentation?",a:"Classification labels the whole image, detection draws boxes around objects, segmentation labels every pixel."},{q:"What kind of model generates new images?",a:"Generative models such as GANs and diffusion models."}],
+ agbase:[{q:"What is the reason-act loop?",a:"Thought, then Action (use a tool), then Observation (read the result), repeated until the goal is met."},{q:"Why cap how many steps an agent can take?",a:"To stop it looping forever and to control cost when it can't reach the goal."}],
+ agbuild:[{q:"When should you add more agents to a system?",a:"Only when it genuinely helps — start with the simplest single-agent design and add complexity carefully."},{q:"What are guardrails for?",a:"To constrain what the agent can do and block unsafe or invalid actions before they happen."}],
+ deploy:[{q:"What is model drift?",a:"When a model's accuracy decays over time because real-world data has changed since it was trained."},{q:"What does packaging with Docker achieve?",a:"It bundles the model with its environment so it runs identically wherever you deploy it."}],
+ ethics:[{q:"Where can bias enter an ML system?",a:"At every stage — skewed data, a model that learns it, and decisions that cause real-world impact."},{q:"Why isn't a model automatically objective?",a:"It learns patterns from human-generated data, so it can absorb and even amplify human biases."}]
+};
+
+const DEMOS={
+ nn:{html:`<div class="demobox"><svg viewBox="0 0 360 180" class="gd-svg" preserveAspectRatio="xMidYMid meet"><path class="gd-curve" fill="none" stroke="#0071e3" stroke-width="2.5"/><line class="gd-tan" stroke="#ff9500" stroke-width="2"/><circle class="gd-ball" r="7" fill="#ff3b30"/></svg><div class="demo-row"><label>Learning rate <b class="gd-lrv">0.10</b></label><input type="range" class="gd-lr" min="2" max="130" value="10" aria-label="learning rate"></div><div class="demo-row"><button class="demo-btn gd-step">Step &#9656;</button><button class="demo-btn ghost gd-run">Run</button><button class="demo-btn ghost gd-reset">Reset</button><span class="gd-stat"></span></div><p class="demo-note">The red ball rolls downhill along the loss curve, guided by the gradient (orange tangent). A tiny rate creeps; too big a rate overshoots and bounces — exactly how real training succeeds or diverges.</p></div>`,
+  init:function(root){const curve=root.querySelector('.gd-curve'),ball=root.querySelector('.gd-ball'),tan=root.querySelector('.gd-tan'),stat=root.querySelector('.gd-stat'),lr=root.querySelector('.gd-lr'),lrv=root.querySelector('.gd-lrv');const W=360,H=180,pad=24,X0=-1.2,X1=1.2,Ymax=1.44;function px(x){return pad+(x-X0)/(X1-X0)*(W-2*pad);}function py(y){return H-pad-(y/Ymax)*(H-2*pad);}let d='';for(let i=0;i<=60;i++){const x=X0+(X1-X0)*i/60;d+=(i?'L':'M')+px(x).toFixed(1)+' '+py(x*x).toFixed(1)+' ';}curve.setAttribute('d',d);let x=-1.05;function rate(){return lr.value/100;}function draw(){const y=x*x,g=2*x,dx=0.3;ball.setAttribute('cx',px(x));ball.setAttribute('cy',py(y));tan.setAttribute('x1',px(x-dx));tan.setAttribute('y1',py(y-g*dx));tan.setAttribute('x2',px(x+dx));tan.setAttribute('y2',py(y+g*dx));lrv.textContent=rate().toFixed(2);stat.textContent='x='+x.toFixed(2)+'  loss='+y.toFixed(3)+'  grad='+g.toFixed(2);}function step(){x=x-rate()*2*x;x=Math.max(-1.35,Math.min(1.35,x));draw();}root.querySelector('.gd-step').onclick=step;root.querySelector('.gd-reset').onclick=function(){x=-1.05;draw();};lr.oninput=draw;let timer=null;root.querySelector('.gd-run').onclick=function(){if(timer){clearInterval(timer);timer=null;this.textContent='Run';return;}this.textContent='Stop';timer=setInterval(step,260);};draw();}},
+ nlpbase:{html:`<div class="demobox"><textarea class="tok-in" rows="2" aria-label="text to tokenize">Attention is all you need!</textarea><div class="tok-out"></div><p class="demo-note"><b class="tok-count">0</b> tokens · rough rule: a token is about one short word-piece (~4 characters), and a dot shows a word split into pieces. Real tokenizers learn their pieces from data — but this shows why text length is not the same as token count.</p></div>`,
+  init:function(root){const inp=root.querySelector('.tok-in'),out=root.querySelector('.tok-out'),cnt=root.querySelector('.tok-count'),cols=['#e6f0fd','#e7f7ec','#fff7e0','#fde6f0','#eae7fb'];function tok(s){const raw=s.match(/[A-Za-z]+|[0-9]+|[^\sA-Za-z0-9]/g)||[];const t=[];raw.forEach(w=>{if(/^[A-Za-z]+$/.test(w)&&w.length>5){for(let i=0;i<w.length;i+=4){t.push(w.slice(i,i+4)+(i+4<w.length?'·':''));}}else t.push(w);});return t;}function render(){const t=tok(inp.value);out.innerHTML=t.map((x,i)=>'<span class="tok" style="background:'+cols[i%cols.length]+'">'+x.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</span>').join('');cnt.textContent=t.length;}inp.oninput=render;render();}}
+};
+
+/* ===================== ROADMAP DATA ===================== */
+const DATA = [
+{ id:"found", name:"Foundations", meta:"math · code · data", topics:[
+  { id:"math", name:"Math for ML", level:"beginner", time:"3–4 weeks",
+    what:"The mathematical language every model is written in.",
+    lesson:`<p>You don't need a maths degree, but three branches turn up everywhere, and a working intuition for them makes everything later click.</p>
+      <p><strong>Linear algebra</strong> is how data and models are stored. A data point is a <em>vector</em> (a list of numbers); a layer of a network is a <em>matrix</em>; and pushing data through the layer is matrix multiplication. Picture rotating and stretching arrows in space — that's what a model does to your data.</p>
+      <p><strong>Calculus</strong> is how a model improves. The <em>derivative</em> tells you which way error goes up or down as you tweak a setting, and the <em>gradient</em> bundles those into a direction to move. Learning is just walking downhill on an error landscape.</p>
+      <p><strong>Probability</strong> is how a model handles uncertainty. Predictions are rarely certain, so models output probabilities, and concepts like distributions and Bayes' rule let them reason about what's likely.</p>
+      <p>Aim for fluency, not proofs. If you can read a formula and picture what it does, you're ready.</p>`,
+    overview:"Three branches show up everywhere: linear algebra stores data and weights, calculus drives learning, and probability handles uncertainty.",
+    why:"Every model is linear algebra moving through calculus, judged by probability. Skip this and advanced topics feel like spells instead of mechanics.",
+    concepts:[{h:"Vectors & matrices",d:"Data, words, and images are vectors and matrices, combined with matrix multiplication."},{h:"Derivatives & the chain rule",d:"How output changes as you nudge an input — the basis of learning."},{h:"Gradients",d:"A bundle of derivatives pointing downhill toward lower error."},{h:"Probability & distributions",d:"Reasoning about uncertainty and outputting probabilities."}],
+    terms:["vector","matrix","matmul","derivative","chainrule","gradient","distribution","bayes"],
+    apps:["Understanding any model","Reading research papers","Debugging training"],
+    prereqs:[], res:[["video","3Blue1Brown — visual math","free","https://www.youtube.com/@3blue1brown"],["book","Mathematics for ML (free PDF)","free","https://mml-book.github.io/"],["video","StatQuest — stats & probability","free","https://www.youtube.com/@statquest"]] },
+  { id:"py", name:"Python & Tooling", level:"beginner", time:"2–3 weeks",
+    what:"The working environment of practically all of AI.",
+    lesson:`<p>Python is the default language of machine learning, and a handful of libraries do the heavy lifting. Get comfortable here so your energy goes to ideas, not syntax.</p>
+      <p>Start with core Python — variables, loops, functions, and how to read an error message. Then learn the three tools you'll touch daily: <strong>NumPy</strong> for fast array math, <strong>Pandas</strong> for tables of data, and <strong>notebooks</strong> (Jupyter or Colab) for experimenting interactively.</p>
+      <p>The single biggest habit to build early is <em>vectorisation</em>: doing math on whole arrays at once rather than writing slow Python loops. It's faster and it's how every real ML codebase is written.</p>
+      <p>Don't try to memorise everything. Learn to read the docs and debug — those two skills outlast any specific syntax.</p>`,
+    overview:"Python plus NumPy, Pandas, and notebooks make up the environment nearly all of AI runs on.",
+    why:"Python is the lingua franca. Removing friction here pays off in every topic that follows.",
+    concepts:[{h:"Core Python",d:"Types, control flow, functions — the everyday basics."},{h:"NumPy arrays",d:"Fast, vectorised math instead of slow loops."},{h:"Pandas",d:"Loading, cleaning, and exploring tabular data."},{h:"Notebooks & environments",d:"Interactive coding and reproducible projects."}],
+    terms:["numpy","pandas","vectorization","dataframe"],
+    apps:["Every ML project","Data analysis","Prototyping models"],
+    prereqs:[], res:[["book","Automate the Boring Stuff (free)","free","https://automatetheboringstuff.com/"],["docs","NumPy — learn","free","https://numpy.org/learn/"],["video","Corey Schafer — Python","free","https://www.youtube.com/@coreyms"]] },
+  { id:"data", name:"Working with Data", level:"beginner", time:"2 weeks",
+    what:"Collecting, cleaning, and understanding data before modelling.",
+    lesson:`<p>Real datasets are messy — missing values, wrong types, outliers, quirks that quietly wreck models. Great practitioners are great at this unglamorous stage, and it's where most project time goes.</p>
+      <p>First, <strong>explore</strong>: summaries and charts to learn the data's shape, ranges, and gaps. Then <strong>clean</strong>: handle missing values, fix types, remove obvious errors. Identify your <em>features</em> (the inputs) and your <em>label</em> (the answer you want to predict).</p>
+      <p>Finally, and crucially, <strong>split</strong> the data into training, validation, and test sets. You learn from the training set, tune choices on validation, and touch the test set only once at the very end — that's the only way to get an honest read on how the model will do on data it has never seen.</p>`,
+    overview:"Explore, clean, and split data — the foundation every model sits on.",
+    why:"Models are only as good as their data. Most real ML time is spent here.",
+    concepts:[{h:"Exploratory data analysis",d:"Summaries and charts to understand a dataset before modelling."},{h:"Cleaning & missing values",d:"Handling gaps and errors that would mislead a model."},{h:"Features & labels",d:"The inputs a model learns from and the answers it predicts."},{h:"Train/validation/test split",d:"Measuring final performance on never-seen examples."}],
+    terms:["eda","missing","feature","label","split","normalization","sampling"],
+    apps:["Any data project","Honest benchmarks","Feature engineering"],
+    prereqs:["py"], res:[["course","Kaggle Learn (free, hands-on)","free","https://www.kaggle.com/learn"],["docs","Pandas user guide","free","https://pandas.pydata.org/docs/user_guide/"]] },
+]},
+{ id:"ml", name:"Machine Learning", meta:"classic models", topics:[
+  { id:"mlcore", name:"ML Paradigms", level:"beginner", time:"1 week",
+    what:"The three fundamental ways machines learn.",
+    lesson:`<p>Almost every ML problem fits one of three shapes, and naming the shape decides everything downstream — the data you need, the model you pick, and how you measure success.</p>
+      <ul>
+        <li><strong>Supervised learning</strong> — you have labelled examples (input + correct answer) and learn to predict answers for new inputs. Spam detection, price prediction.</li>
+        <li><strong>Unsupervised learning</strong> — you have data with no labels and find hidden structure, like grouping similar customers. Clustering, dimensionality reduction.</li>
+        <li><strong>Reinforcement learning</strong> — an agent takes actions in an environment and learns from rewards and penalties. Game-playing, robotics.</li>
+      </ul>
+      <p>Within supervised learning there's a further split: <strong>classification</strong> predicts a category, <strong>regression</strong> predicts a number. Head to the <em>Compare</em> tab for a side-by-side of all three paradigms — it's the clearest way to lock this in.</p>`,
+    overview:"Supervised, unsupervised, and reinforcement learning — the three shapes nearly every problem fits.",
+    why:"Naming the paradigm shapes your data, model, and metric from the very start.",
+    concepts:[{h:"Supervised learning",d:"Learning from labelled examples to predict answers."},{h:"Unsupervised learning",d:"Finding structure, like clusters, in unlabelled data."},{h:"Reinforcement learning",d:"Learning through actions, rewards, and penalties."},{h:"Classification vs regression",d:"Predicting a category versus predicting a number."}],
+    terms:["supervised","unsupervised","reinforcement","classification","regression","biasvar"],
+    apps:["Framing any problem","Choosing the right approach"],
+    prereqs:["math"], res:[["course","Google ML Crash Course","free","https://developers.google.com/machine-learning/crash-course"],["course","Andrew Ng — ML Specialization (audit free)","free","https://www.coursera.org/specializations/machine-learning-introduction"]] },
+  { id:"algos", name:"Core Algorithms", level:"intermediate", time:"3 weeks",
+    what:"The workhorse models you'll reach for constantly.",
+    lesson:`<p>Long before you need deep learning, a set of classic algorithms solves a huge share of real problems — often faster, cheaper, and more interpretably. Master these and you'll always have a strong baseline to beat.</p>
+      <p><strong>Linear and logistic regression</strong> are your simplest, most interpretable starting points — one for numbers, one for categories. <strong>Decision trees</strong> ask a chain of yes/no questions; combine many of them and you get <strong>random forests</strong> and <strong>gradient boosting</strong> (XGBoost, LightGBM), which dominate tabular data competitions.</p>
+      <p>Round it out with <strong>SVMs</strong> and <strong>k-NN</strong> for classification, and the unsupervised pair <strong>k-means</strong> (clustering) and <strong>PCA</strong> (compressing many features into a few). You don't need to implement these from scratch — scikit-learn gives you all of them in a few lines — but you should know when each one fits.</p>`,
+    overview:"Regression, trees, boosting, SVMs, clustering, and PCA — the models that solve most tabular problems.",
+    why:"These solve most real tabular problems and give you the baselines every project should start from.",
+    concepts:[{h:"Linear & logistic regression",d:"Simple, interpretable models for numbers and categories."},{h:"Trees & ensembles",d:"Decision trees into random forests and gradient boosting."},{h:"SVMs & k-NN",d:"Classic classifiers by margin and by nearest neighbours."},{h:"Clustering & PCA",d:"Grouping data and compressing features."}],
+    terms:["linreg","logreg","dtree","rforest","boosting","svm","knn","kmeans","pca"],
+    apps:["Tabular prediction","Fraud detection","Customer segmentation"],
+    prereqs:["mlcore","math"], res:[["docs","scikit-learn user guide","free","https://scikit-learn.org/stable/user_guide.html"],["video","StatQuest — algorithms","free","https://www.youtube.com/@statquest"]] },
+  { id:"eval", name:"Evaluation & Tuning", level:"intermediate", time:"2 weeks",
+    what:"Measuring whether a model is actually any good.",
+    lesson:`<p>Accuracy lies, and learning why is one of the most valuable lessons in ML. If 99% of emails are not spam, a model that flags nothing scores 99% accuracy while being useless.</p>
+      <p>So you reach for sharper metrics. <strong>Precision</strong> asks: of the things I flagged, how many were right? <strong>Recall</strong> asks: of the things I should have caught, how many did I? They trade off, and <strong>F1</strong> balances them — see the <em>Compare</em> tab for a clear breakdown. <strong>ROC–AUC</strong> summarises ranking quality, and a <strong>confusion matrix</strong> shows exactly which mistakes a model makes.</p>
+      <p>To trust your numbers, use <strong>cross-validation</strong> (test across several data splits) and watch for <strong>overfitting</strong> — a model that aces training data but flops on new data. Regularisation and a clean validation set are your defences.</p>`,
+    overview:"The right metric plus honest validation is what turns a demo into something deployable.",
+    why:"Accuracy misleads on imbalanced data. Picking the right metric is what separates a demo from a product.",
+    concepts:[{h:"Precision, recall, F1",d:"What raw accuracy hides on imbalanced problems."},{h:"ROC–AUC & confusion matrix",d:"How well a model ranks, and exactly where it errs."},{h:"Cross-validation",d:"Testing across splits for a reliable estimate."},{h:"Overfitting & regularisation",d:"Spotting memorisation and curbing it."}],
+    terms:["precision","recall","f1","rocauc","confusion","accuracy","crossval","overfitting","underfitting","regularization","hyperparameter"],
+    apps:["Model selection","Trustworthy benchmarks","Tuning"],
+    prereqs:["algos"], res:[["docs","scikit-learn — model evaluation","free","https://scikit-learn.org/stable/modules/model_evaluation.html"]] },
+]},
+{ id:"dl", name:"Deep Learning", meta:"neural networks", topics:[
+  { id:"nn", name:"Neural Net Basics", level:"intermediate", time:"2–3 weeks",
+    what:"How networks represent and learn complex functions.",
+    lesson:`<p>A neural network is layers of simple units — each one weights its inputs, adds them up, and passes the result through an <strong>activation function</strong> that adds a curve. Stack enough of these and the network can approximate almost any pattern.</p>
+      <div class="dg">${DG.nn}</div>
+      <p>Training is a four-step loop. <strong>Forward pass</strong>: run input through to a prediction. <strong>Loss</strong>: score how wrong it was. <strong>Backpropagation</strong>: use the chain rule to work out how much each weight contributed to the error. <strong>Update</strong>: nudge every weight a little in the right direction.</p>
+      <div class="dg">${DG.gd}</div>
+      <p>That nudging is <strong>gradient descent</strong> — walking downhill on the error landscape, one small step (set by the <em>learning rate</em>) at a time. This single loop powers transformers, diffusion models, and agents alike. Understand it deeply and the rest of deep learning is variations on a theme.</p>`,
+    overview:"Layers of simple units, trained by the loop of forward pass, loss, backprop, and update.",
+    why:"Everything modern in AI is built on these primitives. This is the conceptual core of the field.",
+    concepts:[{h:"Neurons & layers",d:"Units that weight inputs and fire through an activation."},{h:"Activation functions",d:"Non-linearities like ReLU that let networks model curves."},{h:"Forward & backward pass",d:"Predicting, then propagating error back to each weight."},{h:"Gradient descent & optimisers",d:"Stepping weights downhill to reduce loss."}],
+    terms:["nn","perceptron","layer","weight","biasterm","activation","relu","sigmoid","softmax","forward","backprop","loss","gd","optimizer","lr","epoch","batch"],
+    apps:["Foundation for all deep learning","Custom models"],
+    prereqs:["math","algos"], res:[["course","fast.ai — Practical Deep Learning","free","https://course.fast.ai/"],["video","3Blue1Brown — Neural Networks","free","https://www.youtube.com/@3blue1brown"],["course","Karpathy — Neural Nets: Zero to Hero","free","https://karpathy.ai/zero-to-hero.html"]] },
+  { id:"frame", name:"PyTorch / Frameworks", level:"intermediate", time:"2 weeks",
+    what:"The tools that turn the math into running models.",
+    lesson:`<p>You won't hand-code calculus. Frameworks like <strong>PyTorch</strong> (the field's default) give you two superpowers: <strong>tensors</strong> that run on a GPU for massive speed, and <strong>autograd</strong>, which computes all your gradients automatically.</p>
+      <p>The pattern is always the same. Define a model as a stack of modules. Write a <strong>training loop</strong>: feed a batch of data, compute the loss, call backward to get gradients, and let the optimiser update the weights. Use a <strong>DataLoader</strong> to serve data in efficient batches, and save your trained model so you can reuse or deploy it.</p>
+      <p>This is where conceptual understanding becomes working code — and once the loop clicks, you can build almost anything.</p>`,
+    overview:"PyTorch gives you GPU tensors and automatic gradients, plus a simple training-loop pattern.",
+    why:"Autograd and GPU tensors let you build and train real networks without hand-coding calculus.",
+    concepts:[{h:"Tensors & autograd",d:"GPU-ready arrays plus automatic gradients."},{h:"Modules & training loops",d:"Structuring a model and the cycle that trains it."},{h:"Datasets & DataLoaders",d:"Feeding data in efficient batches."},{h:"Saving & loading",d:"Persisting models for reuse and deployment."}],
+    terms:["autograd","gpu","tensor","batch","epoch","optimizer"],
+    apps:["Building any neural network","Research","Production training"],
+    prereqs:["nn","py"], res:[["docs","PyTorch — official tutorials","free","https://pytorch.org/tutorials/"],["course","fast.ai (PyTorch-based)","free","https://course.fast.ai/"]] },
+  { id:"arch", name:"Architectures", level:"advanced", time:"3 weeks",
+    what:"Specialised network shapes for different kinds of data.",
+    lesson:`<p>The shape of a network encodes assumptions about its data. Picking the right shape is one of the most important design decisions you'll make.</p>
+      <p><strong>CNNs</strong> use convolution to scan images for local patterns — edges, then textures, then objects — making them ideal for vision. <strong>RNNs</strong> and <strong>LSTMs</strong> process sequences step by step, carrying a memory forward, which suited language and time series for years.</p>
+      <p>Then came the <strong>Transformer</strong>, built on <strong>attention</strong>: instead of reading word by word, every element looks at every other element at once.</p>
+      <div class="dg">${DG.attn}</div>
+      <p>This made models far better at long-range context and, crucially, easy to run in parallel on GPUs — which is why Transformers now power language, vision, audio, and more. The <em>Compare</em> tab puts CNN, RNN, and Transformer side by side.</p>`,
+    overview:"CNNs for images, RNNs for sequences, and Transformers — built on attention — for nearly everything now.",
+    why:"Structure encodes assumptions. Matching architecture to data is a core deep-learning skill.",
+    concepts:[{h:"CNNs",d:"Convolution and pooling detect local patterns in images."},{h:"RNNs & LSTMs",d:"Step-by-step sequence processing with memory."},{h:"Attention & Transformers",d:"Every token attending to every other — the basis of modern AI."},{h:"Embeddings & normalisation",d:"Representing meaning and stabilising training."}],
+    terms:["cnn","convolution","pooling","rnn","lstm","attention","selfattention","transformer","embedding","dropout","batchnorm"],
+    apps:["Vision","Language","Audio","Time series"],
+    prereqs:["nn"], res:[["read","The Illustrated Transformer","free","https://jalammar.github.io/illustrated-transformer/"],["course","Karpathy — Zero to Hero","free","https://karpathy.ai/zero-to-hero.html"]] },
+]},
+{ id:"nlp", name:"NLP & LLMs", meta:"language models", topics:[
+  { id:"nlpbase", name:"NLP Foundations", level:"intermediate", time:"2 weeks",
+    what:"Turning language into something models can compute on.",
+    lesson:`<p>Before a model can work with language, text becomes numbers — and understanding this pipeline demystifies what an LLM actually "sees" when you type.</p>
+      <p>First, <strong>tokenisation</strong> splits text into small pieces (often word fragments) called tokens. Then each token becomes an <strong>embedding</strong>: a vector that captures meaning, so that "king" and "queen" land near each other in space, and the gap between them mirrors the gap between "man" and "woman".</p>
+      <p>Finally, <strong>self-attention</strong> lets each token look at all the others to build context — so "bank" near "river" means something different from "bank" near "money". An <strong>encoder</strong> reads and compresses input; a <strong>decoder</strong> generates output. Modern LLMs are mostly decoders.</p>`,
+    overview:"Text becomes tokens, then meaning-bearing embeddings, then context via self-attention.",
+    why:"Tokenisation and embeddings are the on-ramp to every language model.",
+    concepts:[{h:"Tokenisation",d:"Splitting text into the chunks a model reads."},{h:"Embeddings",d:"Vectors capturing meaning, placing similar words near each other."},{h:"Self-attention",d:"Each token weighing every other to build context."},{h:"Encoders vs decoders",d:"Reading input versus generating output."}],
+    terms:["tokenization","token","wordembed","embedding","attention","selfattention","encoder","decoder"],
+    apps:["Text classification","Search","Foundation for LLMs"],
+    prereqs:["arch"], res:[["course","Hugging Face — NLP course","free","https://huggingface.co/learn/nlp-course"],["book","Jurafsky & Martin — SLP (free)","free","https://web.stanford.edu/~jurafsky/slp3/"]] },
+  { id:"llm", name:"Large Language Models", level:"advanced", time:"3–4 weeks",
+    what:"How modern LLMs are trained, adapted, and used.",
+    lesson:`<p>An LLM is built in stages. <strong>Pretraining</strong> teaches it general language and knowledge from vast amounts of text by predicting the next token, over and over. Then <strong>instruction tuning</strong> and <strong>RLHF</strong> (learning from human preferences) shape it into something helpful and safe to talk to.</p>
+      <p>To put one to work, you choose among three levers — covered side by side in the <em>Compare</em> tab:</p>
+      <ul>
+        <li><strong>Prompting</strong> — steer it with cleverly written input. Fastest and cheapest.</li>
+        <li><strong>RAG</strong> — retrieve relevant documents at query time and feed them in, so answers are grounded in your data and stay current.</li>
+        <li><strong>Fine-tuning</strong> — train the weights further on your own examples for a specialised behaviour.</li>
+      </ul>
+      <p>Know the limits too: the <strong>context window</strong> caps how much it can read at once, and <strong>hallucination</strong> means it can state false things fluently. Good applications design around both.</p>`,
+    overview:"Pretrained, then aligned via instruction tuning and RLHF; applied through prompting, RAG, or fine-tuning.",
+    why:"This is the frontier most learners aim for. These ideas turn an LLM into a product.",
+    concepts:[{h:"Pretraining & scaling",d:"Learning general language from huge corpora."},{h:"Instruction tuning & RLHF",d:"Shaping a model to follow instructions and preferences."},{h:"Fine-tuning vs prompting",d:"Specialising weights versus steering with input."},{h:"Retrieval-augmented generation",d:"Grounding answers in retrieved documents."}],
+    terms:["llm","parameter","pretraining","finetuning","insttuning","rlhf","rag","contextwindow","hallucination"],
+    apps:["Chatbots","Document Q&A","Coding assistants"],
+    prereqs:["arch","nlpbase"], res:[["docs","Hugging Face — Transformers","free","https://huggingface.co/docs/transformers/index"],["video","Karpathy — Intro to LLMs","free","https://www.youtube.com/@AndrejKarpathy"]] },
+  { id:"prompt", name:"Prompting & Eval", level:"intermediate", time:"1–2 weeks",
+    what:"Getting reliable behaviour from LLMs and measuring it.",
+    lesson:`<p>Prompting is the fastest, cheapest way to change what a model does, and a few techniques carry most of the weight. <strong>Few-shot</strong> prompting shows examples inside the prompt; <strong>chain-of-thought</strong> asks the model to reason step by step, which sharply improves harder problems; and requesting <strong>structured output</strong> (like JSON) makes responses usable by software.</p>
+      <p>But clever prompts aren't enough on their own — you need to know whether a change actually helped. That means building an <strong>evaluation set</strong>: a fixed collection of test cases with clear right answers or rubrics, so you can compare prompt versions objectively and catch <strong>hallucinations</strong> before users do.</p>
+      <p>The mindset shift here is treating prompting like engineering: measure, don't guess.</p>`,
+    overview:"Few-shot, chain-of-thought, and structured output — paired with evaluation sets to measure real gains.",
+    why:"Prompting is your cheapest lever, and pairing it with evaluation makes LLM products trustworthy.",
+    concepts:[{h:"Zero- and few-shot",d:"Asking with no examples, or a few in the prompt."},{h:"Chain-of-thought",d:"Prompting step-by-step reasoning for hard answers."},{h:"Structured output",d:"Machine-readable responses you can build on."},{h:"Evaluation sets",d:"Fixed test cases to measure real improvement."}],
+    terms:["prompt","zeroshot","fewshot","cot","hallucination"],
+    apps:["Any LLM app","Improving reliability","Reducing errors"],
+    prereqs:["llm"], res:[["read","Prompt Engineering Guide","free","https://www.promptingguide.ai/"],["course","DeepLearning.AI short courses","free","https://www.deeplearning.ai/short-courses/"]] },
+]},
+{ id:"cv", name:"Computer Vision", meta:"images & video", topics:[
+  { id:"cvbase", name:"Vision Fundamentals", level:"intermediate", time:"2 weeks",
+    what:"How machines perceive and classify images.",
+    lesson:`<p>A model sees an image as a stack of number grids — one grid per colour <strong>channel</strong> (red, green, blue). <strong>Convolution</strong> slides small filters across these grids to detect features wherever they appear: early layers find edges, later layers find shapes and whole objects.</p>
+      <p>Training a vision model from scratch needs enormous data, so the practical secret is <strong>transfer learning</strong>: start from a model already trained on millions of images, then adapt just the final layers to your specific task. You can get strong results from a few hundred examples this way.</p>
+      <p>The newest twist is the <strong>Vision Transformer</strong>, which chops an image into patches and treats them like tokens — bringing the attention revolution from language over to vision.</p>`,
+    overview:"Images as channels, scanned by convolution; transfer learning makes strong models cheap to train.",
+    why:"From medical imaging to self-driving, vision is everywhere — and these are the building blocks.",
+    concepts:[{h:"Image representation",d:"Pixels and colour channels as raw input."},{h:"Convolution & feature maps",d:"Detecting features anywhere in an image."},{h:"Transfer learning",d:"Reusing a pretrained model with little data."},{h:"Vision Transformers",d:"Treating image patches like tokens."}],
+    terms:["channel","convolution","featuremap","cnn","transfer","vit","pooling"],
+    apps:["Image classification","Medical imaging","Quality inspection"],
+    prereqs:["arch"], res:[["course","Stanford CS231n (free notes)","free","https://cs231n.github.io/"],["read","CNN Explainer (interactive)","free","https://poloclub.github.io/cnn-explainer/"]] },
+  { id:"cvtasks", name:"Detection & Generation", level:"advanced", time:"3 weeks",
+    what:"Beyond classification — locating and creating images.",
+    lesson:`<p>Real vision systems do more than label a whole image. <strong>Object detection</strong> (like YOLO) draws boxes around things and says what they are; <strong>segmentation</strong> goes further, labelling every pixel to outline exact shapes — essential for self-driving cars and medical scans.</p>
+      <p>On the generative side, two families dominate. <strong>GANs</strong> pit a generator against a critic in a contest until the fakes look real. <strong>Diffusion models</strong> — now behind most modern image generators — start from pure noise and repeatedly remove it until an image emerges. The <em>Compare</em> tab shows how the two differ.</p>
+      <p>Tying images and language together are <strong>multimodal</strong> models like CLIP, which place pictures and text in one shared space — the foundation of "generate an image from this description" and visual search.</p>`,
+    overview:"Detection and segmentation locate things; GANs and diffusion generate; multimodal models link image and text.",
+    why:"Detection, segmentation, and generative models are where cutting-edge vision lives today.",
+    concepts:[{h:"Object detection",d:"Finding and boxing objects, e.g. YOLO."},{h:"Segmentation",d:"Pixel-by-pixel labelling for exact shapes."},{h:"GANs & diffusion",d:"Competing networks, or iterative denoising, to generate images."},{h:"Multimodal models",d:"Linking images and text, like CLIP."}],
+    terms:["detection","segmentation","gan","diffusion","clip","multimodal"],
+    apps:["Self-driving","Image generation","Visual search"],
+    prereqs:["cvbase"], res:[["read","Lil'Log — diffusion models","free","https://lilianweng.github.io/"],["course","Stanford CS231n","free","https://cs231n.github.io/"]] },
+]},
+{ id:"agents", name:"AI Agents", meta:"reasoning + tools", topics:[
+  { id:"agbase", name:"Agent Fundamentals", level:"advanced", time:"2 weeks",
+    what:"LLMs that plan, act, and use tools in a loop.",
+    lesson:`<p>An <strong>agent</strong> is a language model given the ability to act, not just answer once. The core idea is the <strong>reason–act loop</strong>: the model thinks about what to do, takes an action — searching the web, running code, calling an API — observes the result, and repeats until the goal is met.</p>
+      <p>What turns a single model into a capable agent is a few additions. <strong>Tool / function calling</strong> lets it actually do things in the world. <strong>Memory</strong> lets it carry context within a task and across sessions. <strong>Planning</strong> breaks a big goal into ordered steps. And <strong>reflection</strong> lets it review its own work and fix mistakes.</p>
+      <p>Put together, these let an agent accomplish multi-step jobs — researching a question, writing and debugging code, or completing a workflow — rather than producing one shot of text.</p>`,
+    overview:"A reason–act loop plus tools, memory, planning, and reflection turns a model into a goal-pursuing agent.",
+    why:"Agents turn a model into something that accomplishes multi-step goals — today's big product wave.",
+    concepts:[{h:"The reason–act loop",d:"Alternating thinking and acting until done."},{h:"Tool / function calling",d:"Invoking external tools to act in the world."},{h:"Memory",d:"Retaining context within a task and across sessions."},{h:"Planning & reflection",d:"Breaking goals into steps and self-correcting."}],
+    terms:["agent","react","toolcalling","agentmemory","planning","reflection"],
+    apps:["Autonomous assistants","Research agents","Workflow automation"],
+    prereqs:["llm","prompt"], res:[["read","Anthropic — Building effective agents","free","https://www.anthropic.com/research/building-effective-agents"],["course","Hugging Face — Agents course","free","https://huggingface.co/learn/agents-course"]] },
+  { id:"agbuild", name:"Building Agents", level:"advanced", time:"3 weeks",
+    what:"Frameworks and patterns for real, reliable agents.",
+    lesson:`<p>Going from a clever demo to a dependable agent is an engineering problem, and the hardest part is that errors <strong>compound</strong>: a small mistake on step three can snowball by step ten. Reliability is everything.</p>
+      <p>You'll learn to <strong>orchestrate</strong> models, tools, and steps so they run predictably; sometimes to split work across <strong>multiple agents</strong>, each specialised; and to combine retrieval (RAG) with tool use so an agent is both knowledgeable and capable. Around all of it you add <strong>evaluation and observability</strong> — logging what the agent did and measuring success — plus <strong>guardrails</strong> that keep behaviour safe and in-bounds.</p>
+      <p>Start simple. The best agent systems use the least machinery that gets the job done reliably.</p>`,
+    overview:"Orchestration, multi-agent collaboration, evaluation, and guardrails make agents reliable in production.",
+    why:"Turning a demo into something reliable needs orchestration, evaluation, and guardrails.",
+    concepts:[{h:"Orchestration",d:"Coordinating models, tools, and steps reliably."},{h:"Multi-agent systems",d:"Specialised agents collaborating on a task."},{h:"Evaluation & observability",d:"Measuring and watching agent behaviour."},{h:"Guardrails",d:"Keeping behaviour safe and in-bounds."}],
+    terms:["orchestration","multiagent","guardrails","monitoring","rag","toolcalling"],
+    apps:["Production agents","Enterprise automation","Multi-step assistants"],
+    prereqs:["agbase"], res:[["read","Anthropic — effective agents","free","https://www.anthropic.com/research/building-effective-agents"],["course","Hugging Face — Agents course","free","https://huggingface.co/learn/agents-course"]] },
+]},
+{ id:"ops", name:"MLOps & Deployment", meta:"ship & maintain", topics:[
+  { id:"deploy", name:"Serving & MLOps", level:"advanced", time:"3 weeks",
+    what:"Taking models from a notebook into production.",
+    lesson:`<p>A model creates value only when it runs reliably for real users — and that's a different skill set from training one. This is what makes you genuinely employable rather than just knowledgeable.</p>
+      <p>You wrap the model behind an <strong>API</strong> so other software can send it inputs, and package it with <strong>containers</strong> (Docker) so it runs identically on any machine. You set up <strong>monitoring</strong> to watch its live inputs and outputs, because over time real-world data drifts away from what it trained on — <strong>model drift</strong> — and accuracy quietly decays.</p>
+      <p>To keep things sane you <strong>version</strong> your data, code, and models for reproducibility and rollbacks, and use <strong>CI/CD</strong> pipelines to retrain and redeploy safely and often. This is the discipline that keeps AI working in the real world.</p>`,
+    overview:"Serve behind an API, containerise, monitor for drift, and version everything with CI/CD.",
+    why:"A model creates value only when it runs reliably in the real world.",
+    concepts:[{h:"Serving & APIs",d:"Exposing a model for other software to use."},{h:"Containerisation",d:"Packaging a model to run identically anywhere."},{h:"Monitoring & drift",d:"Watching performance and catching data drift."},{h:"Versioning & CI/CD",d:"Reproducible models and safe redeployment."}],
+    terms:["deployment","inference","api","docker","drift","versioning","cicd","monitoring"],
+    apps:["Production ML","Reliable AI products","Team workflows"],
+    prereqs:["frame","eval"], res:[["course","Made With ML — MLOps","free","https://madewithml.com/"],["course","Full Stack Deep Learning","free","https://fullstackdeeplearning.com/"]] },
+]},
+{ id:"safety", name:"Safety & Ethics", meta:"build responsibly", topics:[
+  { id:"ethics", name:"AI Safety & Ethics", level:"intermediate", time:"ongoing",
+    what:"Building AI that is fair, transparent, and aligned.",
+    lesson:`<p>As AI grows more capable, the hardest problems become human ones — and this lens belongs woven through your work, not bolted on at the end.</p>
+      <p>Models learn from data, so they can absorb and <strong>amplify bias</strong> present in that data; <strong>fairness</strong> means testing for and reducing unequal treatment of different groups. <strong>Interpretability</strong> and <strong>explainability</strong> are about understanding why a model did what it did — vital in medicine, lending, and law.</p>
+      <p>Looking ahead, <strong>alignment</strong> is the broad goal of keeping an AI's behaviour matched to human intentions and values, and <strong>robustness</strong> keeps it dependable under unusual or adversarial inputs. None of this is optional polish — it's part of building things people can actually trust.</p>`,
+    overview:"Fairness, interpretability, alignment, and robustness — building AI people can trust.",
+    why:"As AI gets more capable, the hardest problems become human ones. Every serious practitioner needs this lens.",
+    concepts:[{h:"Bias & fairness",d:"Detecting and reducing unfair behaviour learned from data."},{h:"Interpretability & explainability",d:"Understanding and justifying decisions."},{h:"Alignment",d:"Matching AI behaviour to human intentions."},{h:"Robustness",d:"Staying reliable under noisy or adversarial inputs."}],
+    terms:["bias","fairness","interpretability","explainability","alignment","robustness"],
+    apps:["Responsible deployment","Compliance","Trustworthy AI"],
+    prereqs:["mlcore"], res:[["book","Fairness & ML (fairmlbook, free)","free","https://fairmlbook.org/"],["course","AI Safety Fundamentals","free","https://aisafetyfundamentals.com/"]] },
+]},
+];
+
+/* ===================== COMPARISONS ===================== */
+const txt=(s,x,y,c="#1d1d1f",sz=12,anchor="middle",w="400")=>`<text x="${x}" y="${y}" fill="${c}" font-size="${sz}" text-anchor="${anchor}" font-weight="${w}" font-family="-apple-system,sans-serif">${s}</text>`;
+const box=(x,y,w,h,fill="#fff",stroke="#d2d2d7",r=8)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}" fill="${fill}" stroke="${stroke}"/>`;
+
+const COMPARE = [
+{ id:"ai-ml-dl", title:"AI vs ML vs Deep Learning", sub:"the nesting",
+  intro:"These three words get used interchangeably, but they nest inside one another. Getting the hierarchy straight is the first thing that makes the whole field make sense.",
+  diagram:`<svg viewBox="0 0 520 230" font-family="-apple-system,sans-serif">
+    ${box(20,20,480,190,"#eef4ff","#0071e3",18)}${txt("Artificial Intelligence",130,42,"#0058b0",13)}
+    ${box(70,60,380,135,"#e7f7ec","#34c759",16)}${txt("Machine Learning",175,82,"#1d7a37",13)}
+    ${box(130,100,260,80,"#fff4e6","#d99a2b",14)}${txt("Deep Learning",240,124,"#9a5b00",13)}
+    ${box(180,140,160,28,"#fde6f0","#c2487f",10)}${txt("Generative AI / LLMs",260,158,"#a0306a",11)}
+    ${txt("any machine doing 'smart' things",250,205,"#6e6e73",11,"middle","400")}</svg>`,
+  cols:["Artificial Intelligence","Machine Learning","Deep Learning"],
+  rows:[["What it is","Any technique making machines act intelligently","A subset of AI that learns patterns from data","A subset of ML using many-layered neural networks"],
+    ["Example","A rule-based chess program","A spam filter trained on emails","ChatGPT, image generators, self-driving vision"],
+    ["Needs data?","Not necessarily (can be hand-coded rules)","Yes — learns from examples","Yes — usually lots of it"],
+    ["Best for","The broad goal","Structured / tabular problems","Images, language, audio, huge datasets"]],
+  when:[{c:"a",l:"Say 'AI' when",t:"Talking about the broad goal of intelligent machines, including non-learning rule systems."},{c:"b",l:"Say 'ML' when",t:"A system learns patterns from data — most classic models fit here."},{c:"c",l:"Say 'Deep learning' when",t:"You specifically mean neural networks with many layers."}],
+  related:["mlcore","nn","llm"] },
+
+{ id:"sup-unsup-rl", title:"Supervised vs Unsupervised vs Reinforcement", sub:"the three paradigms",
+  intro:"The single most important distinction in machine learning. Which paradigm your problem is decides the data you need, the model you choose, and how you measure success.",
+  diagram:`<svg viewBox="0 0 600 240" font-family="-apple-system,sans-serif">
+    <!-- supervised -->
+    ${txt("Supervised",100,22,"#0058b0",13)}
+    ${box(30,40,60,26,"#e6f0fd","#0071e3")}${txt("data",60,57,"#0058b0",11,"middle","400")}
+    ${box(110,40,60,26,"#fff7e0","#d99a2b")}${txt("label",140,57,"#9a5b00",11,"middle","400")}
+    ${box(30,80,60,26,"#e6f0fd","#0071e3")}${box(110,80,60,26,"#fff7e0","#d99a2b")}
+    ${box(30,120,60,26,"#e6f0fd","#0071e3")}${box(110,120,60,26,"#fff7e0","#d99a2b")}
+    ${box(55,165,90,30,"#fff","#1d1d1f")}${txt("model",100,184,"#1d1d1f",11)}
+    <line x1="100" y1="146" x2="100" y2="163" stroke="#86868b" stroke-width="1.4" marker-end="url(#a1)"/>
+    ${txt("learns input→answer",100,222,"#6e6e73",11,"middle","400")}
+    <!-- unsupervised -->
+    ${txt("Unsupervised",300,22,"#1d7a37",13)}
+    ${[[250,70,"#34c759"],[270,95,"#34c759"],[258,120,"#34c759"],[330,60,"#0071e3"],[350,88,"#0071e3"],[338,112,"#0071e3"],[300,150,"#d99a2b"],[330,165,"#d99a2b"]].map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="8" fill="${p[2]}" opacity=".75"/>`).join('')}
+    <ellipse cx="259" cy="95" rx="28" ry="40" fill="none" stroke="#34c759" stroke-dasharray="4 3"/>
+    <ellipse cx="339" cy="86" rx="28" ry="38" fill="none" stroke="#0071e3" stroke-dasharray="4 3"/>
+    ${txt("finds groups, no labels",300,222,"#6e6e73",11,"middle","400")}
+    <!-- RL -->
+    ${txt("Reinforcement",500,22,"#9a5b00",13)}
+    ${box(445,55,110,34,"#fff7e0","#d99a2b")}${txt("Agent",500,76,"#9a5b00",12)}
+    ${box(445,135,110,34,"#fff","#1d1d1f")}${txt("Environment",500,156,"#1d1d1f",11)}
+    <path d="M455 89 Q420 112 455 135" fill="none" stroke="#86868b" stroke-width="1.4" marker-end="url(#a1)"/>
+    <path d="M545 135 Q580 112 545 89" fill="none" stroke="#34c759" stroke-width="1.4" marker-end="url(#a1)"/>
+    ${txt("action",405,115,"#6e6e73",10,"middle","400")}${txt("reward",595,115,"#1d7a37",10,"middle","400")}
+    ${txt("learns by trial & reward",500,222,"#6e6e73",11,"middle","400")}
+    <defs><marker id="a1" markerWidth="8" markerHeight="8" refX="5" refY="3" orient="auto"><path d="M0 0L6 3L0 6Z" fill="#86868b"/></marker></defs></svg>`,
+  cols:["Supervised","Unsupervised","Reinforcement"],
+  rows:[["Data","Labelled (input + correct answer)","Unlabelled (inputs only)","No dataset — an environment to act in"],
+    ["Goal","Predict the answer for new inputs","Discover hidden structure","Learn actions that maximise reward"],
+    ["Typical tasks","Classification, regression","Clustering, dimensionality reduction","Game-playing, robotics, control"],
+    ["Example","Predict if an email is spam","Group customers by behaviour","Teach a bot to play chess"],
+    ["Feedback","Direct — the right answer","None — you judge structure yourself","Delayed — rewards after actions"],
+    ["Main challenge","Needs lots of labelled data","Hard to know if results are 'right'","Sparse rewards, lots of trial and error"]],
+  when:[{c:"a",l:"Use supervised when",t:"You have labelled examples and a clear answer to predict. The most common case in practice."},{c:"b",l:"Use unsupervised when",t:"You have data but no labels and want to explore or find natural groups."},{c:"c",l:"Use reinforcement when",t:"An agent must learn a sequence of actions through trial and error, like a game or robot."}],
+  related:["mlcore","algos","clustering"] },
+
+{ id:"class-reg", title:"Classification vs Regression", sub:"category vs number",
+  intro:"Both are supervised learning, and they look similar in code — but one predicts a category and the other predicts a number, which changes your model, your loss, and your metrics.",
+  diagram:`<svg viewBox="0 0 560 220" font-family="-apple-system,sans-serif">
+    ${txt("Classification",140,22,"#0058b0",13)}
+    <line x1="40" y1="180" x2="260" y2="180" stroke="#d2d2d7"/><line x1="40" y1="40" x2="40" y2="180" stroke="#d2d2d7"/>
+    ${[[80,150],[110,120],[95,160],[130,140]].map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="6" fill="#0071e3"/>`).join('')}
+    ${[[180,90],[210,70],[195,110],[230,85]].map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="6" fill="#34c759"/>`).join('')}
+    <line x1="60" y1="190" x2="245" y2="45" stroke="#1d1d1f" stroke-width="1.6" stroke-dasharray="5 4"/>
+    ${txt("a boundary between classes",150,210,"#6e6e73",11,"middle","400")}
+    ${txt("Regression",420,22,"#1d7a37",13)}
+    <line x1="320" y1="180" x2="540" y2="180" stroke="#d2d2d7"/><line x1="320" y1="40" x2="320" y2="180" stroke="#d2d2d7"/>
+    ${[[345,165],[375,150],[405,140],[440,115],[470,100],[505,75]].map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="5" fill="#34c759"/>`).join('')}
+    <line x1="338" y1="172" x2="520" y2="72" stroke="#1d1d1f" stroke-width="1.8"/>
+    ${txt("a line predicting a value",430,210,"#6e6e73",11,"middle","400")}</svg>`,
+  cols:["Classification","Regression"],
+  rows:[["Predicts","A category / class","A continuous number"],
+    ["Output","'spam' or 'not spam'","$4,250 or 37.2°C"],
+    ["Example","Is this image a cat or dog?","What will this house sell for?"],
+    ["Common metric","Accuracy, precision, recall, F1","Mean squared error, MAE, R²"],
+    ["Typical loss","Cross-entropy","Mean squared error"]],
+  when:[{c:"a",l:"Classification when",t:"The answer is one of a fixed set of categories."},{c:"b",l:"Regression when",t:"The answer is a number on a continuous scale."}],
+  related:["mlcore","algos","eval"] },
+
+{ id:"over-under", title:"Overfitting vs Underfitting", sub:"the central tension",
+  intro:"The core balancing act of all of ML. A model can be too simple to capture the pattern, or so flexible it memorises noise. The sweet spot in between is what 'generalisation' means.",
+  diagram:`<svg viewBox="0 0 600 200" font-family="-apple-system,sans-serif">
+    ${[[20,"Underfitting","#9a5b00"],[210,"Good fit","#1d7a37"],[400,"Overfitting","#0058b0"]].map(p=>txt(p[1],p[0]+90,22,p[2],13)).join('')}
+    <!-- points (same in each panel) -->
+    ${[0,1,2].map(k=>{const ox=20+k*190;const pts=[[30,120],[55,100],[80,110],[105,85],[130,95],[155,70]];
+      return pts.map(p=>`<circle cx="${ox+p[0]}" cy="${p[1]+10}" r="4" fill="#86868b"/>`).join('');}).join('')}
+    <!-- underfit: straight line -->
+    <line x1="48" y1="130" x2="175" y2="95" stroke="#9a5b00" stroke-width="2"/>
+    <!-- good fit: gentle curve -->
+    <path d="M238 135 Q300 105 365 90" fill="none" stroke="#1d7a37" stroke-width="2"/>
+    <!-- overfit: zigzag through every point -->
+    <path d="M428 130 L453 110 L478 120 L503 95 L528 105 L553 80" fill="none" stroke="#0058b0" stroke-width="2"/>
+    ${[[20,"too simple — misses the trend"],[210,"captures the real pattern"],[400,"memorises every point incl. noise"]].map(p=>txt(p[1],p[0]+90,185,"#6e6e73",10.5,"middle","400")).join('')}</svg>`,
+  cols:["Underfitting","Overfitting"],
+  rows:[["Cause","Model too simple, or too little training","Model too complex, or too little data"],
+    ["Training error","High","Very low"],
+    ["New-data error","High","High (the giveaway)"],
+    ["Symptom","Bad on everything","Great on training, poor on test"],
+    ["Fix","Bigger model, more features, train longer","More data, regularisation, dropout, simplify"]],
+  when:[{c:"a",l:"Suspect underfitting if","t":"The model does poorly even on data it trained on."},{c:"b",l:"Suspect overfitting if",t:"Training scores are great but test scores are much worse."}],
+  related:["eval","nn","mlcore"] },
+
+{ id:"prec-rec", title:"Precision vs Recall", sub:"two kinds of 'right'",
+  intro:"The most-confused metrics in ML — and accuracy hides both. Precision and recall answer different questions, and which you prioritise depends entirely on the cost of each kind of mistake.",
+  diagram:`<svg viewBox="0 0 520 250" font-family="-apple-system,sans-serif">
+    ${txt("predicted positive",170,30,"#6e6e73",11,"middle","400")}${txt("predicted negative",350,30,"#6e6e73",11,"middle","400")}
+    ${box(100,40,140,70,"#e7f7ec","#34c759")}${txt("True Positive",170,72,"#1d7a37",12)}${txt("caught it ✓",170,90,"#1d7a37",10,"middle","400")}
+    ${box(260,40,140,70,"#fde6e6","#d04a4a")}${txt("False Negative",330,72,"#b03a3a",12)}${txt("missed it ✗",330,90,"#b03a3a",10,"middle","400")}
+    ${box(100,120,140,70,"#fde6e6","#d04a4a")}${txt("False Positive",170,152,"#b03a3a",12)}${txt("false alarm ✗",170,170,"#b03a3a",10,"middle","400")}
+    ${box(260,120,140,70,"#f0f0f2","#c7c7cc")}${txt("True Negative",330,152,"#6e6e73",12)}${txt("correctly ignored ✓",330,170,"#6e6e73",10,"middle","400")}
+    ${txt("actually positive",70,80,"#6e6e73",10,"middle","400")}
+    ${txt("Precision = TP / (TP + FP)  ·  of flagged, how many right",170,222,"#0058b0",11.5,"middle","600")}
+    ${txt("Recall = TP / (TP + FN)  ·  of real positives, how many caught",170,240,"#1d7a37",11.5,"middle","600")}</svg>`,
+  cols:["Precision","Recall"],
+  rows:[["Question","Of what I flagged, how much was right?","Of what was real, how much did I catch?"],
+    ["Hurt by","False alarms (false positives)","Misses (false negatives)"],
+    ["High when","Few false positives","Few false negatives"],
+    ["Prioritise for","Spam filters, fraud flags (false alarms costly)","Cancer screening, security (missing one is costly)"],
+    ["The catch","Can be high while missing many","Can be high while flagging everything"]],
+  when:[{c:"a",l:"Optimise precision when",t:"A false alarm is expensive or annoying — you'd rather miss some than cry wolf."},{c:"b",l:"Optimise recall when",t:"A miss is dangerous — catching every real case matters more than a few false alarms."}],
+  related:["eval"] },
+
+{ id:"cnn-rnn-tf", title:"CNN vs RNN vs Transformer", sub:"three architectures",
+  intro:"The three workhorse neural-network designs, each shaped for a different kind of data. Knowing how they process information explains why Transformers took over.",
+  diagram:`<svg viewBox="0 0 600 210" font-family="-apple-system,sans-serif">
+    ${txt("CNN — images",100,22,"#0058b0",13)}
+    ${[0,1,2].map(r=>[0,1,2].map(c=>box(40+c*16,45+r*16,14,14,"#e6f0fd","#0071e3",2)).join('')).join('')}
+    ${box(110,61,18,18,"#fff","#1d1d1f",3)}<line x1="92" y1="70" x2="108" y2="70" stroke="#86868b" marker-end="url(#a2)"/>
+    ${[0,1].map(r=>[0,1].map(c=>box(150+c*14,54+r*14,12,12,"#e7f7ec","#34c759",2)).join('')).join('')}
+    ${txt("scans local patches",100,150,"#6e6e73",10.5,"middle","400")}
+    ${txt("RNN — sequences",300,22,"#1d7a37",13)}
+    ${[0,1,2].map(i=>box(250+i*42,55,30,30,"#e7f7ec","#34c759",6)).join('')}
+    ${[0,1].map(i=>`<line x1="${280+i*42}" y1="70" x2="${292+i*42}" y2="70" stroke="#86868b" marker-end="url(#a2)"/>`).join('')}
+    ${[0,1,2].map(i=>`<line x1="${265+i*42}" y1="100" x2="${265+i*42}" y2="87" stroke="#0071e3" marker-end="url(#a3)"/>`).join('')}
+    ${txt("step by step, left→right",300,150,"#6e6e73",10.5,"middle","400")}
+    ${txt("Transformer — all-to-all",500,22,"#9a5b00",13)}
+    ${[445,485,525,565].map((x,i,a)=>a.map(x2=>x<x2?`<line x1="${x}" y1="65" x2="${x2}" y2="65" stroke="#0071e3" opacity=".3"/>`:'').join('')).join('')}
+    ${[445,485,525,565].map(x=>`<circle cx="${x}" cy="65" r="11" fill="#fff7e0" stroke="#d99a2b"/>`).join('')}
+    ${txt("every token sees every token",500,150,"#6e6e73",10.5,"middle","400")}
+    <defs><marker id="a2" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0 0L6 3L0 6Z" fill="#86868b"/></marker><marker id="a3" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0 0L6 3L0 6Z" fill="#0071e3"/></marker></defs></svg>`,
+  cols:["CNN","RNN / LSTM","Transformer"],
+  rows:[["Built for","Images, grids","Sequences (older approach)","Sequences & more (modern default)"],
+    ["How it reads","Local patches via convolution","One step at a time, carrying memory","All positions at once via attention"],
+    ["Parallel?","Yes","No — inherently sequential","Yes — very GPU-friendly"],
+    ["Long-range context","Limited","Fades over long sequences","Excellent"],
+    ["Used in","Vision, medical imaging","Some time series, legacy NLP","LLMs, modern vision (ViT), audio"]],
+  when:[{c:"a",l:"CNN when",t:"Your data is image-like with local spatial structure."},{c:"b",l:"RNN when",t:"Rarely now — short sequences or constrained settings."},{c:"c",l:"Transformer when",t:"Almost everything modern — language, and increasingly vision and audio."}],
+  related:["arch","cvbase","nlpbase"] },
+
+{ id:"gan-diff", title:"GANs vs Diffusion Models", sub:"two ways to generate",
+  intro:"The two main families behind AI image generation. GANs ruled the 2010s; diffusion powers most of today's generators. They reach realism by very different routes.",
+  diagram:`<svg viewBox="0 0 600 220" font-family="-apple-system,sans-serif">
+    ${txt("GAN — a contest",160,22,"#0058b0",13)}
+    ${box(40,45,70,30,"#f0f0f2","#c7c7cc")}${txt("noise",75,65,"#6e6e73",11,"middle","400")}
+    ${box(40,100,70,30,"#e6f0fd","#0071e3")}${txt("Generator",75,120,"#0058b0",10.5)}
+    ${box(150,100,70,30,"#fff7e0","#d99a2b")}${txt("fake img",185,120,"#9a5b00",10.5)}
+    ${box(150,155,70,30,"#e7f7ec","#34c759")}${txt("Critic",185,175,"#1d7a37",11)}
+    <line x1="75" y1="75" x2="75" y2="98" stroke="#86868b" marker-end="url(#a4)"/>
+    <line x1="110" y1="115" x2="148" y2="115" stroke="#86868b" marker-end="url(#a4)"/>
+    <line x1="185" y1="130" x2="185" y2="153" stroke="#86868b" marker-end="url(#a4)"/>
+    ${txt("real or fake?",260,175,"#6e6e73",10.5,"middle","400")}<line x1="222" y1="170" x2="250" y2="170" stroke="#86868b" marker-end="url(#a4)"/>
+    ${txt("two nets compete to fool each other",160,205,"#6e6e73",10.5,"middle","400")}
+    ${txt("Diffusion — denoise",460,22,"#1d7a37",13)}
+    ${[0,1,2,3].map(i=>`<circle cx="${360+i*55}" cy="90" r="16" fill="${['#f0f0f2','#e7eef0','#dfeae2','#e7f7ec'][i]}" stroke="${['#c7c7cc','#9bbcc4','#7cc49b','#34c759'][i]}"/>`).join('')}
+    ${[0,1,2].map(i=>`<line x1="${379+i*55}" y1="90" x2="${398+i*55}" y2="90" stroke="#34c759" marker-end="url(#a5)"/>`).join('')}
+    ${txt("noise",360,118,"#6e6e73",10,"middle","400")}${txt("image",525,118,"#1d7a37",10,"middle","400")}
+    ${txt("start from noise, remove it step by step",460,205,"#6e6e73",10.5,"middle","400")}
+    <defs><marker id="a4" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0 0L6 3L0 6Z" fill="#86868b"/></marker><marker id="a5" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0 0L6 3L0 6Z" fill="#34c759"/></marker></defs></svg>`,
+  cols:["GANs","Diffusion Models"],
+  rows:[["Core idea","Generator vs critic in a contest","Add noise, then learn to reverse it"],
+    ["Generation","One fast forward pass","Many denoising steps (slower)"],
+    ["Training","Tricky, can be unstable","More stable and reliable"],
+    ["Quality & variety","Sharp but can lack diversity","High quality and diverse"],
+    ["Used in","Older image tools, deepfakes","Most modern image/video generators"]],
+  when:[{c:"a",l:"GANs when",t:"You need very fast single-pass generation and can manage tricky training."},{c:"b",l:"Diffusion when",t:"You want top quality, diversity, and stable training — today's default."}],
+  related:["cvtasks"] },
+
+{ id:"ft-rag-prompt", title:"Fine-tuning vs RAG vs Prompting", sub:"adapting an LLM",
+  intro:"Three ways to make a general LLM do what you want. They're not rivals — you often combine them — but knowing the trade-offs saves a lot of wasted effort and cost.",
+  diagram:`<svg viewBox="0 0 600 230" font-family="-apple-system,sans-serif">
+    ${txt("Prompting",90,22,"#0058b0",12.5)}
+    ${box(40,40,100,26,"#e6f0fd","#0071e3")}${txt("good prompt",90,57,"#0058b0",10.5,"middle","400")}
+    ${box(40,80,100,28,"#f0f0f2","#c7c7cc")}${txt("LLM (frozen)",90,98,"#6e6e73",10.5,"middle","400")}
+    ${box(40,122,100,26,"#e7f7ec","#34c759")}${txt("answer",90,139,"#1d7a37",10.5,"middle","400")}
+    <line x1="90" y1="66" x2="90" y2="78" stroke="#86868b" marker-end="url(#a6)"/><line x1="90" y1="108" x2="90" y2="120" stroke="#86868b" marker-end="url(#a6)"/>
+    ${txt("cheap & instant",90,166,"#6e6e73",10,"middle","400")}
+    ${txt("RAG",300,22,"#1d7a37",12.5)}
+    ${box(250,40,100,24,"#e6f0fd","#0071e3")}${txt("query",300,56,"#0058b0",10,"middle","400")}
+    ${box(250,74,100,24,"#fff7e0","#d99a2b")}${txt("retrieve docs",300,90,"#9a5b00",10,"middle","400")}
+    ${box(250,108,100,26,"#f0f0f2","#c7c7cc")}${txt("LLM + docs",300,125,"#6e6e73",10,"middle","400")}
+    ${box(250,144,100,24,"#e7f7ec","#34c759")}${txt("grounded answer",300,160,"#1d7a37",9.5,"middle","400")}
+    <line x1="300" y1="64" x2="300" y2="72" stroke="#86868b" marker-end="url(#a6)"/><line x1="300" y1="98" x2="300" y2="106" stroke="#86868b" marker-end="url(#a6)"/><line x1="300" y1="134" x2="300" y2="142" stroke="#86868b" marker-end="url(#a6)"/>
+    ${txt("uses your live data",300,184,"#6e6e73",10,"middle","400")}
+    ${txt("Fine-tuning",510,22,"#9a5b00",12.5)}
+    ${box(460,40,100,24,"#e6f0fd","#0071e3")}${txt("your examples",510,56,"#0058b0",9.5,"middle","400")}
+    ${box(460,74,100,24,"#fff7e0","#d99a2b")}${txt("train weights",510,90,"#9a5b00",10,"middle","400")}
+    ${box(460,108,100,26,"#e7f7ec","#34c759")}${txt("specialised LLM",510,125,"#1d7a37",9.5,"middle","400")}
+    <line x1="510" y1="64" x2="510" y2="72" stroke="#86868b" marker-end="url(#a6)"/><line x1="510" y1="98" x2="510" y2="106" stroke="#86868b" marker-end="url(#a6)"/>
+    ${txt("changes the model itself",510,184,"#6e6e73",10,"middle","400")}
+    <defs><marker id="a6" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0 0L6 3L0 6Z" fill="#86868b"/></marker></defs></svg>`,
+  cols:["Prompting","RAG","Fine-tuning"],
+  rows:[["Changes the model?","No","No","Yes — updates weights"],
+    ["Best for","Quick behaviour changes","Grounding in your documents / fresh data","Teaching a consistent style or skill"],
+    ["Cost & effort","Lowest","Medium (needs a retrieval system)","Highest (data + compute)"],
+    ["Keeps data current?","No","Yes — fetches live","No — frozen at training time"],
+    ["Reduces hallucination?","A little","A lot (grounded in sources)","Somewhat"]],
+  when:[{c:"a",l:"Prompt first",t:"Always start here — it's free and instant. Often enough on its own."},{c:"b",l:"Add RAG when",t:"Answers must be grounded in your own or up-to-date information."},{c:"c",l:"Fine-tune when",t:"You need a consistent style or skill that prompting can't reliably get."}],
+  related:["llm","prompt","agbase"] },
+];
+
+/* ===================== DOMAIN STYLE / PROJECTS / PATHS ===================== */
+const ICON={
+ found:'<path d="M5 5h14M5 5l7 7-7 7h14"/>',
+ ml:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+ dl:'<circle cx="5" cy="6" r="2"/><circle cx="5" cy="18" r="2"/><circle cx="12" cy="12" r="2.5"/><circle cx="19" cy="6" r="2"/><circle cx="19" cy="18" r="2"/><path d="M7 7l3 3M7 17l3-3M14 11l3-3M14 13l3 3"/>',
+ nlp:'<path d="M21 15a2 2 0 0 1-2 2H8l-4 4V5a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2z"/>',
+ cv:'<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/>',
+ agents:'<rect x="5" y="9" width="14" height="10" rx="2"/><path d="M12 9V5M9 2h6"/><circle cx="9.5" cy="14" r="1"/><circle cx="14.5" cy="14" r="1"/>',
+ ops:'<rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/><path d="M7 7h.01M7 17h.01"/>',
+ safety:'<path d="M12 3l8 3v6c0 4.5-3.2 7.8-8 9-4.8-1.2-8-4.5-8-9V6z"/>'
+};
+const DSTYLE={found:'#0071e3',ml:'#5e5ce6',dl:'#00a3a3',nlp:'#34c759',cv:'#ff9500',agents:'#e0457b',ops:'#5b6470',safety:'#e0392f'};
+function hexA(hex,a){const n=parseInt(hex.slice(1),16);return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`;}
+
+const PROJECTS={
+ math:"Implement gradient descent from scratch in NumPy to fit a straight line to noisy data — then watch the loss shrink each step.",
+ py:"Load a real CSV with Pandas and answer five questions about it with charts (try a public movies, sports, or weather dataset).",
+ data:"Take a deliberately messy public dataset, clean it end to end, and write down every decision you made and why.",
+ mlcore:"Take five real-world problems and correctly label each as supervised, unsupervised, or reinforcement — and justify it.",
+ algos:"On the classic Titanic dataset, beat a logistic-regression baseline using a random forest, and explain the gap.",
+ eval:"Build a full classification report — confusion matrix, precision, recall, F1 — for a model on imbalanced data.",
+ nn:"Code a 2-layer neural network from scratch in NumPy (forward pass plus backprop) to recognise handwritten digits.",
+ frame:"Reimplement that same network in PyTorch with a proper training loop, a DataLoader, and saved weights.",
+ arch:"Use transfer learning to fine-tune a pretrained CNN on a few hundred of your own photos in two categories.",
+ nlpbase:"Build a sentiment classifier on movie reviews using embeddings, then inspect which words drive its predictions.",
+ llm:"Build a question-answering bot over your own PDFs using retrieval-augmented generation (RAG).",
+ prompt:"Create an evaluation set of 20 test cases and use it to objectively compare three versions of a prompt.",
+ cvbase:"Train an image classifier on a custom dataset with transfer learning and report its accuracy honestly.",
+ cvtasks:"Run a pretrained object detector on a short video and count how many times an object appears.",
+ agbase:"Build a tool-using agent that can search the web and do math to answer multi-step questions.",
+ agbuild:"Build a two-agent system — a researcher and a writer — with guardrails, and log every step it takes.",
+ deploy:"Wrap a trained model in a FastAPI endpoint, containerise it with Docker, and call it over HTTP.",
+ ethics:"Audit a model's predictions across subgroups for bias and write a short fairness report on what you find."
+};
+
+const PATHS=[
+ {id:"beginner",name:"AI for Total Beginners",tag:"Zero background? Start here for a gentle, confidence-building intro.",color:"#0071e3",icon:'<path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/>',steps:["math","py","data","mlcore","eval"]},
+ {id:"mleng",name:"Machine Learning Engineer",tag:"The classic end-to-end path: raw data in, a deployed model out.",color:"#5e5ce6",icon:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',steps:["math","py","data","mlcore","algos","eval","nn","frame","deploy"]},
+ {id:"llm",name:"LLM / GenAI Developer",tag:"Build with language models — prompting, RAG, and agents.",color:"#e0457b",icon:'<path d="M21 15a2 2 0 0 1-2 2H8l-4 4V5a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2z"/>',steps:["py","mlcore","nn","arch","nlpbase","llm","prompt","agbase","agbuild"]},
+ {id:"cv",name:"Computer Vision Specialist",tag:"From raw pixels to detection and image generation.",color:"#ff9500",icon:'<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/>',steps:["math","py","nn","frame","arch","cvbase","cvtasks"]},
+ {id:"agentbuilder",name:"AI Agent Builder",tag:"Make models that plan, use tools, and get real work done.",color:"#00a3a3",icon:'<rect x="5" y="9" width="14" height="10" rx="2"/><path d="M12 9V5M9 2h6"/><circle cx="9.5" cy="14" r="1"/><circle cx="14.5" cy="14" r="1"/>',steps:["py","mlcore","nn","arch","nlpbase","llm","prompt","agbase","agbuild","deploy"]}
+];
+
+/* ===================== STATE ===================== */
+const allTopics={};
+DATA.forEach(d=>d.topics.forEach(t=>{allTopics[t.id]={...t,domain:d.name,domainId:d.id};}));
+const TOTAL=Object.keys(allTopics).length;
+document.getElementById('ntopics').textContent=TOTAL;
+const STORE='synapse_progress_v1';
+function loadDone(){try{const r=localStorage.getItem(STORE);return r?new Set(JSON.parse(r)):new Set();}catch(e){return new Set();}}
+function saveDone(){try{localStorage.setItem(STORE,JSON.stringify([...done]));}catch(e){}}
+const done=loadDone();
+const openDomains=new Set([DATA[0].id]);
+
+/* ===================== VIEW SWITCH ===================== */
+document.querySelectorAll('.seg button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.seg button').forEach(x=>x.classList.toggle('on',x===b));
+  const v=b.dataset.view;
+  ['map','paths','cmp','gloss'].forEach(k=>document.getElementById('view-'+k).classList.toggle('on',k===v));
+  window.scrollTo({top:0});
+});
+
+/* ===================== ROADMAP ===================== */
+const blocks=document.getElementById('blocks');
+function renderMap(){
+  blocks.innerHTML='<div class="timeline"><div class="tl-line"></div>'+DATA.map((d,i)=>{
+    const dDone=d.topics.filter(t=>done.has(t.id)).length,frac=dDone/d.topics.length,open=openDomains.has(d.id);
+    const col=DSTYLE[d.id]||'#0071e3',pct=Math.round(frac*100);
+    const nodeInner=frac>=1?'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>':String(i+1).padStart(2,'0');
+    return `<div class="stage ${open?'open':''}" data-d="${d.id}">
+      <div class="stage-row" data-domain="${d.id}" tabindex="0" role="button" aria-expanded="${open}">
+        <div class="tl-node ${frac>=1?'done':''}" style="background:conic-gradient(${col} ${pct}%, #e8e8ed 0)"><b>${nodeInner}</b></div>
+        <div class="stage-card">
+          <div class="stage-ico" style="background:${hexA(col,.12)};color:${col}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICON[d.id]||''}</svg></div>
+          <div class="stage-text"><div class="stage-name">${d.name}</div><div class="stage-meta">${d.meta}</div></div>
+          <div class="stage-count">${dDone}/${d.topics.length}</div>
+          <svg class="stage-chev" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="9 6 15 12 9 18"/></svg>
+        </div>
+      </div>
+      <div class="stage-topics">${d.topics.map(nodeHTML).join('')}</div>
+    </div>`;
+  }).join('')+'</div>';
+  bindMap();updateProgress();
+}
+function nodeHTML(t){const isDone=done.has(t.id);
+  return `<div class="node" data-done="${isDone?1:0}" data-topic="${t.id}" data-level="${t.level}" tabindex="0" role="button" aria-label="${t.name}">
+    <div class="check"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+    <h3>${t.name}</h3><p class="sub">${t.what}</p>
+    <div class="tags"><span class="pill ${t.level}">${t.level}</span><span class="pill">${t.time}</span></div></div>`;}
+function bindMap(){
+  document.querySelectorAll('.stage-row').forEach(el=>{const tg=()=>{const id=el.dataset.domain;openDomains.has(id)?openDomains.delete(id):openDomains.add(id);renderMap();};el.onclick=tg;el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();tg();}};});
+  document.querySelectorAll('.node').forEach(el=>{const op=()=>openSheet(el.dataset.topic);el.onclick=op;el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();op();}};});
+  applyFilter();
+}
+
+/* ===================== SHEET ===================== */
+const sheet=document.getElementById('sheet'),scrim=document.getElementById('scrim');
+function openSheet(id){
+  const t=allTopics[id],isDone=done.has(id);
+  const prereq=t.prereqs.length?`<div class="prereqs">${t.prereqs.map(p=>{const pt=allTopics[p],met=done.has(p);return `<span class="chip ${met?'met':''}" data-goto="${p}">${met?'✓ ':''}${pt?pt.name:p}</span>`;}).join('')}</div>`:`<p class="para" style="margin:0">None — a great place to start.</p>`;
+  sheet.innerHTML=`
+    <div class="sh-head"><button class="x" id="x" aria-label="Close">✕</button>
+      <div class="crumb">${t.domain} › <b>${t.name}</b></div><h2>${t.name}</h2>
+      <div class="row"><span class="pill ${t.level}">${t.level}</span><span class="pill">${t.time}</span>${isDone?'<span class="pill beginner">✓ completed</span>':''}</div></div>
+    <div class="sh-body">
+      <p class="lede">${t.what}</p>
+      ${DIAG[id]?`<h4>How it works</h4><div class="sheet-dg" role="img" aria-label="Diagram showing how ${t.name} works">${DIAG[id]}</div>`:''}
+      <h4>The lesson</h4><div class="lesson">${t.lesson}</div>
+      ${PROJECTS[id]?`<div class="project"><div class="pl"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Build this to learn it</div><div class="pt">${PROJECTS[id]}</div></div>`:''}
+      ${DEEP[id]&&DEEP[id].flow?`<h4>Step by step</h4><div class="flow">${DEEP[id].flow.map((s,i)=>`<div class="fstep"><span class="fn">${i+1}</span><span class="ft">${s}</span></div>`).join('')}</div>`:''}
+      ${DEEP[id]&&DEEP[id].example?`<h4>Worked example</h4><div class="example">${DEEP[id].example}</div>`:''}
+      ${DEMOS[id]?`<h4>Try it yourself</h4><div class="demo" data-demo="${id}"></div>`:''}
+      <h4>Why it matters</h4><p class="para">${t.why}</p>
+      <h4>What you'll learn</h4>${t.concepts.map(c=>`<div class="concept"><div class="ch">${c.h}</div><div class="cd">${c.d}</div></div>`).join('')}
+      ${DEEP[id]&&DEEP[id].pitfalls?`<h4>Common pitfalls</h4><ul class="pitfalls">${DEEP[id].pitfalls.map(p=>`<li>${p}</li>`).join('')}</ul>`:''}
+      ${RECALL[id]?`<h4>Test yourself</h4><div class="recall">${RECALL[id].map(r=>`<div class="rc"><button class="rq" onclick="toggleRecall(this)"><span>${r.q}</span><svg class="rchev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="6 9 12 15 18 9"/></svg></button><div class="ra">${r.a}</div></div>`).join('')}</div>`:''}
+      <h4>Key terms</h4><div class="terms">${t.terms.map(k=>G[k]?`<div class="term"><div class="tn">${G[k][0]}</div><div class="td">${G[k][2]}</div></div>`:'').join('')}</div>
+      <h4>Where it's used</h4><div class="apps">${t.apps.map(a=>`<span class="app">${a}</span>`).join('')}</div>
+      <h4>Prerequisites</h4>${prereq}
+      <h4>Free resources</h4><div class="res">${t.res.map(r=>`<a href="${r[3]}" target="_blank" rel="noopener"><span class="kind">${r[0]}</span><span class="rt">${r[1]}</span><span class="${r[2]==='free'?'free':'paid'}">${r[2]}</span><svg class="ext" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H8M17 7v9"/></svg></a>`).join('')}</div>
+    </div>
+    <div class="sh-foot"><button class="mark ${isDone?'done':''}" id="mark">${isDone?'✓ Completed — tap to undo':'Mark as complete'}</button></div>`;
+  sheet.classList.add('show');scrim.classList.add('show');
+  document.getElementById('x').onclick=closeSheet;
+  document.getElementById('mark').onclick=()=>{done.has(id)?done.delete(id):done.add(id);saveDone();renderMap();openSheet(id);};
+  sheet.querySelectorAll('.chip[data-goto]').forEach(c=>c.onclick=()=>{const g=c.dataset.goto;openDomains.add(allTopics[g].domainId);renderMap();openSheet(g);
+    setTimeout(()=>{const n=document.querySelector(`[data-topic="${g}"]`);n&&n.scrollIntoView({behavior:'smooth',block:'center'});},60);});
+  sheet.querySelectorAll('.demo[data-demo]').forEach(el=>{const dm=DEMOS[el.dataset.demo];if(dm){el.innerHTML=dm.html;try{dm.init(el);}catch(e){}}});
+  sheet.querySelector('.sh-body').scrollTop=0;
+}
+function toggleRecall(b){b.parentElement.classList.toggle('open');}
+function closeSheet(){sheet.classList.remove('show');scrim.classList.remove('show');}
+scrim.onclick=closeSheet;
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSheet();});
+
+/* ===================== PROGRESS / FILTER ===================== */
+function updateProgress(){const n=done.size;document.getElementById('pdone').textContent=n;document.getElementById('ptot').textContent=TOTAL;document.getElementById('pf').style.width=(n/TOTAL*100)+'%';renderPaths();}
+const search=document.getElementById('search'),level=document.getElementById('level');
+function matchT(t,q){return (t.name+' '+t.what+' '+t.overview+' '+t.concepts.map(c=>c.h).join(' ')).toLowerCase().includes(q);}
+function applyFilter(){const q=search.value.trim().toLowerCase(),lv=level.value;
+  if(q)DATA.forEach(d=>{if(d.topics.some(t=>matchT(t,q)))openDomains.add(d.id);});
+  document.querySelectorAll('.node').forEach(n=>{const t=allTopics[n.dataset.topic];const mq=!q||matchT(t,q),ml=lv==='all'||t.level===lv;
+    n.style.display=(mq&&ml)?'':'none';n.classList.toggle('hit',!!q&&mq);n.classList.toggle('dim',lv!=='all'&&!ml);});}
+search.oninput=()=>renderMap();level.onchange=()=>renderMap();
+document.getElementById('expandAll').onclick=function(){const allOpen=openDomains.size===DATA.length;openDomains.clear();if(!allOpen)DATA.forEach(d=>openDomains.add(d.id));else openDomains.add(DATA[0].id);this.textContent=allOpen?'Expand all':'Collapse all';renderMap();};
+document.getElementById('reset').onclick=()=>{done.clear();saveDone();renderMap();closeSheet();};
+
+/* ===================== COMPARE RENDER ===================== */
+document.getElementById('cmpNav').innerHTML=COMPARE.map(c=>`<a href="#cmp-${c.id}">${c.title.replace(/ vs /g,' / ')}</a>`).join('');
+document.getElementById('cmpList').innerHTML=COMPARE.map(c=>{
+  const head=`<tr><th>Aspect</th>${c.cols.map(col=>`<th>${col}</th>`).join('')}</tr>`;
+  const body=c.rows.map(r=>`<tr><td>${r[0]}</td>${r.slice(1).map(x=>`<td>${x}</td>`).join('')}</tr>`).join('');
+  const when=c.when.map(w=>`<div class="w ${w.c}"><div class="wl">${w.l}</div><div class="wt">${w.t}</div></div>`).join('');
+  const rel=c.related.map(id=>allTopics[id]?`<button class="relchip" data-goto="${id}">${allTopics[id].name}</button>`:'').join('');
+  return `<div class="cmp-block" id="cmp-${c.id}"><h2>${c.title}</h2><p class="lead">${c.intro}</p>
+    <div class="diagram">${c.diagram}</div>
+    <div class="ctable-wrap"><table class="ctable"><thead>${head}</thead><tbody>${body}</tbody></table></div>
+    <div class="when">${when}</div>
+    <div class="relrow">Learn more:&nbsp; ${rel}</div></div>`;
+}).join('');
+document.querySelectorAll('.relchip[data-goto]').forEach(c=>c.onclick=()=>{openDomains.add(allTopics[c.dataset.goto].domainId);renderMap();openSheet(c.dataset.goto);});
+
+/* ===================== GLOSSARY RENDER ===================== */
+const cats=[...new Set(Object.values(G).map(g=>g[1]))];let activeCat='All';
+const gcats=document.getElementById('gcats');
+gcats.innerHTML=['All',...cats].map(c=>`<button class="gcat ${c==='All'?'on':''}" data-cat="${c}">${c}</button>`).join('');
+gcats.querySelectorAll('.gcat').forEach(b=>b.onclick=()=>{activeCat=b.dataset.cat;gcats.querySelectorAll('.gcat').forEach(x=>x.classList.toggle('on',x===b));renderGloss();});
+const gsearch=document.getElementById('gsearch');gsearch.oninput=renderGloss;
+function renderGloss(){const q=gsearch.value.trim().toLowerCase();
+  let items=Object.values(G).filter(g=>(activeCat==='All'||g[1]===activeCat)&&(!q||g[0].toLowerCase().includes(q)||g[2].toLowerCase().includes(q)));
+  items.sort((a,b)=>a[0].localeCompare(b[0]));
+  const list=document.getElementById('glossList');
+  if(!items.length){list.innerHTML='<div class="gempty">No terms match your search.</div>';return;}
+  let html='',letter='';
+  items.forEach(g=>{const L=g[0][0].toUpperCase();if(L!==letter){letter=L;html+=`<div class="gletter">${L}</div>`;}
+    html+=`<div class="gitem"><div class="gt"><span class="gname">${g[0]}</span><span class="gtag">${g[1]}</span></div><div class="gdef">${g[2]}</div></div>`;});
+  list.innerHTML=html;}
+
+/* ===================== PATHS RENDER ===================== */
+function renderPaths(){
+  const list=document.getElementById('pathList');if(!list)return;
+  list.innerHTML=PATHS.map(p=>{
+    const dn=p.steps.filter(s=>done.has(s)).length;
+    const steps=p.steps.map((s,i)=>{const t=allTopics[s],d=done.has(s);
+      return `${i?'<svg class="parrow" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><polyline points="9 6 15 12 9 18"/></svg>':''}<button class="pstep ${d?'done':''}" data-goto="${s}"><span class="pn">${i+1}</span>${d?'✓ ':''}${t?t.name:s}</button>`;}).join('');
+    return `<div class="path">
+      <div class="path-head">
+        <div class="path-ico" style="background:${hexA(p.color,.12)};color:${p.color}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p.icon}</svg></div>
+        <div><div class="path-title">${p.name}</div><div class="path-tag">${p.tag}</div></div>
+        <div class="path-prog">${dn}/${p.steps.length}</div>
+      </div>
+      <div class="path-steps">${steps}</div></div>`;
+  }).join('');
+  list.querySelectorAll('.pstep[data-goto]').forEach(c=>c.onclick=()=>{openDomains.add(allTopics[c.dataset.goto].domainId);renderMap();openSheet(c.dataset.goto);});
+}
+
+/* ===================== THEME ===================== */
+(function(){
+  function getSaved(){ try{ return localStorage.getItem('synapse_theme'); }catch(e){ return null; } }
+  function setSaved(t){ try{ localStorage.setItem('synapse_theme', t); }catch(e){} }
+  const saved = getSaved() || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', saved);
+  const btn = document.getElementById('themeBtn2');
+  if(btn){
+    btn.addEventListener('click', ()=>{
+      const now = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', now);
+      setSaved(now);
+    });
+  }
+})();
+
+/* ===================== INIT ===================== */
+renderMap();renderGloss();renderPaths();
+</script>

@@ -1,0 +1,1809 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<title>The DSA Field Manual</title>
+
+<style>
+:root{
+  --bg:#0E141B; --bg2:#151D26; --bg3:#1C2733; --raise:#222F3D;
+  --border:#2A3645; --border2:#34465A;
+  --tx:#E6EDF3; --dim:#98A6B4; --faint:#677584;
+  --ds:#E8A94B; --algo:#4EC3C9; --dec:#9B8CFA; --intv:#F0857D; --tip:#6FCF8E; --cx:#5B9BD5;
+  --ds-soft:rgba(232,169,75,.12); --algo-soft:rgba(78,195,201,.12);
+  --dec-soft:rgba(155,140,250,.12); --intv-soft:rgba(240,133,125,.12);
+  --tip-soft:rgba(111,207,142,.12); --cx-soft:rgba(91,155,213,.12);
+  --shadow:0 8px 30px rgba(0,0,0,.35);
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+  --disp:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Inter","Helvetica Neue",Helvetica,Arial,sans-serif;
+  --body:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Inter","Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+html[data-theme="light"]{
+  --bg:#fbfbfd; --bg2:#f5f5f7; --bg3:#ffffff; --raise:#ffffff;
+  --border:#d2d2d7; --border2:#b8b8bd;
+  --tx:#1d1d1f; --dim:#6e6e73; --faint:#86868b;
+  --ds:#B97A12; --algo:#127D82; --dec:#6B52D6; --intv:#C8453C; --tip:#2E9A57; --cx:#2C6CB0;
+  --ds-soft:rgba(185,122,18,.10); --algo-soft:rgba(18,125,130,.10);
+  --dec-soft:rgba(107,82,214,.10); --intv-soft:rgba(200,69,60,.10);
+  --tip-soft:rgba(46,154,87,.10); --cx-soft:rgba(44,108,176,.10);
+  --shadow:0 1px 3px rgba(0,0,0,.04),0 8px 24px rgba(0,0,0,.04);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--tx);font-family:var(--body);line-height:1.6;
+  -webkit-font-smoothing:antialiased;transition:background .3s,color .3s}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+
+/* ---- Layout ---- */
+.shell{display:grid;grid-template-columns:268px 1fr;min-height:100vh}
+.sidebar{position:sticky;top:0;height:100vh;overflow-y:auto;background:var(--bg2);
+  border-right:1px solid var(--border);padding:22px 14px 60px}
+.main{min-width:0;padding:0 0 120px}
+.wrap{max-width:920px;margin:0 auto;padding:0 28px}
+
+/* ---- Sidebar ---- */
+.brand{display:flex;align-items:center;gap:10px;padding:4px 8px 18px}
+.hub-link{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;font-weight:500;color:var(--dim);text-decoration:none;margin:2px 6px 6px;transition:color .15s;}
+.hub-link:hover{color:var(--tx);}
+.brand .logo{width:34px;height:34px;flex:none}
+.brand h1{font-family:var(--disp);font-size:16px;font-weight:700;letter-spacing:-.02em;line-height:1.15}
+.brand .sub{font-size:10.5px;color:var(--faint);letter-spacing:.14em;text-transform:uppercase;margin-top:2px}
+.searchbox{position:relative;margin:6px 6px 18px}
+.searchbox input{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:9px;
+  color:var(--tx);font-family:var(--body);font-size:13px;padding:9px 11px 9px 32px;outline:none;transition:border .2s}
+.searchbox input:focus{border-color:var(--border2)}
+.searchbox svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--faint)}
+.searchbox kbd{position:absolute;right:9px;top:50%;transform:translateY(-50%);font-family:var(--mono);
+  font-size:10px;color:var(--faint);border:1px solid var(--border);border-radius:4px;padding:1px 5px}
+.navgroup{margin-bottom:4px}
+.navgroup>.lab{display:flex;align-items:center;gap:8px;font-family:var(--disp);font-size:10.5px;
+  letter-spacing:.13em;text-transform:uppercase;color:var(--faint);padding:12px 10px 6px}
+.navgroup>.lab .dot{width:7px;height:7px;border-radius:2px}
+.navlink{display:block;font-size:13px;color:var(--dim);text-decoration:none;padding:6px 10px 6px 24px;
+  border-radius:7px;border-left:2px solid transparent;transition:.15s;cursor:pointer}
+.navlink:hover{background:var(--bg3);color:var(--tx)}
+.navlink.active{color:var(--tx);background:var(--bg3)}
+.themebtn{margin:18px 6px 0;display:flex;align-items:center;gap:8px;width:calc(100% - 12px);
+  background:var(--bg3);border:1px solid var(--border);border-radius:9px;color:var(--dim);
+  font-family:var(--body);font-size:12.5px;padding:9px 12px;cursor:pointer;transition:.15s}
+.themebtn:hover{color:var(--tx);border-color:var(--border2)}
+
+/* ---- Hero ---- */
+.hero{padding:64px 0 30px;position:relative;overflow:hidden}
+.hero .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--algo);margin-bottom:18px}
+.hero h2{font-family:var(--disp);font-weight:700;font-size:clamp(34px,5.4vw,56px);line-height:1.02;
+  letter-spacing:-.03em;margin-bottom:18px}
+.hero h2 .a{color:var(--ds)} .hero h2 .b{color:var(--algo)}
+.hero p.lead{font-size:17px;color:var(--dim);max-width:620px;margin-bottom:26px}
+.hero .stats{display:flex;flex-wrap:wrap;gap:10px}
+.hero .stat{background:var(--bg2);border:1px solid var(--border);border-radius:11px;padding:12px 16px}
+.hero .stat b{font-family:var(--disp);font-size:22px;display:block;line-height:1}
+.hero .stat span{font-size:11.5px;color:var(--faint);letter-spacing:.04em}
+
+/* ---- Section headers ---- */
+.sec{padding-top:56px;scroll-margin-top:18px}
+.sec-head{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+.sec-head .tag{font-family:var(--mono);font-size:11px;padding:4px 9px;border-radius:20px;letter-spacing:.04em}
+.sec-head h3{font-family:var(--disp);font-weight:700;font-size:27px;letter-spacing:-.02em}
+.sec-desc{color:var(--dim);font-size:15px;margin-bottom:24px;max-width:680px}
+
+/* ---- Cards ---- */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;margin-bottom:18px;
+  overflow:hidden;scroll-margin-top:16px}
+.card-top{display:flex;align-items:flex-start;gap:14px;padding:20px 22px 0;cursor:pointer}
+.card-ic{width:42px;height:42px;border-radius:11px;flex:none;display:grid;place-items:center;
+  font-family:var(--disp);font-weight:700;font-size:18px}
+.card-tt{flex:1;min-width:0}
+.card-tt h4{font-family:var(--disp);font-size:19px;font-weight:600;letter-spacing:-.01em;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.card-tt .pill{font-family:var(--mono);font-size:10px;padding:2px 7px;border-radius:20px;
+  color:var(--faint);border:1px solid var(--border);letter-spacing:.03em}
+.card-tt .one{color:var(--dim);font-size:13.5px;margin-top:3px}
+.card-chev{color:var(--faint);transition:transform .25s;margin-top:8px;flex:none}
+.card.open .card-chev{transform:rotate(90deg)}
+.card-body{display:none;padding:8px 22px 22px}
+.card.open .card-body{display:block;animation:fade .25s ease}
+@keyframes fade{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+
+.block{margin-top:18px}
+.block .h{font-family:var(--disp);font-size:12px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--faint);margin-bottom:9px;display:flex;align-items:center;gap:7px}
+.block p{color:var(--tx);font-size:14.5px;margin-bottom:9px}
+.block p:last-child{margin-bottom:0}
+.block ul{list-style:none;display:flex;flex-direction:column;gap:6px}
+.block ul li{font-size:14px;color:var(--tx);padding-left:18px;position:relative}
+.block ul li::before{content:"";position:absolute;left:2px;top:9px;width:5px;height:5px;border-radius:1px;background:currentColor;opacity:.5}
+.block.remember{background:var(--tip-soft);border:1px solid color-mix(in srgb,var(--tip) 30%,transparent);
+  border-radius:11px;padding:14px 16px}
+.block.remember .h{color:var(--tip)}
+.block.remember p{font-size:14px}
+
+/* complexity grid */
+.cx-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(116px,1fr));gap:8px}
+.cx-cell{background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:9px 12px}
+.cx-cell .k{font-size:11px;color:var(--faint);text-transform:capitalize}
+.cx-cell .v{font-family:var(--mono);font-size:14px;font-weight:600;margin-top:2px}
+.cx-O1{color:#6FCF8E}.cx-Olog{color:#5BB6D5}.cx-On{color:#E8C24B}.cx-Onlog{color:#E89A4B}.cx-On2{color:#F0857D}
+
+/* code */
+.codewrap{position:relative;margin-top:10px;border:1px solid var(--border);border-radius:11px;overflow:hidden;background:var(--bg3)}
+.codebar{display:flex;align-items:center;justify-content:space-between;padding:7px 12px;
+  background:var(--bg2);border-bottom:1px solid var(--border)}
+.codebar .lang{font-family:var(--mono);font-size:11px;color:var(--faint)}
+.copybtn{font-family:var(--mono);font-size:11px;color:var(--dim);background:transparent;border:1px solid var(--border);
+  border-radius:6px;padding:3px 9px;cursor:pointer;transition:.15s;display:flex;align-items:center;gap:5px}
+.copybtn:hover{color:var(--tx);border-color:var(--border2)}
+.copybtn.done{color:var(--tip);border-color:var(--tip)}
+pre{margin:0;padding:14px 16px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.7;tab-size:4}
+pre code{font-family:var(--mono)}
+.tk-kw{color:#C792EA}.tk-def{color:#82AAFF}.tk-str{color:#C3E88D}.tk-num{color:#F78C6C}
+.tk-com{color:#5A6677;font-style:italic}.tk-bi{color:#FFCB6B}.tk-op{color:#89DDFF}
+html[data-theme="light"] .tk-kw{color:#9329C4}html[data-theme="light"] .tk-def{color:#2868C7}
+html[data-theme="light"] .tk-str{color:#3E7C20}html[data-theme="light"] .tk-num{color:#C24A18}
+html[data-theme="light"] .tk-com{color:#9AA3B0}html[data-theme="light"] .tk-bi{color:#A87900}html[data-theme="light"] .tk-op{color:#1A8FA8}
+
+/* decision guide */
+.dg-search{position:relative;margin-bottom:20px}
+.dg-search input{width:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:12px;
+  color:var(--tx);font-family:var(--body);font-size:15px;padding:14px 16px 14px 44px;outline:none}
+.dg-search input:focus{border-color:var(--dec)}
+.dg-search svg{position:absolute;left:15px;top:50%;transform:translateY(-50%);color:var(--dec)}
+.dg-chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:22px}
+.dg-chip{font-size:12px;font-family:var(--mono);padding:5px 11px;border-radius:20px;cursor:pointer;
+  background:var(--bg2);border:1px solid var(--border);color:var(--dim);transition:.15s}
+.dg-chip:hover{border-color:var(--dec);color:var(--tx)}
+.dg-chip.on{background:var(--dec-soft);border-color:var(--dec);color:var(--dec)}
+.dg-card{background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--dec);
+  border-radius:12px;padding:16px 18px;margin-bottom:12px}
+.dg-card .sig{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:8px}
+.dg-card .sig b{font-family:var(--disp);font-size:15.5px}
+.dg-card .arrow{color:var(--faint)}
+.dg-card .use{font-family:var(--mono);font-size:12.5px;color:var(--dec);background:var(--dec-soft);
+  padding:3px 10px;border-radius:7px}
+.dg-card .why{font-size:13.5px;color:var(--dim);margin-bottom:7px}
+.dg-card .ex{font-size:13px;color:var(--tx);background:var(--bg3);border-radius:8px;padding:9px 12px}
+.dg-card .ex b{color:var(--faint);font-weight:500;font-family:var(--mono);font-size:11px;letter-spacing:.05em}
+.dg-empty{color:var(--faint);text-align:center;padding:30px;font-size:14px}
+
+/* interview Q */
+.iv-topic{margin-bottom:26px}
+.iv-topic h4{font-family:var(--disp);font-size:17px;font-weight:600;margin-bottom:4px;color:var(--intv)}
+.iv-topic .qsub{font-size:13px;color:var(--faint);margin-bottom:12px}
+.iv-q{background:var(--bg2);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;overflow:hidden}
+.iv-q .qh{display:flex;gap:11px;padding:13px 16px;cursor:pointer;align-items:flex-start}
+.iv-q .qn{font-family:var(--mono);font-size:12px;color:var(--intv);flex:none;margin-top:2px}
+.iv-q .qt{flex:1;font-size:14.5px}
+.iv-q .qd{font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:20px;flex:none;margin-top:1px}
+.qd.easy{color:var(--tip);background:var(--tip-soft)}
+.qd.med{color:var(--ds);background:var(--ds-soft)}
+.qd.hard{color:var(--intv);background:var(--intv-soft)}
+.iv-q .qa{display:none;padding:0 16px 14px 43px;font-size:13.5px;color:var(--dim)}
+.iv-q.open .qa{display:block}
+.iv-q .qa b{color:var(--tx);font-weight:600}
+
+/* tips */
+.tip-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.tip-card{background:var(--bg2);border:1px solid var(--border);border-radius:13px;padding:18px 20px;border-top:3px solid var(--tip)}
+.tip-card h4{font-family:var(--disp);font-size:15.5px;margin-bottom:7px;display:flex;gap:8px;align-items:center}
+.tip-card .em{font-size:18px}
+.tip-card p{font-size:13.5px;color:var(--dim)}
+.tip-card p b{color:var(--tx)}
+.tip-card code{font-family:var(--mono);font-size:12px;background:var(--bg3);padding:1px 6px;border-radius:5px;color:var(--tip)}
+
+/* misc */
+.callout{background:var(--cx-soft);border:1px solid color-mix(in srgb,var(--cx) 30%,transparent);
+  border-radius:12px;padding:16px 18px;margin-bottom:18px}
+.callout .h{font-family:var(--disp);font-size:13px;color:var(--cx);margin-bottom:6px;letter-spacing:.04em}
+.callout p{font-size:14px;color:var(--tx)}
+.callout code{font-family:var(--mono);font-size:12.5px;color:var(--cx)}
+.bigO-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px}
+.bigO-table th,.bigO-table td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--border)}
+.bigO-table th{font-family:var(--disp);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
+.bigO-table td:first-child{font-family:var(--mono);font-weight:600}
+.bigO-table tr:last-child td{border-bottom:none}
+.no-results{display:none;text-align:center;padding:60px 20px;color:var(--faint)}
+.menu-toggle{display:none}
+.foot{border-top:1px solid var(--border);margin-top:70px;padding-top:24px;color:var(--faint);font-size:13px}
+.foot b{color:var(--dim)}
+
+@media(max-width:880px){
+  .shell{grid-template-columns:1fr}
+  .sidebar{position:fixed;left:0;top:0;width:280px;z-index:50;transform:translateX(-100%);transition:transform .25s;box-shadow:var(--shadow)}
+  .sidebar.show{transform:none}
+  .menu-toggle{display:flex;position:fixed;top:14px;left:14px;z-index:60;width:44px;height:44px;
+    border-radius:11px;background:var(--bg2);border:1px solid var(--border2);color:var(--tx);
+    align-items:center;justify-content:center;cursor:pointer;box-shadow:var(--shadow)}
+  .scrim{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:40}
+  .scrim.show{display:block}
+  .wrap{padding:0 18px}
+  .hero{padding-top:74px}
+}
+</style>
+</head>
+<body>
+<button class="menu-toggle" id="menuToggle" aria-label="Open menu">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+</button>
+<div class="scrim" id="scrim"></div>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <a href="index.html" class="hub-link">← Study Hub</a>
+    <div class="brand">
+      <svg class="logo" viewBox="0 0 40 40" fill="none">
+        <circle cx="20" cy="8" r="5" fill="var(--algo)"/>
+        <circle cx="9" cy="30" r="5" fill="var(--ds)"/>
+        <circle cx="31" cy="30" r="5" fill="var(--dec)"/>
+        <path d="M18 11 L11 26 M22 11 L29 26 M13 30 L27 30" stroke="var(--border2)" stroke-width="2"/>
+      </svg>
+      <div>
+        <h1>DSA Field Manual</h1>
+        <div class="sub">concepts · code · decisions</div>
+      </div>
+    </div>
+    <div class="searchbox">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.5" y2="16.5"/></svg>
+      <input id="globalSearch" type="text" placeholder="Search everything…" autocomplete="off">
+      <kbd>/</kbd>
+    </div>
+    <nav id="nav"></nav>
+    <button class="themebtn" id="themeBtn">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19"/></svg>
+      <span id="themeLabel">Dark mode</span>
+    </button>
+  </aside>
+
+  <main class="main">
+    <div class="wrap">
+      <header class="hero" id="top">
+        <div class="eyebrow">Everything you need, in one place</div>
+        <h2>Master <span class="a">data structures</span><br>&amp; <span class="b">algorithms</span>.</h2>
+        <p class="lead">Concepts explained plainly, runnable Python, memory hooks that stick, the questions interviewers actually ask, and a decision engine that tells you <em>which</em> structure or algorithm fits the problem in front of you.</p>
+        <div class="stats" id="heroStats"></div>
+      </header>
+
+      <div id="content"></div>
+      <div class="no-results" id="noResults">
+        <p style="font-size:18px;font-family:var(--disp);color:var(--dim)">No matches</p>
+        <p style="margin-top:6px">Try another keyword — e.g. "sorted", "tree", "shortest path".</p>
+      </div>
+
+      <footer class="foot">
+        <p><b>How to use this:</b> Start at Big-O, skim a category, then drill into cards. When you hit a real problem, jump to the <b>Decision Guide</b> and search the clue words from the question. Code is Python for readability — the ideas transfer to any language.</p>
+        <p style="margin-top:10px">Built as a study + interview companion. Open it offline anytime.</p>
+      </footer>
+    </div>
+  </main>
+</div>
+<script>
+/* ============================================================
+   THE DSA FIELD MANUAL — content data
+   Code samples are Python for readability.
+   ============================================================ */
+const DATA = {};
+
+/* ---------- BIG-O PRIMER (rendered specially) ---------- */
+DATA.bigO = {
+  intro: "Big-O describes how an algorithm's work grows as the input n grows. You only care about the dominant term and ignore constants. It answers one question: if I double the input, what happens to the time (or memory)?",
+  rows: [
+    ["O(1)", "Constant", "Same work no matter the size", "Hash lookup, array index, push/pop", "cx-O1"],
+    ["O(log n)", "Logarithmic", "Halves the problem each step", "Binary search, balanced-tree ops", "cx-Olog"],
+    ["O(n)", "Linear", "Touch each element once", "Single loop, linear scan", "cx-On"],
+    ["O(n log n)", "Linearithmic", "The wall for comparison sorting", "Merge sort, quicksort, heap sort", "cx-Onlog"],
+    ["O(n²)", "Quadratic", "Nested loop over the input", "Bubble sort, comparing all pairs", "cx-On2"],
+    ["O(2ⁿ)", "Exponential", "Doubles with each added element", "Naive recursion, all subsets", "cx-On2"],
+    ["O(n!)", "Factorial", "All orderings", "Permutations, brute-force TSP", "cx-On2"]
+  ],
+  rules: [
+    "Drop constants: O(2n) → O(n). The growth shape is what matters.",
+    "Keep the biggest term: O(n² + n) → O(n²).",
+    "Different inputs get different letters: two separate loops over arrays of size a and b is O(a + b), not O(n).",
+    "Nested loops multiply: a loop inside a loop over the same n is O(n²).",
+    "Space complexity follows the same rules — count extra memory you allocate, including the call stack in recursion."
+  ]
+};
+
+/* ---------- DATA STRUCTURES ---------- */
+DATA.dataStructures = [
+  {
+    id:"array", name:"Array", abbr:"[ ]",
+    one:"A fixed block of memory holding items in order, reached instantly by index.",
+    tags:["array","index","contiguous","random access","list","static"],
+    concept:["An array stores elements back-to-back in memory. Because every slot is the same size and laid out in a row, the computer can jump straight to position i with one arithmetic step — that is why indexing is O(1).",
+      "The catch: inserting or deleting in the middle forces everything after it to shift over, which is O(n). A classic array also has a fixed size set at creation."],
+    complexity:{"Access by index":"O(1)","Search (unsorted)":"O(n)","Insert at end":"O(1)*","Insert/delete middle":"O(n)"},
+    code:`# Python lists are dynamic arrays
+nums = [10, 20, 30, 40]
+
+x = nums[2]          # O(1) access -> 30
+nums.append(50)      # O(1) amortized at end
+nums.insert(1, 15)   # O(n) shifts elements right
+nums.pop()           # O(1) remove last
+del nums[0]          # O(n) shifts elements left
+
+# Iterate
+for i, v in enumerate(nums):
+    print(i, v)`,
+    remember:"Think of a row of numbered lockers. You can open locker #7 instantly (index), but adding a locker in the middle means renumbering every locker after it (shift).",
+    uses:["You know the size roughly and need fast index access","Storing a sequence you mostly read, not insert into","The base for almost everything else: heaps, hash buckets, matrices"]
+  },
+  {
+    id:"dynamic-array", name:"Dynamic Array (List)", abbr:"⇄",
+    one:"An array that grows itself by doubling capacity when it fills up.",
+    tags:["dynamic array","list","arraylist","vector","resize","amortized","append"],
+    concept:["A dynamic array (Python list, Java ArrayList, C++ vector) starts with some capacity. When it fills, it allocates a bigger block (usually 2×) and copies everything over.",
+      "That copy is O(n), but it happens rarely, so append is O(1) amortized — averaged over many appends, each one is effectively constant."],
+    complexity:{"Access":"O(1)","Append":"O(1) amortized","Insert front":"O(n)","Search":"O(n)"},
+    code:`lst = []
+for i in range(5):
+    lst.append(i)   # occasionally resizes under the hood
+
+# Useful list operations
+lst.extend([5, 6])      # add many
+lst[1:3] = [99]         # slice assignment
+lst.index(99)           # find first position -> O(n)
+lst.count(5)            # how many times
+lst.reverse()           # in place
+sub = lst[1:4]          # slice copy -> O(k)`,
+    remember:'"Amortized O(1)" = mostly free appends with an occasional expensive copy. Like a notebook: cheap to write a line, occasionally you buy a new bigger notebook and recopy.',
+    uses:["Default container when you do not know the final size","Stacks, buffers, collecting results","Anywhere you append a lot and index by position"]
+  },
+  {
+    id:"string", name:"String", abbr:"\"\"",
+    one:"An immutable sequence of characters — treat it like a read-only array.",
+    tags:["string","char","immutable","substring","text","palindrome","anagram"],
+    concept:["In most languages strings are immutable: every 'edit' creates a new string. So building a string by repeated concatenation in a loop is secretly O(n²) — instead collect parts in a list and join once.",
+      "Strings support the same patterns as arrays (two pointers, sliding window) plus character-frequency tricks using a hash map or fixed-size count array."],
+    complexity:{"Access char":"O(1)","Concatenate (+)":"O(n)","Substring":"O(k)","Search substring":"O(n·m)"},
+    code:`s = "racecar"
+
+# Build strings the right way (avoid += in loops)
+parts = []
+for ch in s:
+    parts.append(ch.upper())
+result = "".join(parts)        # O(n)
+
+# Common toolkit
+s[::-1]                        # reverse -> "racecar"
+s.split(",")                   # to list
+"abc".isalnum()                # checks
+from collections import Counter
+Counter("anagram")             # char frequencies`,
+    remember:'Strings are "look, don\'t touch" arrays. Never += in a loop — gather pieces in a list and "".join() once at the end.',
+    uses:["Parsing, pattern matching, palindrome/anagram checks","Anywhere text frequency or order matters","Pair with Counter / fixed-size int[26] for letter counts"]
+  },
+  {
+    id:"linked-list", name:"Linked List", abbr:"→",
+    one:"Nodes scattered in memory, each pointing to the next — great for fast insert/delete, bad for indexing.",
+    tags:["linked list","node","pointer","next","singly","doubly","cycle","reverse"],
+    concept:["Each node holds a value and a reference to the next node (doubly linked lists also point back). There is no contiguous block, so you cannot jump to index i — you must walk from the head, which is O(n).",
+      "The payoff: once you have a node, inserting or removing around it is O(1) pointer rewiring, no shifting. The two superpower techniques are the dummy head node and the fast/slow (tortoise & hare) pointers."],
+    complexity:{"Access/Search":"O(n)","Insert/delete at head":"O(1)","Insert/delete given node":"O(1)","Space":"O(n)"},
+    code:`class Node:
+    def __init__(self, val, nxt=None):
+        self.val = val
+        self.next = nxt
+
+# Reverse a singly linked list (must-know)
+def reverse(head):
+    prev = None
+    while head:
+        nxt = head.next   # save
+        head.next = prev  # flip pointer
+        prev = head       # advance prev
+        head = nxt        # advance head
+    return prev
+
+# Detect a cycle (Floyd's tortoise & hare)
+def has_cycle(head):
+    slow = fast = head
+    while fast and fast.next:
+        slow = slow.next
+        fast = fast.next.next
+        if slow is fast:
+            return True
+    return False`,
+    remember:"A treasure hunt: each clue (node) tells you where the next clue is. You can't skip ahead — but you can splice in a new clue instantly. Reversing = flip every arrow to point backward.",
+    uses:["Frequent inserts/deletes and you don't need random access","Implementing stacks, queues, LRU caches","Problems mentioning 'reverse', 'cycle', 'merge lists', 'nth from end'"]
+  },
+  {
+    id:"stack", name:"Stack", abbr:"⬓",
+    one:"Last-In-First-Out. You only ever touch the top.",
+    tags:["stack","lifo","push","pop","parentheses","undo","dfs","monotonic"],
+    concept:["A stack restricts you to push (add to top) and pop (remove from top). LIFO — the last thing in is the first thing out, like a stack of plates.",
+      "It shines whenever you need to remember 'what came before' and unwind it: matching brackets, undo history, evaluating expressions, and the call stack itself. A monotonic stack solves many 'next greater element' problems in O(n)."],
+    complexity:{"Push":"O(1)","Pop":"O(1)","Peek top":"O(1)","Search":"O(n)"},
+    code:`stack = []
+stack.append(1)    # push
+stack.append(2)
+top = stack[-1]    # peek -> 2
+stack.pop()        # pop -> 2
+
+# Valid parentheses
+def valid(s):
+    pairs = {')':'(', ']':'[', '}':'{'}
+    st = []
+    for c in s:
+        if c in pairs:
+            if not st or st.pop() != pairs[c]:
+                return False
+        else:
+            st.append(c)
+    return not st`,
+    remember:"A stack of plates: you add and remove from the top only. LIFO. If a problem says 'most recent', 'undo', 'matching/nesting', or 'next greater', reach for a stack.",
+    uses:["Matching/balancing brackets, undo, backtracking state","Iterative DFS, expression evaluation","Monotonic stack for next-greater / largest-rectangle problems"]
+  },
+  {
+    id:"queue", name:"Queue & Deque", abbr:"⇉",
+    one:"First-In-First-Out — add at the back, remove from the front. A deque does both ends.",
+    tags:["queue","fifo","deque","bfs","sliding window","front","back","enqueue","dequeue"],
+    concept:["A queue is FIFO: people join the back of a line and leave from the front. It is the engine of breadth-first search and any 'process in arrival order' task.",
+      "A deque (double-ended queue) lets you push/pop from both ends in O(1). Use collections.deque — never list.pop(0), which is O(n). Deques also power sliding-window-maximum via a monotonic deque."],
+    complexity:{"Enqueue / append":"O(1)","Dequeue / popleft":"O(1)","Both ends (deque)":"O(1)","Access middle":"O(n)"},
+    code:`from collections import deque
+
+q = deque()
+q.append(1)        # enqueue at back
+q.append(2)
+q.popleft()        # dequeue from front -> 1
+
+# Deque: both ends are O(1)
+dq = deque([1,2,3])
+dq.appendleft(0)   # add front
+dq.pop()           # remove back
+
+# BFS skeleton uses a queue
+def bfs(graph, start):
+    seen = {start}
+    q = deque([start])
+    while q:
+        node = q.popleft()
+        for nb in graph[node]:
+            if nb not in seen:
+                seen.add(nb)
+                q.append(nb)`,
+    remember:"A queue is a checkout line: first come, first served (FIFO). Always use deque, not a list, so the front is O(1). BFS = queue; DFS = stack.",
+    uses:["BFS / level-order traversal / shortest path in unweighted graphs","Task scheduling, producer-consumer, rate limiting","Sliding window maximum (monotonic deque)"]
+  },
+  {
+    id:"hashmap", name:"Hash Map & Hash Set", abbr:"#",
+    one:"Average O(1) lookup by key. The single most useful structure in interviews.",
+    tags:["hash","hashmap","dictionary","map","set","lookup","frequency","count","seen","two sum"],
+    concept:["A hash map turns a key into an array index via a hash function, giving average O(1) insert, delete, and lookup. A hash set is the same thing without values — it answers 'have I seen this?' instantly.",
+      "It trades memory for speed and loses ordering of insertion guarantees in general (Python dicts do keep insertion order). The mental trigger: any time you'd otherwise scan to check membership or count occurrences, a hash map collapses it to O(1)."],
+    complexity:{"Insert":"O(1) avg","Lookup":"O(1) avg","Delete":"O(1) avg","Worst case":"O(n)"},
+    code:`# Frequency count
+from collections import Counter, defaultdict
+freq = Counter("mississippi")     # {'s':4,'i':4,...}
+
+groups = defaultdict(list)
+groups["a"].append(1)             # no KeyError
+
+# Two Sum in O(n) using a hash map
+def two_sum(nums, target):
+    seen = {}                     # value -> index
+    for i, n in enumerate(nums):
+        if target - n in seen:
+            return [seen[target - n], i]
+        seen[n] = i
+
+# Hash set for membership
+visited = set()
+visited.add(5)
+3 in visited                      # O(1)`,
+    remember:"A hash map is a coat-check: hand over a ticket (key), get your coat (value) instantly — no searching the racks. When you catch yourself about to scan-to-find, ask: 'could a dict make this O(1)?'",
+    uses:["Counting, deduplicating, 'have I seen X', grouping by key","Caching/memoization, two-sum-style complement lookups","Adjacency lists for graphs, index maps"]
+  },
+  {
+    id:"heap", name:"Heap / Priority Queue", abbr:"△",
+    one:"Always hands you the smallest (or largest) item in O(log n). A binary tree kept in an array.",
+    tags:["heap","priority queue","min heap","max heap","heapq","kth largest","top k","median","dijkstra"],
+    concept:["A binary heap is a complete tree where every parent is smaller than its children (min-heap). It is stored in a plain array — children of index i live at 2i+1 and 2i+2. The minimum is always at the root (index 0).",
+      "You get the min in O(1) and pop/push in O(log n). Python's heapq is a min-heap; push negatives to simulate a max-heap. The signature use is 'top K' and 'kth largest' problems and as the frontier in Dijkstra."],
+    complexity:{"Peek min/max":"O(1)","Push":"O(log n)","Pop":"O(log n)","Build from n items":"O(n)"},
+    code:`import heapq
+
+h = []
+heapq.heappush(h, 5)
+heapq.heappush(h, 1)
+heapq.heappush(h, 3)
+heapq.heappop(h)        # -> 1 (smallest)
+h[0]                    # peek min without removing
+
+# Heapify an existing list -> O(n)
+data = [9,4,7,1]
+heapq.heapify(data)
+
+# Kth largest: keep a min-heap of size k
+def kth_largest(nums, k):
+    h = nums[:k]
+    heapq.heapify(h)
+    for n in nums[k:]:
+        if n > h[0]:
+            heapq.heapreplace(h, n)
+    return h[0]
+
+# Max-heap trick: push negatives
+maxh = []
+heapq.heappush(maxh, -10)
+-heapq.heappop(maxh)    # -> 10`,
+    remember:"A heap is a hospital triage line: it doesn't sort everyone, it just always knows who's most urgent next. For 'top K' keep a heap of size K. Python heapq is min-only — negate values for a max-heap.",
+    uses:["Top-K / Kth-largest / Kth-smallest, running median","Dijkstra and Prim's MST (pick cheapest edge next)","Merging K sorted lists, scheduling by priority"]
+  },
+  {
+    id:"tree-bst", name:"Tree & Binary Search Tree", abbr:"⋔",
+    one:"Hierarchical nodes with children. A BST keeps them ordered for O(log n) search.",
+    tags:["tree","binary tree","bst","root","leaf","traversal","inorder","preorder","postorder","balanced","height"],
+    concept:["A tree is nodes connected top-down: one root, each node with children, no cycles. A binary tree limits each node to two children. A Binary Search Tree adds an ordering rule: everything left of a node is smaller, everything right is larger — so search, insert, and delete are O(log n) when balanced.",
+      "If a BST becomes lopsided (inserting sorted data) it degrades to O(n) — a linked list in disguise. Self-balancing variants (AVL, Red-Black) keep height ~log n. Master the three depth-first traversals and one breadth-first (level-order)."],
+    complexity:{"Search/Insert (balanced)":"O(log n)","Search/Insert (skewed)":"O(n)","Traversal":"O(n)","Space (recursion)":"O(h)"},
+    code:`class TreeNode:
+    def __init__(self, val):
+        self.val = val
+        self.left = self.right = None
+
+# Traversals (DFS)
+def inorder(node, out):      # sorted order for a BST
+    if not node: return
+    inorder(node.left, out)
+    out.append(node.val)
+    inorder(node.right, out)
+
+# BST search
+def search(root, target):
+    while root:
+        if target == root.val: return root
+        root = root.left if target < root.val else root.right
+    return None
+
+# Level-order (BFS) using a queue
+from collections import deque
+def level_order(root):
+    if not root: return []
+    res, q = [], deque([root])
+    while q:
+        level = []
+        for _ in range(len(q)):
+            n = q.popleft()
+            level.append(n.val)
+            if n.left:  q.append(n.left)
+            if n.right: q.append(n.right)
+        res.append(level)
+    return res`,
+    remember:"Traversal order is named after WHEN you visit the root: PRE-order = root first, IN-order = root in the middle (gives sorted output for a BST), POST-order = root last (good for deleting/sizing). BST = binary search living in a tree.",
+    uses:["Hierarchies (file systems, org charts, DOM)","Ordered data with fast search + range queries (BST)","Recursion practice; many interview problems are 'do something on a tree'"]
+  },
+  {
+    id:"trie", name:"Trie (Prefix Tree)", abbr:"⌥",
+    one:"A tree of characters for blazing-fast prefix lookups across many words.",
+    tags:["trie","prefix tree","autocomplete","dictionary","word search","starts with","spell"],
+    concept:["A trie stores strings by sharing prefixes: each edge is a character, each path from the root spells a prefix, and a flag marks the end of a real word. Looking up a word or prefix takes O(L) where L is the word length — independent of how many words you've stored.",
+      "It's the structure behind autocomplete, spell-check, and 'words starting with…' queries. It costs more memory than a hash set but answers prefix questions a set cannot."],
+    complexity:{"Insert word":"O(L)","Search word":"O(L)","Prefix search":"O(L)","Space":"O(total chars)"},
+    code:`class Trie:
+    def __init__(self):
+        self.root = {}            # nested dicts
+    def insert(self, word):
+        node = self.root
+        for ch in word:
+            node = node.setdefault(ch, {})
+        node["#"] = True          # end-of-word marker
+    def search(self, word):
+        node = self.root
+        for ch in word:
+            if ch not in node: return False
+            node = node[ch]
+        return "#" in node
+    def starts_with(self, prefix):
+        node = self.root
+        for ch in prefix:
+            if ch not in node: return False
+            node = node[ch]
+        return True`,
+    remember:"A trie is a phone-book index taken to the extreme: follow the letters t-r-i and every word under that branch shares the prefix 'tri'. Use it the moment you hear 'prefix', 'autocomplete', or 'dictionary of words'.",
+    uses:["Autocomplete, spell-checkers, search suggestions","Prefix matching, 'word starts with', word-search grids","IP routing tables, storing many strings with shared prefixes"]
+  },
+  {
+    id:"graph", name:"Graph", abbr:"◌",
+    one:"Nodes connected by edges. Models anything with relationships: maps, networks, dependencies.",
+    tags:["graph","node","edge","vertex","adjacency","directed","weighted","bfs","dfs","connected","grid"],
+    concept:["A graph is a set of vertices and edges between them. Edges can be directed (one-way) or undirected, weighted (costs) or not. Two storage choices: an adjacency list (a dict of node → neighbors, best for sparse graphs) or an adjacency matrix (a 2D array, best for dense graphs or O(1) edge checks).",
+      "Most graph problems reduce to a traversal (BFS or DFS) plus bookkeeping. A 2D grid is just a graph in disguise where neighbors are up/down/left/right."],
+    complexity:{"Add edge (list)":"O(1)","BFS / DFS":"O(V + E)","Edge check (matrix)":"O(1)","Space (list)":"O(V + E)"},
+    code:`from collections import defaultdict, deque
+
+# Adjacency list
+graph = defaultdict(list)
+def add_edge(u, v):
+    graph[u].append(v)
+    graph[v].append(u)        # omit for directed
+
+# DFS (recursive)
+def dfs(node, seen):
+    seen.add(node)
+    for nb in graph[node]:
+        if nb not in seen:
+            dfs(nb, seen)
+
+# Count connected components / islands
+def count_components(n):
+    seen, count = set(), 0
+    for node in range(n):
+        if node not in seen:
+            dfs(node, seen)
+            count += 1
+    return count`,
+    remember:"A graph is a friendship network: people (nodes) linked by friendships (edges). Directed = 'follows', undirected = mutual friends. Grids, mazes, course prerequisites, road maps — all graphs. Traverse with BFS (shortest hops) or DFS (go deep).",
+    uses:["Maps/routing, social networks, dependency resolution","Mazes, islands, flood-fill (grid = graph)","Shortest path, cycle detection, scheduling (topological sort)"]
+  },
+  {
+    id:"union-find", name:"Union-Find (Disjoint Set)", abbr:"⊍",
+    one:"Tracks groups and merges them — answers 'are these two connected?' in near-O(1).",
+    tags:["union find","disjoint set","dsu","connected components","cycle","kruskal","merge","group"],
+    concept:["Union-Find maintains a collection of disjoint groups. find(x) returns the representative of x's group; union(a,b) merges two groups. With two optimizations — path compression and union by rank — both run in almost O(1) (inverse-Ackermann, effectively constant).",
+      "It's the cleanest tool for 'are A and B in the same group?', counting connected components as edges arrive, and detecting cycles in an undirected graph. It's also the core of Kruskal's MST."],
+    complexity:{"find":"~O(1)","union":"~O(1)","Build (n items)":"O(n)","Space":"O(n)"},
+    code:`class DSU:
+    def __init__(self, n):
+        self.parent = list(range(n))
+        self.rank = [0]*n
+    def find(self, x):
+        while self.parent[x] != x:
+            self.parent[x] = self.parent[self.parent[x]]  # path compression
+            x = self.parent[x]
+        return x
+    def union(self, a, b):
+        ra, rb = self.find(a), self.find(b)
+        if ra == rb: return False        # already connected -> cycle
+        if self.rank[ra] < self.rank[rb]:
+            ra, rb = rb, ra
+        self.parent[rb] = ra
+        if self.rank[ra] == self.rank[rb]:
+            self.rank[ra] += 1
+        return True`,
+    remember:"Union-Find is a 'who's-in-which-team' tracker. find() = 'who's your captain?'; union() = 'merge these two teams'. If union() finds they already share a captain, you just discovered a cycle.",
+    uses:["Connected components as edges stream in","Cycle detection in undirected graphs","Kruskal's MST, network connectivity, grouping/clustering"]
+  }
+];
+
+/* ---------- ALGORITHMS & PATTERNS ---------- */
+DATA.algorithms = [
+  {
+    id:"binary-search", name:"Binary Search", abbr:"½",
+    one:"Find something in a SORTED collection by repeatedly halving the search space.",
+    tags:["binary search","sorted","log n","midpoint","lower bound","search space","rotated","bisect"],
+    concept:["If data is sorted, you never look at most of it. Check the middle: if your target is smaller, throw away the right half; if larger, throw away the left. Each step halves what's left, so O(log n).",
+      "The real power move is 'binary search on the answer': when the answer is a number with a monotonic yes/no property (e.g. 'can I finish in X days?'), you binary-search the value range, not an array. Watch the loop bounds — off-by-one is the #1 bug."],
+    complexity:{"Time":"O(log n)","Space":"O(1)","Requires":"sorted / monotonic"},
+    code:`def binary_search(arr, target):
+    lo, hi = 0, len(arr) - 1
+    while lo <= hi:
+        mid = (lo + hi) // 2
+        if arr[mid] == target:
+            return mid
+        elif arr[mid] < target:
+            lo = mid + 1
+        else:
+            hi = mid - 1
+    return -1
+
+# Built-in: find insert position
+import bisect
+bisect.bisect_left([1,3,5,7], 5)   # -> 2
+
+# Binary search on the answer (template)
+def feasible(x): ...                # monotonic check
+def min_workable():
+    lo, hi = 1, 10**9
+    while lo < hi:
+        mid = (lo + hi) // 2
+        if feasible(mid): hi = mid
+        else:             lo = mid + 1
+    return lo`,
+    remember:"Guessing a number 1-100: 'higher/lower' lets you win in 7 tries, not 100. That's log n. The clue is the word SORTED — or any 'minimum/maximum X such that condition holds' question (binary search the answer).",
+    uses:["Searching sorted arrays / finding boundaries","'Min/max value such that…' optimization problems","Rotated-sorted-array, peak finding, square root"]
+  },
+  {
+    id:"two-pointers", name:"Two Pointers", abbr:"⇄",
+    one:"Two indices walking the array to replace a nested loop with a single pass.",
+    tags:["two pointers","opposite ends","fast slow","sorted","pair","palindrome","remove duplicates","container"],
+    concept:["Instead of checking every pair (O(n²)), move two pointers intelligently. Two common shapes: opposite ends moving inward (sorted-array pair sums, palindrome checks, container-with-most-water), and fast/slow on the same side (removing duplicates in place, cycle detection).",
+      "It usually requires the data to be sorted or to have some structure you can exploit to decide which pointer to move."],
+    complexity:{"Time":"O(n)","Space":"O(1)","Common with":"sorted arrays"},
+    code:`# Pair that sums to target in a SORTED array
+def two_sum_sorted(arr, target):
+    lo, hi = 0, len(arr) - 1
+    while lo < hi:
+        s = arr[lo] + arr[hi]
+        if s == target:   return (lo, hi)
+        if s < target:    lo += 1     # need bigger
+        else:             hi -= 1     # need smaller
+    return None
+
+# Is it a palindrome?
+def is_pal(s):
+    i, j = 0, len(s) - 1
+    while i < j:
+        if s[i] != s[j]: return False
+        i += 1; j -= 1
+    return True`,
+    remember:"Two fingers reading from both ends of a sorted shelf toward the middle. Sum too big? pull the right finger in. Too small? push the left finger out. Turns an O(n²) all-pairs scan into one O(n) sweep.",
+    uses:["Pair / triplet sums in sorted arrays","Palindromes, reversing in place, merging sorted arrays","In-place removal, partitioning, 'container with most water'"]
+  },
+  {
+    id:"sliding-window", name:"Sliding Window", abbr:"▭",
+    one:"A moving subrange over an array/string to compute things on every contiguous window in O(n).",
+    tags:["sliding window","substring","subarray","contiguous","longest","at most k","window","minimum","maximum"],
+    concept:["When a problem asks about a contiguous subarray or substring ('longest', 'shortest', 'sum of size k', 'at most K distinct'), you can maintain a window with two pointers. Expand the right edge to grow; shrink the left edge when the window violates a constraint. Each element enters and leaves at most once → O(n).",
+      "Fixed-size windows slide one step at a time; variable-size windows grow and shrink based on a condition."],
+    complexity:{"Time":"O(n)","Space":"O(k)","Pattern":"contiguous sub-range"},
+    code:`# Longest substring without repeating characters
+def longest_unique(s):
+    seen = {}
+    left = best = 0
+    for right, c in enumerate(s):
+        if c in seen and seen[c] >= left:
+            left = seen[c] + 1      # jump past the repeat
+        seen[c] = right
+        best = max(best, right - left + 1)
+    return best
+
+# Max sum of any window of size k (fixed)
+def max_window(arr, k):
+    s = sum(arr[:k]); best = s
+    for i in range(k, len(arr)):
+        s += arr[i] - arr[i-k]      # slide: add new, drop old
+        best = max(best, s)
+    return best`,
+    remember:"A train window sliding past scenery: you only add what enters on the right and remove what exits on the left — never re-scan. Trigger words: 'contiguous', 'substring/subarray', 'longest/shortest', 'at most K'.",
+    uses:["Longest/shortest substring or subarray with a property","Fixed-window aggregates (max/avg/sum of size k)","'At most/exactly K distinct', anagram/permutation in a string"]
+  },
+  {
+    id:"prefix-sum", name:"Prefix Sum", abbr:"Σ",
+    one:"Precompute running totals so any range sum becomes one subtraction.",
+    tags:["prefix sum","range sum","cumulative","subarray sum","running total","difference array"],
+    concept:["Build an array where prefix[i] = sum of the first i elements. Then the sum of any range [l, r] is prefix[r+1] - prefix[l] in O(1), after an O(n) setup. Combine with a hash map to count subarrays whose sum equals a target.",
+      "The 2D version (integral image) does the same for rectangles. The inverse idea — a difference array — applies many range updates in O(1) each."],
+    complexity:{"Build":"O(n)","Range query":"O(1)","Space":"O(n)"},
+    code:`def build_prefix(nums):
+    pre = [0]*(len(nums)+1)
+    for i, n in enumerate(nums):
+        pre[i+1] = pre[i] + n
+    return pre
+
+# sum of nums[l..r] inclusive:
+# pre[r+1] - pre[l]
+
+# Count subarrays summing to k (prefix + hashmap)
+from collections import defaultdict
+def subarray_sum(nums, k):
+    count = run = 0
+    seen = defaultdict(int); seen[0] = 1
+    for n in nums:
+        run += n
+        count += seen[run - k]
+        seen[run] += 1
+    return count`,
+    remember:"Like mile-markers on a highway: distance between exit 5 and exit 9 is just marker[9] - marker[5] — no re-measuring. Reach for it whenever you'll ask 'sum of this range' many times.",
+    uses:["Many range-sum queries over a fixed array","Counting subarrays with a target sum (with a hash map)","2D region sums, running averages, difference arrays"]
+  },
+  {
+    id:"sorting", name:"Sorting", abbr:"⇅",
+    one:"Order matters — and sorting first often unlocks two-pointer, binary-search, or greedy solutions.",
+    tags:["sort","sorting","merge sort","quick sort","heap sort","quicksort","mergesort","stable","comparison","timsort","counting sort"],
+    concept:["Comparison sorts can't beat O(n log n). Merge sort is stable and reliably O(n log n) but uses O(n) extra space; quicksort is in-place and fast in practice but O(n²) worst case; heap sort is in-place O(n log n) but not stable. Non-comparison sorts (counting, radix) hit O(n) when keys are small integers.",
+      "In interviews you rarely implement a sort — you call the built-in (Timsort, stable, O(n log n)) — but you must know the trade-offs, and that 'sort first' is a setup move for countless problems."],
+    complexity:{"Merge / Heap":"O(n log n)","Quick (avg)":"O(n log n)","Quick (worst)":"O(n²)","Counting":"O(n + k)"},
+    code:`arr = [5, 2, 9, 1]
+arr.sort()                       # in place, stable, Timsort
+s = sorted(arr, reverse=True)    # new list, descending
+
+# Sort by a key (very common)
+people = [("Ann",30), ("Bob",25)]
+people.sort(key=lambda p: p[1])  # by age
+
+# Merge sort (know how it works)
+def merge_sort(a):
+    if len(a) <= 1: return a
+    mid = len(a)//2
+    L, R = merge_sort(a[:mid]), merge_sort(a[mid:])
+    out, i, j = [], 0, 0
+    while i < len(L) and j < len(R):
+        if L[i] <= R[j]: out.append(L[i]); i += 1
+        else:            out.append(R[j]); j += 1
+    return out + L[i:] + R[j:]`,
+    remember:"Merge = split until single cards, then merge piles in order (stable, needs space). Quick = pick a pivot, partition smaller/bigger, recurse (in-place, fast). 'Stable' means equal items keep their original order. When stuck, ask: 'does sorting first make this easier?'",
+    uses:["Pre-step for two-pointer, binary search, greedy, dedup","Sorting by custom keys / multiple fields","Counting/radix sort when values are small bounded integers"]
+  },
+  {
+    id:"recursion", name:"Recursion", abbr:"↻",
+    one:"A function that calls itself, solving a problem via smaller copies of itself.",
+    tags:["recursion","base case","recursive","call stack","subproblem","divide","tree recursion"],
+    concept:["Every recursion needs two things: a base case (when to stop) and a recursive case (shrink the problem and call yourself). The call stack remembers each pending call, so deep recursion costs O(depth) space and can overflow.",
+      "Recursion is the natural language for trees, graphs, and anything self-similar. If a recursion recomputes the same subproblems, add memoization and you've got dynamic programming."],
+    complexity:{"Time":"depends on calls","Space":"O(depth)","Risk":"stack overflow"},
+    code:`# Base case + recursive case
+def factorial(n):
+    if n <= 1:           # base case
+        return 1
+    return n * factorial(n - 1)   # shrink
+
+# Naive Fibonacci (exponential -> see DP)
+def fib(n):
+    if n < 2: return n
+    return fib(n-1) + fib(n-2)
+
+# Recursion on a tree
+def height(node):
+    if not node: return 0
+    return 1 + max(height(node.left), height(node.right))`,
+    remember:"Russian nesting dolls: to handle the big doll, open it and solve the smaller doll the same way — until the tiniest doll (base case) needs no opening. Always write the base case FIRST or you loop forever.",
+    uses:["Trees, graphs, and self-similar structures","Generating combinations/permutations (with backtracking)","Divide-and-conquer; the basis for DP once you add memo"]
+  },
+  {
+    id:"backtracking", name:"Backtracking", abbr:"⎌",
+    one:"Try a choice, recurse, and undo it if it fails — systematic brute force with pruning.",
+    tags:["backtracking","permutations","combinations","subsets","n queens","sudoku","constraint","choose","explore","unchoose"],
+    concept:["Backtracking explores a decision tree: at each step you choose an option, recurse to explore the consequences, then un-choose (backtrack) to try the next option. Pruning — abandoning branches that can't lead to a valid answer early — is what keeps it from pure exponential blowup.",
+      "The skeleton is always the same: choose → explore → unchoose. It generates all subsets, permutations, and combinations, and solves constraint puzzles like N-Queens and Sudoku."],
+    complexity:{"Time":"often O(2ⁿ)/O(n!)","Space":"O(depth)","Tame with":"pruning"},
+    code:`# All permutations
+def permute(nums):
+    res, path = [], []
+    used = [False]*len(nums)
+    def backtrack():
+        if len(path) == len(nums):
+            res.append(path[:]); return
+        for i, n in enumerate(nums):
+            if used[i]: continue
+            used[i] = True; path.append(n)   # choose
+            backtrack()                       # explore
+            used[i] = False; path.pop()       # unchoose
+    backtrack()
+    return res
+
+# All subsets (power set)
+def subsets(nums):
+    res = []
+    def bt(start, path):
+        res.append(path[:])
+        for i in range(start, len(nums)):
+            path.append(nums[i])
+            bt(i+1, path)
+            path.pop()
+    bt(0, [])
+    return res`,
+    remember:"Exploring a maze with a ball of string: walk down a path; hit a dead end? rewind the string (undo) and try the next fork. The mantra is choose → explore → un-choose. Trigger words: 'all combinations/permutations/subsets', 'generate every…'.",
+    uses:["Generate all subsets / permutations / combinations","Constraint puzzles: N-Queens, Sudoku, word search","Partitioning, path-finding where you enumerate possibilities"]
+  },
+  {
+    id:"divide-conquer", name:"Divide & Conquer", abbr:"✂",
+    one:"Split the problem in half, solve each half, then combine the results.",
+    tags:["divide and conquer","split","combine","merge sort","quick sort","recurrence","master theorem"],
+    concept:["Three steps: divide the input into subproblems, conquer each by recursion, and combine the answers. Merge sort and quicksort are the textbook cases; so are fast exponentiation, the closest-pair problem, and many array algorithms.",
+      "The running time follows a recurrence; the Master Theorem gives the closed form. The key difference from DP: here subproblems don't overlap, so no memoization is needed."],
+    complexity:{"Typical":"O(n log n)","Space":"O(log n)+","Pattern":"split + merge"},
+    code:`# Maximum subarray via divide & conquer
+def max_subarray(a, lo, hi):
+    if lo == hi: return a[lo]
+    mid = (lo + hi) // 2
+    left  = max_subarray(a, lo, mid)
+    right = max_subarray(a, mid+1, hi)
+
+    # best crossing the middle
+    s = 0; left_best = float('-inf')
+    for i in range(mid, lo-1, -1):
+        s += a[i]; left_best = max(left_best, s)
+    s = 0; right_best = float('-inf')
+    for i in range(mid+1, hi+1):
+        s += a[i]; right_best = max(right_best, s)
+
+    return max(left, right, left_best + right_best)
+
+# Fast power: x^n in O(log n)
+def power(x, n):
+    if n == 0: return 1
+    half = power(x, n // 2)
+    return half*half*(x if n % 2 else 1)`,
+    remember:"Cutting a deck to find a card: keep halving until trivial, then merge the answers. Cousin of recursion, parent of merge/quick sort. Unlike DP, the halves don't overlap — so no memo table.",
+    uses:["Sorting (merge/quick), fast exponentiation","Maximum subarray, closest pair of points","Any problem that cleanly splits into independent halves"]
+  },
+  {
+    id:"greedy", name:"Greedy", abbr:"$",
+    one:"Make the locally best choice at each step and never look back — when that's provably optimal.",
+    tags:["greedy","local optimum","interval scheduling","activity selection","huffman","coins","exchange argument","minimum"],
+    concept:["A greedy algorithm grabs the best-looking option right now (earliest finish time, smallest cost, biggest value-per-weight) and commits. It's fast and simple, but only correct when the problem has the 'greedy choice property' — local optimum leads to global optimum.",
+      "The danger: greedy is wrong for many problems (general coin change, 0/1 knapsack) where you need DP. Always sanity-check with a counterexample or an exchange argument before trusting greedy."],
+    complexity:{"Time":"often O(n log n)","Space":"O(1)","Risk":"may be suboptimal"},
+    code:`# Activity selection: max non-overlapping intervals
+def max_meetings(intervals):
+    intervals.sort(key=lambda x: x[1])   # by end time
+    count, end = 0, float('-inf')
+    for s, e in intervals:
+        if s >= end:        # doesn't overlap
+            count += 1
+            end = e
+    return count
+
+# Jump game: can you reach the end?
+def can_jump(nums):
+    reach = 0
+    for i, n in enumerate(nums):
+        if i > reach: return False
+        reach = max(reach, i + n)
+    return True`,
+    remember:"Filling a buffet plate by grabbing the most calories per inch right now. Works for some problems, fails for others — so PROVE it (or find a counterexample) before trusting it. Greedy fails? Reach for DP.",
+    uses:["Interval scheduling, minimum platforms, meeting rooms","Huffman coding, fractional knapsack","Cases with a provable greedy-choice property"]
+  },
+  {
+    id:"dp", name:"Dynamic Programming", abbr:"⊞",
+    one:"Break a problem into overlapping subproblems and cache each answer once.",
+    tags:["dynamic programming","dp","memoization","tabulation","overlapping subproblems","optimal substructure","knapsack","fibonacci","lcs","coin change"],
+    concept:["DP applies when a problem has overlapping subproblems (the same smaller problem appears many times) and optimal substructure (the best overall answer is built from best sub-answers). You compute each subproblem once and store it.",
+      "Two styles: top-down memoization (recursion + a cache) and bottom-up tabulation (fill a table iteratively). The hard part is defining the state and the transition (recurrence). Start from the recursion, notice repeated calls, then add the cache."],
+    complexity:{"Time":"states × transition","Space":"O(states)","Often reducible":"to O(n) rows"},
+    code:`# Top-down (memoization)
+from functools import lru_cache
+@lru_cache(maxsize=None)
+def fib(n):
+    if n < 2: return n
+    return fib(n-1) + fib(n-2)
+
+# Bottom-up (tabulation): coin change min coins
+def coin_change(coins, amount):
+    dp = [float('inf')]*(amount+1)
+    dp[0] = 0
+    for a in range(1, amount+1):
+        for c in coins:
+            if c <= a:
+                dp[a] = min(dp[a], dp[a-c] + 1)
+    return dp[amount] if dp[amount] != float('inf') else -1
+
+# Classic: 0/1 knapsack
+def knapsack(w, v, cap):
+    dp = [0]*(cap+1)
+    for i in range(len(w)):
+        for c in range(cap, w[i]-1, -1):   # reverse!
+            dp[c] = max(dp[c], dp[c-w[i]] + v[i])
+    return dp[cap]`,
+    remember:"DP = recursion that refuses to do the same homework twice. Steps: (1) write the brute-force recursion, (2) spot repeated calls, (3) cache them (memo) or fill a table (tab). Trigger words: 'number of ways', 'min/max cost', 'can we reach', 'longest/optimal' with choices.",
+    uses:["Counting ways, min/max with choices, optimal substructure","Knapsack, coin change, edit distance, LCS, LIS","Grid path problems, interval DP, decisions over a sequence"]
+  },
+  {
+    id:"bfs", name:"BFS — Breadth-First Search", abbr:"≋",
+    one:"Explore a graph level by level with a queue. Finds the shortest path in unweighted graphs.",
+    tags:["bfs","breadth first","queue","shortest path","level order","unweighted","layers","flood fill","grid"],
+    concept:["BFS visits all neighbors at distance 1, then distance 2, and so on, using a queue. Because it expands in waves, the first time it reaches a node is along the fewest edges — so BFS gives the shortest path in an unweighted graph (or grid).",
+      "Mark nodes visited when you enqueue them (not when you dequeue) to avoid adding duplicates. Time is O(V + E)."],
+    complexity:{"Time":"O(V + E)","Space":"O(V)","Gives":"shortest hops"},
+    code:`from collections import deque
+
+def bfs_shortest(graph, start, target):
+    q = deque([(start, 0)])
+    seen = {start}
+    while q:
+        node, dist = q.popleft()
+        if node == target:
+            return dist
+        for nb in graph[node]:
+            if nb not in seen:
+                seen.add(nb)            # mark on enqueue
+                q.append((nb, dist + 1))
+    return -1
+
+# Grid BFS (4-directional)
+def grid_bfs(grid, sr, sc):
+    R, C = len(grid), len(grid[0])
+    q = deque([(sr, sc)]); seen = {(sr, sc)}
+    while q:
+        r, c = q.popleft()
+        for dr, dc in ((1,0),(-1,0),(0,1),(0,-1)):
+            nr, nc = r+dr, c+dc
+            if 0<=nr<R and 0<=nc<C and (nr,nc) not in seen and grid[nr][nc]==0:
+                seen.add((nr,nc)); q.append((nr,nc))`,
+    remember:"BFS spreads like ripples in a pond — every node in ring 1 before any in ring 2. That's why first-arrival = shortest path. Queue = BFS. Mark visited when you ENQUEUE, not when you pop.",
+    uses:["Shortest path in unweighted graphs/grids/mazes","Level-order tree traversal, 'minimum steps to…'","Flood fill, spreading processes (rotting oranges), bipartite check"]
+  },
+  {
+    id:"dfs", name:"DFS — Depth-First Search", abbr:"↡",
+    one:"Plunge as deep as possible down one path before backing up. Recursion or a stack.",
+    tags:["dfs","depth first","stack","recursion","backtrack","cycle","connected components","topological","path","explore"],
+    concept:["DFS follows one path to its end, then backtracks and tries the next. It's naturally recursive (the call stack is your stack) but can be written iteratively with an explicit stack. Time is O(V + E).",
+      "DFS is the workhorse for connectivity, cycle detection, topological sort, and any 'explore all paths / does a path exist' question. It uses less memory than BFS on wide graphs but doesn't give shortest paths."],
+    complexity:{"Time":"O(V + E)","Space":"O(V)","Best for":"connectivity/paths"},
+    code:`# Recursive DFS
+def dfs(node, graph, seen):
+    if node in seen: return
+    seen.add(node)
+    for nb in graph[node]:
+        dfs(nb, graph, seen)
+
+# Iterative DFS with explicit stack
+def dfs_iter(start, graph):
+    stack, seen = [start], set()
+    while stack:
+        node = stack.pop()
+        if node in seen: continue
+        seen.add(node)
+        for nb in graph[node]:
+            if nb not in seen:
+                stack.append(nb)
+
+# Number of islands (grid DFS / flood fill)
+def num_islands(grid):
+    R, C = len(grid), len(grid[0])
+    def sink(r, c):
+        if 0<=r<R and 0<=c<C and grid[r][c]=='1':
+            grid[r][c] = '0'
+            for dr,dc in ((1,0),(-1,0),(0,1),(0,-1)):
+                sink(r+dr, c+dc)
+    count = 0
+    for r in range(R):
+        for c in range(C):
+            if grid[r][c]=='1':
+                sink(r, c); count += 1
+    return count`,
+    remember:"DFS is exploring a maze by always taking the next door and only backtracking at dead ends. Stack (or recursion) = DFS. Use it for 'is there a path', counting components/islands, cycle detection — not for shortest path.",
+    uses:["Connected components, islands, flood fill","Cycle detection, topological sort, path existence","Tree/graph traversal where depth-first is natural; backtracking"]
+  },
+  {
+    id:"dijkstra", name:"Dijkstra's Shortest Path", abbr:"⤳",
+    one:"Cheapest path from a source in a weighted graph with non-negative edges, using a min-heap.",
+    tags:["dijkstra","shortest path","weighted","min heap","priority queue","non negative","greedy","distance"],
+    concept:["Dijkstra is BFS upgraded for weights. It keeps a min-heap of (distance, node), always expanding the closest unfinalized node, and relaxes its edges (updates neighbor distances if a cheaper path is found). It's greedy and correct as long as no edge has negative weight.",
+      "With a binary heap it runs in O((V + E) log V). For negative edges, use Bellman-Ford instead."],
+    complexity:{"Time":"O((V+E) log V)","Space":"O(V)","Requires":"non-neg weights"},
+    code:`import heapq
+def dijkstra(graph, start):
+    # graph: {node: [(neighbor, weight), ...]}
+    dist = {start: 0}
+    pq = [(0, start)]                 # (distance, node)
+    while pq:
+        d, node = heapq.heappop(pq)
+        if d > dist.get(node, float('inf')):
+            continue                 # stale entry
+        for nb, w in graph[node]:
+            nd = d + w
+            if nd < dist.get(nb, float('inf')):
+                dist[nb] = nd        # relax
+                heapq.heappush(pq, (nd, nb))
+    return dist`,
+    remember:"Dijkstra = 'always expand the nearest unfinished city next', updating travel times as you go. It's BFS that respects road lengths. ONE rule: no negative edges (those break the greedy logic — use Bellman-Ford).",
+    uses:["Shortest path with non-negative weights (maps, networks)","Minimum cost/effort path, network latency","Cheapest-flight / minimum-time grid problems"]
+  },
+  {
+    id:"shortest-paths", name:"Bellman-Ford & Floyd-Warshall", abbr:"∞",
+    one:"Shortest paths when Dijkstra can't: negative edges (Bellman-Ford) or all-pairs (Floyd-Warshall).",
+    tags:["bellman ford","floyd warshall","negative edges","all pairs","shortest path","relax","negative cycle","dp"],
+    concept:["Bellman-Ford relaxes every edge V−1 times; it handles negative edge weights and detects negative cycles (if anything still improves on the V-th pass). It's O(V·E) — slower than Dijkstra but more general.",
+      "Floyd-Warshall computes shortest paths between every pair of nodes via a triple loop (it's DP over 'allowed intermediate nodes'). It's O(V³) — ideal for small dense graphs where you need all-pairs distances."],
+    complexity:{"Bellman-Ford":"O(V·E)","Floyd-Warshall":"O(V³)","Handles":"negatives"},
+    code:`# Bellman-Ford: handles negative edges
+def bellman_ford(n, edges, src):
+    dist = [float('inf')]*n
+    dist[src] = 0
+    for _ in range(n - 1):
+        for u, v, w in edges:
+            if dist[u] + w < dist[v]:
+                dist[v] = dist[u] + w
+    # extra pass detects a negative cycle
+    for u, v, w in edges:
+        if dist[u] + w < dist[v]:
+            return None   # negative cycle
+    return dist
+
+# Floyd-Warshall: all-pairs shortest paths
+def floyd_warshall(dist):   # dist[i][j] = weight or inf
+    n = len(dist)
+    for k in range(n):
+        for i in range(n):
+            for j in range(n):
+                if dist[i][k] + dist[k][j] < dist[i][j]:
+                    dist[i][j] = dist[i][k] + dist[k][j]
+    return dist`,
+    remember:"Bellman-Ford = 'relax every road V−1 times' — slow but survives negative weights and catches negative loops. Floyd-Warshall = 3 nested loops giving every pair's distance — only for small graphs (V³ adds up fast).",
+    uses:["Negative edge weights (currency arbitrage, Bellman-Ford)","All-pairs distances on small graphs (Floyd-Warshall)","Detecting negative cycles"]
+  },
+  {
+    id:"topological-sort", name:"Topological Sort", abbr:"⇶",
+    one:"Order tasks so every dependency comes before what needs it. Only for DAGs.",
+    tags:["topological sort","topo","dag","dependencies","ordering","kahn","indegree","course schedule","prerequisites","cycle"],
+    concept:["Given a directed acyclic graph (DAG) of dependencies, a topological order lists nodes so each edge points forward. Two methods: Kahn's algorithm (repeatedly remove nodes with in-degree 0, using a queue) or DFS (push nodes onto a stack on the way out, then reverse).",
+      "If you can't produce a full ordering, the graph has a cycle — which is exactly how you detect impossible schedules (e.g. course prerequisites with a loop)."],
+    complexity:{"Time":"O(V + E)","Space":"O(V)","Requires":"DAG (no cycle)"},
+    code:`from collections import deque, defaultdict
+
+def topo_sort(n, edges):           # edges: [(u, v)] u before v
+    graph = defaultdict(list)
+    indeg = [0]*n
+    for u, v in edges:
+        graph[u].append(v)
+        indeg[v] += 1
+    q = deque([i for i in range(n) if indeg[i] == 0])
+    order = []
+    while q:
+        node = q.popleft()
+        order.append(node)
+        for nb in graph[node]:
+            indeg[nb] -= 1
+            if indeg[nb] == 0:
+                q.append(nb)
+    return order if len(order) == n else []   # [] => cycle`,
+    remember:"Getting dressed: socks before shoes, shirt before jacket. Topo sort is any valid order respecting 'must come before'. Kahn's = keep doing whatever has no remaining prerequisites (in-degree 0). Can't finish? there's a cycle.",
+    uses:["Build systems, task/job scheduling with dependencies","Course prerequisites ('can you finish all courses?')","Detecting cycles in directed graphs, compilation order"]
+  },
+  {
+    id:"mst", name:"Minimum Spanning Tree", abbr:"⌖",
+    one:"Connect all nodes with the least total edge weight. Kruskal (sort edges) or Prim (grow a tree).",
+    tags:["mst","minimum spanning tree","kruskal","prim","union find","weighted","connect","network","cheapest"],
+    concept:["An MST connects every vertex with no cycles at minimum total cost. Kruskal sorts all edges and adds the cheapest one that doesn't create a cycle (using Union-Find to check) — great for sparse graphs. Prim grows a single tree from a start node, always adding the cheapest edge leaving the tree (using a min-heap) — great for dense graphs.",
+      "Both are greedy and both run around O(E log E). Use them whenever you must wire/connect things as cheaply as possible."],
+    complexity:{"Kruskal":"O(E log E)","Prim":"O(E log V)","Result":"min total cost"},
+    code:`# Kruskal's MST (uses the DSU from Union-Find)
+def kruskal(n, edges):             # edges: [(w, u, v)]
+    edges.sort()                   # by weight
+    dsu = DSU(n)
+    total, used = 0, 0
+    for w, u, v in edges:
+        if dsu.union(u, v):        # no cycle formed
+            total += w; used += 1
+            if used == n - 1: break
+    return total
+
+# Prim's MST (min-heap)
+import heapq
+def prim(graph, n):                # graph: {u: [(w, v)]}
+    seen = {0}
+    pq = list(graph[0])
+    heapq.heapify(pq)
+    total = 0
+    while pq and len(seen) < n:
+        w, v = heapq.heappop(pq)
+        if v in seen: continue
+        seen.add(v); total += w
+        for w2, nb in graph[v]:
+            if nb not in seen:
+                heapq.heappush(pq, (w2, nb))
+    return total`,
+    remember:"Laying cable to connect every house for the least total wire. Kruskal = sort all wires, lay cheapest first, skip any that close a loop (Union-Find catches loops). Prim = grow one network outward, always grabbing the cheapest reachable wire.",
+    uses:["Cheapest network/road/cable connecting all points","Clustering, approximations for TSP","Any 'connect everything at minimum cost' problem"]
+  },
+  {
+    id:"bit-manipulation", name:"Bit Manipulation", abbr:"01",
+    one:"Operate on numbers at the binary level for O(1) tricks and compact state.",
+    tags:["bit manipulation","bitwise","xor","mask","shift","binary","single number","bitmask","power of two"],
+    concept:["Bit operations (AND &, OR |, XOR ^, NOT ~, shifts <<, >>) let you toggle, test, and pack flags efficiently. XOR is the star: a^a=0 and a^0=a, which instantly finds the unique element among pairs. n & (n-1) clears the lowest set bit (counts bits, tests powers of two).",
+      "Bitmasks pack a set of booleans into one integer — essential for subset-DP and state compression."],
+    complexity:{"Each op":"O(1)","Count bits":"O(#bits)","Use for":"flags/state"},
+    code:`# Essential idioms
+x & 1            # is x odd?
+x >> 1           # divide by 2
+x << 1           # multiply by 2
+x & (x - 1)      # clears lowest set bit
+x & -x           # isolates lowest set bit
+bin(x).count('1')# popcount
+
+# XOR finds the single number (all others appear twice)
+def single_number(nums):
+    res = 0
+    for n in nums:
+        res ^= n
+    return res
+
+# Check power of two
+def is_pow2(n):
+    return n > 0 and (n & (n - 1)) == 0
+
+# Iterate all subsets of a set of size n
+# for mask in range(1 << n): ...`,
+    remember:"XOR is a light switch: flip twice and you're back to off (a^a=0). That's why pairing cancels and the lonely number survives. n & (n-1) = 'switch off the rightmost lit bulb' — count or test powers of two with it.",
+    uses:["Find unique/missing numbers (XOR), toggle flags","Subset enumeration & bitmask DP (state compression)","Fast multiply/divide by powers of two, checks like power-of-two"]
+  },
+  {
+    id:"math", name:"Math & Number Theory", abbr:"π",
+    one:"GCD, primes, modular arithmetic — small tools that crack a surprising number of problems.",
+    tags:["math","gcd","lcm","prime","sieve","modular","euclid","number theory","factorial","combinatorics"],
+    concept:["A few number-theory tools recur constantly. Euclid's algorithm finds the GCD in O(log n) (and LCM = a*b/gcd). The Sieve of Eratosthenes lists all primes up to n in O(n log log n). Modular arithmetic keeps huge numbers in range and shows up whenever you see 'answer mod 1e9+7'.",
+      "Knowing these saves you from reinventing slow O(n) or O(√n) loops where an O(log n) identity exists."],
+    complexity:{"GCD":"O(log n)","Sieve":"O(n log log n)","Prime test":"O(√n)"},
+    code:`from math import gcd
+gcd(12, 18)                  # -> 6
+lcm = lambda a, b: a*b // gcd(a, b)
+
+# Sieve of Eratosthenes: primes up to n
+def sieve(n):
+    is_p = [True]*(n+1)
+    is_p[0] = is_p[1] = False
+    for i in range(2, int(n**0.5)+1):
+        if is_p[i]:
+            for j in range(i*i, n+1, i):
+                is_p[j] = False
+    return [i for i, p in enumerate(is_p) if p]
+
+# Trial-division primality
+def is_prime(n):
+    if n < 2: return False
+    i = 2
+    while i*i <= n:
+        if n % i == 0: return False
+        i += 1
+    return True
+
+# Modular exponentiation (built-in)
+pow(2, 10, 1000)            # 2^10 mod 1000`,
+    remember:"Euclid's GCD: keep replacing the bigger number with 'bigger mod smaller' until one hits zero — that's the GCD. Sieve: cross out every multiple of each prime, what survives is prime. Only test divisors up to √n.",
+    uses:["GCD/LCM problems, fraction reduction, cycle lengths","Prime generation/testing, factorization","Modular arithmetic for 'answer mod 1e9+7', combinatorics"]
+  }
+];
+
+/* ---------- DECISION GUIDE: clue -> technique ---------- */
+DATA.decision = [
+  {sig:"Data is SORTED (or you can sort it)", use:"Binary Search / Two Pointers", cat:["search"],
+   why:"Sorting unlocks O(log n) lookups and O(n) pair-finding. The word 'sorted' is almost always a hint.",
+   ex:"Find a target, find a pair summing to X, find insert position, search a rotated sorted array."},
+  {sig:"Find a PAIR / triplet summing to a target", use:"Two Pointers (if sorted) or Hash Map", cat:["search","sum"],
+   why:"Hash map gives O(n) by storing complements; two pointers give O(n) after an O(n log n) sort and use O(1) space.",
+   ex:"Two Sum, 3Sum, pair with given difference, count pairs."},
+  {sig:"Need fast 'have I seen this?' or COUNT occurrences", use:"Hash Map / Hash Set", cat:["lookup","count"],
+   why:"Membership and frequency in O(1) average. The instant you think 'scan to check', switch to a dict/set.",
+   ex:"Anagrams, duplicates, first unique char, group by key, Two Sum."},
+  {sig:"CONTIGUOUS subarray/substring — longest, shortest, sum, at most K", use:"Sliding Window", cat:["window","substring"],
+   why:"Each element enters/leaves the window once → O(n) instead of O(n²) over all sub-ranges.",
+   ex:"Longest substring without repeats, min window substring, max sum subarray of size k, fruit into baskets."},
+  {sig:"Many RANGE-SUM queries on a fixed array", use:"Prefix Sum", cat:["window","sum"],
+   why:"Precompute running totals once; every range sum is then one O(1) subtraction.",
+   ex:"Range sum query, subarray sum equals k, count subarrays, 2D region sums."},
+  {sig:"Process in arrival order / shortest steps in UNWEIGHTED graph", use:"BFS (Queue)", cat:["graph","shortest"],
+   why:"BFS expands in waves, so first arrival = fewest edges = shortest path when all edges cost 1.",
+   ex:"Shortest path in a maze, word ladder, rotting oranges, min steps, level-order traversal."},
+  {sig:"Explore all paths / connectivity / cycle detection", use:"DFS (Recursion or Stack)", cat:["graph"],
+   why:"DFS dives deep and backtracks — natural for 'does a path exist', counting components, detecting cycles.",
+   ex:"Number of islands, clone graph, path sum, detect cycle, flood fill."},
+  {sig:"Shortest path with WEIGHTED edges (non-negative)", use:"Dijkstra (Min-Heap)", cat:["graph","shortest"],
+   why:"Greedy expansion of the nearest node respects edge costs; heap keeps it O((V+E) log V).",
+   ex:"Cheapest flights, network delay time, path with minimum effort, shortest path in weighted grid."},
+  {sig:"Shortest path with NEGATIVE edges / all-pairs", use:"Bellman-Ford / Floyd-Warshall", cat:["graph","shortest"],
+   why:"Dijkstra breaks on negative edges. Bellman-Ford handles them + detects negative cycles; Floyd-Warshall does all pairs.",
+   ex:"Currency arbitrage, all-pairs distances on a small graph, negative-cycle detection."},
+  {sig:"Tasks with DEPENDENCIES / 'must come before' / ordering", use:"Topological Sort", cat:["graph","order"],
+   why:"Produces a valid order on a DAG; failure to order everything reveals a cycle (impossible schedule).",
+   ex:"Course schedule, build order, task scheduling, alien dictionary."},
+  {sig:"Connect everything at MINIMUM total cost", use:"Minimum Spanning Tree (Kruskal/Prim)", cat:["graph","optimize"],
+   why:"MST links all nodes with the least total edge weight; greedy and provably optimal.",
+   ex:"Connect cities/cables cheaply, min cost to connect all points, clustering."},
+  {sig:"'Are A and B in the same group?' / merging groups / components as edges arrive", use:"Union-Find (DSU)", cat:["graph","group"],
+   why:"Near-O(1) union and find; cleanest tool for dynamic connectivity and cycle checks in undirected graphs.",
+   ex:"Number of connected components, redundant connection, accounts merge, Kruskal's MST."},
+  {sig:"TOP-K, Kth largest/smallest, or running median", use:"Heap / Priority Queue", cat:["order","optimize"],
+   why:"A heap of size K gives the Kth element without fully sorting — O(n log k).",
+   ex:"Kth largest element, top K frequent, merge K sorted lists, median of a data stream."},
+  {sig:"'Most recent', undo, matching/nesting, 'next greater'", use:"Stack", cat:["order"],
+   why:"LIFO remembers what came before and unwinds it; a monotonic stack answers next-greater in O(n).",
+   ex:"Valid parentheses, daily temperatures, largest rectangle in histogram, evaluate expression."},
+  {sig:"Generate ALL combinations / permutations / subsets", use:"Backtracking", cat:["enumerate"],
+   why:"Choose → explore → un-choose systematically enumerates every possibility, with pruning for speed.",
+   ex:"Subsets, permutations, combination sum, N-Queens, Sudoku, word search, palindrome partitioning."},
+  {sig:"'Number of ways', 'min/max cost', 'can we reach' WITH choices & overlapping subproblems", use:"Dynamic Programming", cat:["optimize","count"],
+   why:"Overlapping subproblems + optimal substructure → cache each subproblem once instead of recomputing.",
+   ex:"Coin change, knapsack, edit distance, longest common subsequence, house robber, unique paths."},
+  {sig:"One locally-best choice each step seems to work", use:"Greedy (but verify!)", cat:["optimize"],
+   why:"Fast and simple when the greedy-choice property holds — but prove it or DP may be required instead.",
+   ex:"Interval scheduling, jump game, gas station, assign cookies, Huffman coding."},
+  {sig:"PREFIX / autocomplete / 'words starting with' / dictionary of strings", use:"Trie", cat:["string"],
+   why:"O(L) prefix lookups regardless of how many words are stored; shares common prefixes.",
+   ex:"Implement Trie, word search II, autocomplete, replace words, longest common prefix."},
+  {sig:"Frequent INSERT/DELETE, no random access needed; reverse/cycle/merge lists", use:"Linked List", cat:["structure"],
+   why:"O(1) splicing once you hold a node; dummy-head and fast/slow pointers solve the classic problems.",
+   ex:"Reverse a list, detect cycle, merge two lists, remove nth from end, LRU cache."},
+  {sig:"Hierarchy / 'do something on a tree' / ordered data with range queries", use:"Tree / BST + recursion", cat:["structure"],
+   why:"Trees model hierarchy; BST keeps order for O(log n) search; most tree problems are clean recursion.",
+   ex:"Max depth, validate BST, lowest common ancestor, level order, serialize/deserialize."},
+  {sig:"Pack many booleans / enumerate subsets / find the unique number", use:"Bit Manipulation", cat:["enumerate"],
+   why:"XOR cancels pairs; bitmasks compress state into one integer for subset DP.",
+   ex:"Single number, counting bits, subsets via bitmask, power of two, bitmask DP (TSP)."},
+  {sig:"Optimize an answer that's a NUMBER with a monotonic yes/no test", use:"Binary Search on the Answer", cat:["search","optimize"],
+   why:"If 'can we do it with value X?' is monotonic, binary-search X instead of scanning every value.",
+   ex:"Koko eating bananas, ship packages in D days, split array largest sum, min capacity."},
+  {sig:"Brute force is O(n!) or O(2ⁿ) but states overlap", use:"Memoization → DP", cat:["optimize"],
+   why:"Add a cache to recursion to collapse exponential repeated work to polynomial.",
+   ex:"Decode ways, word break, partition equal subset sum, regex matching."}
+];
+
+/* ---------- INTERVIEW QUESTIONS ---------- */
+DATA.interview = [
+  {topic:"Arrays & Strings", sub:"The most common warm-up territory. Hash maps and two pointers solve most.",
+   qs:[
+    {q:"Two Sum — indices of two numbers adding to a target", d:"easy", a:"Hash map of value→index; for each n check if target−n was seen. O(n) time, O(n) space."},
+    {q:"Best Time to Buy and Sell Stock", d:"easy", a:"Track the minimum price so far and the best profit in one pass. O(n)."},
+    {q:"Valid Anagram", d:"easy", a:"Compare character counts (Counter) or sort both strings. O(n)."},
+    {q:"Group Anagrams", d:"med", a:"Use sorted string (or a 26-length count tuple) as the hash-map key; bucket words together."},
+    {q:"Longest Substring Without Repeating Characters", d:"med", a:"Sliding window + a map of last-seen index; jump left past repeats. O(n)."},
+    {q:"Product of Array Except Self", d:"med", a:"Prefix products from the left, suffix products from the right; no division. O(n)."},
+    {q:"3Sum — all unique triplets summing to zero", d:"med", a:"Sort, fix one element, two-pointer the rest; skip duplicates. O(n²)."},
+    {q:"Trapping Rain Water", d:"hard", a:"Two pointers tracking max-left and max-right walls; water = min(wall) − height. O(n)."}
+   ]},
+  {topic:"Linked Lists", sub:"Pointer rewiring. Master dummy heads and fast/slow pointers.",
+   qs:[
+    {q:"Reverse a Linked List", d:"easy", a:"Iterate flipping next pointers with a prev tracker. O(n), O(1) space."},
+    {q:"Merge Two Sorted Lists", d:"easy", a:"Dummy head; splice the smaller head each step. O(n+m)."},
+    {q:"Linked List Cycle (detect)", d:"easy", a:"Floyd's tortoise & hare — slow +1, fast +2; they meet inside a cycle. O(n), O(1)."},
+    {q:"Remove Nth Node From End", d:"med", a:"Two pointers n apart; when the lead hits the end, the trail is at the target. One pass."},
+    {q:"Reorder / Find Middle of List", d:"med", a:"Fast/slow to find the middle, reverse the second half, merge alternately."},
+    {q:"LRU Cache", d:"med", a:"Hash map + doubly linked list: map for O(1) lookup, list for O(1) recency updates."},
+    {q:"Merge K Sorted Lists", d:"hard", a:"Min-heap of the K current heads; pop smallest, push its next. O(N log k)."}
+   ]},
+  {topic:"Trees & Graphs", sub:"Recursion, BFS, DFS. Roughly a third of interview problems live here.",
+   qs:[
+    {q:"Maximum Depth of Binary Tree", d:"easy", a:"1 + max(depth(left), depth(right)). Classic recursion. O(n)."},
+    {q:"Invert / Mirror a Binary Tree", d:"easy", a:"Swap left and right, recurse on both. O(n)."},
+    {q:"Validate Binary Search Tree", d:"med", a:"Recurse carrying (min,max) bounds, or check that in-order traversal is strictly increasing."},
+    {q:"Level Order Traversal", d:"med", a:"BFS with a queue, processing one level (len(queue) nodes) at a time."},
+    {q:"Lowest Common Ancestor", d:"med", a:"Recurse; the node where left and right both return non-null is the LCA."},
+    {q:"Number of Islands", d:"med", a:"DFS/BFS flood-fill each unvisited land cell, counting how many times you start. O(R·C)."},
+    {q:"Course Schedule (can finish?)", d:"med", a:"Topological sort (Kahn's); if you can't order all nodes there's a cycle → impossible."},
+    {q:"Word Ladder (shortest transform)", d:"hard", a:"BFS over words differing by one letter; first arrival = shortest. Preprocess wildcard buckets."},
+    {q:"Serialize and Deserialize Binary Tree", d:"hard", a:"Pre-order with null markers; rebuild by consuming the same stream recursively."}
+   ]},
+  {topic:"Searching & Sorting", sub:"Binary search variants and 'sort first' setups.",
+   qs:[
+    {q:"Binary Search", d:"easy", a:"Halve the range each step; mind lo<=hi and mid bounds. O(log n)."},
+    {q:"Search in Rotated Sorted Array", d:"med", a:"Binary search; one half is always sorted — decide which, then narrow. O(log n)."},
+    {q:"Find First and Last Position (sorted)", d:"med", a:"Two binary searches: leftmost and rightmost occurrence (bisect_left / bisect_right)."},
+    {q:"Kth Largest Element", d:"med", a:"Min-heap of size k, or quickselect for average O(n)."},
+    {q:"Koko Eating Bananas", d:"med", a:"Binary search on eating speed; feasible(speed) is monotonic. O(n log max)."},
+    {q:"Median of Two Sorted Arrays", d:"hard", a:"Binary search the partition of the smaller array so left half ≤ right half. O(log min(m,n))."}
+   ]},
+  {topic:"Dynamic Programming", sub:"Define the state, then the transition. Start from brute-force recursion.",
+   qs:[
+    {q:"Climbing Stairs / Fibonacci", d:"easy", a:"dp[i]=dp[i−1]+dp[i−2]; the gateway DP. O(n), O(1) space."},
+    {q:"House Robber", d:"med", a:"dp[i]=max(skip = dp[i−1], rob = dp[i−2]+nums[i]). O(n)."},
+    {q:"Coin Change (fewest coins)", d:"med", a:"dp[a]=min over coins of dp[a−coin]+1. Unbounded knapsack. O(amount·coins)."},
+    {q:"Longest Common Subsequence", d:"med", a:"2D dp on prefixes; match → diagonal+1, else max(up,left). O(m·n)."},
+    {q:"Longest Increasing Subsequence", d:"med", a:"O(n²) dp, or O(n log n) with a patience/tails array + binary search."},
+    {q:"Word Break", d:"med", a:"dp[i] = can the prefix of length i be segmented using the dictionary. O(n²)."},
+    {q:"0/1 Knapsack", d:"med", a:"1D dp over capacity, iterate capacity in REVERSE so each item is used once."},
+    {q:"Edit Distance", d:"hard", a:"2D dp: min of insert/delete/replace from neighboring cells. O(m·n)."},
+    {q:"Unique Paths / Min Path Sum (grid)", d:"med", a:"dp[r][c] from top and left; classic grid DP. O(R·C)."}
+   ]},
+  {topic:"Stacks, Heaps & Intervals", sub:"Pattern recognition: monotonic stacks, top-K heaps, interval sorting.",
+   qs:[
+    {q:"Valid Parentheses", d:"easy", a:"Push opens, pop & match on closes; stack empty at the end means valid."},
+    {q:"Min Stack (O(1) getMin)", d:"easy", a:"Keep a parallel stack of running minimums alongside the values."},
+    {q:"Daily Temperatures / Next Greater Element", d:"med", a:"Monotonic decreasing stack of indices; pop when a warmer day arrives. O(n)."},
+    {q:"Top K Frequent Elements", d:"med", a:"Count with a map, then a size-k heap (or bucket sort by frequency). O(n log k)."},
+    {q:"Merge Intervals", d:"med", a:"Sort by start; merge when the next start ≤ current end. O(n log n)."},
+    {q:"Meeting Rooms II (min rooms)", d:"med", a:"Min-heap of end times, or sort starts/ends separately and sweep. O(n log n)."},
+    {q:"Largest Rectangle in Histogram", d:"hard", a:"Monotonic increasing stack; pop to compute areas with each bar as the shortest. O(n)."}
+   ]}
+];
+
+/* ---------- MEMORY TIPS ---------- */
+DATA.tips = [
+  {em:"🥞", h:"Stack vs Queue", t:"<b>Stack = pancakes</b> (eat the top one, LIFO). <b>Queue = a line</b> (first to arrive, first served, FIFO). Stack pairs with DFS; queue pairs with BFS."},
+  {em:"🌊", h:"BFS vs DFS", t:"<b>BFS = ripples</b> spreading evenly (level by level, finds shortest hops, uses a <code>queue</code>). <b>DFS = a diver</b> going straight down then back up (uses recursion / a <code>stack</code>)."},
+  {em:"🔢", h:"Big-O ladder", t:"From fast to slow: <code>1 < log n < n < n log n < n² < 2ⁿ < n!</code>. Memorize it as a staircase — each step is dramatically worse than the last."},
+  {em:"🌳", h:"Tree traversals", t:"Named by WHEN the root is visited: <b>Pre</b> = root first, <b>In</b> = root middle (sorted for a BST!), <b>Post</b> = root last (great for deleting). The order is always Left before Right."},
+  {em:"💡", h:"When to use a Hash Map", t:"The moment you catch yourself thinking <i>'I'll loop through to find/count it'</i> — stop. A hash map turns that O(n) scan into an O(1) lookup. It's the answer to a huge share of array problems."},
+  {em:"📏", h:"Sliding window trigger", t:"See <b>'contiguous'</b> + <b>'substring/subarray'</b> + <b>'longest/shortest/at most K'</b>? That's a sliding window. Grow right, shrink left, never re-scan."},
+  {em:"👉👈", h:"Two pointers trigger", t:"<b>Sorted array</b> + looking for a <b>pair/triplet</b>, or a <b>palindrome</b> check, or <b>in-place</b> rearranging → two pointers. Turns O(n²) into O(n)."},
+  {em:"🔀", h:"XOR magic", t:"<code>a ^ a = 0</code> and <code>a ^ 0 = a</code>. So XOR-ing a whole array where everything is paired leaves only the <b>lonely unpaired number</b>. Also: XOR swaps without a temp."},
+  {em:"⚡", h:"Spotting DP", t:"Phrases like <b>'number of ways'</b>, <b>'min/max cost'</b>, <b>'can you reach'</b>, plus <b>choices</b> that repeat → DP. Recipe: write brute-force recursion, notice repeated calls, then cache."},
+  {em:"🎯", h:"Greedy vs DP", t:"<b>Greedy</b> = grab the best now and never reconsider (fast, but must be proven). <b>DP</b> = consider all choices and remember sub-answers (always correct for optimal-substructure problems, but heavier)."},
+  {em:"🔺", h:"Heap for Top-K", t:"For <b>Kth largest</b> keep a <b>min-heap of size K</b> (the root is your answer). For Kth smallest, a max-heap of size K. Python's heapq is min-only — negate for max."},
+  {em:"🧭", h:"Dijkstra's one rule", t:"Dijkstra = BFS that respects edge weights, using a min-heap. It only works with <b>non-negative</b> edges. Negative weights? Switch to Bellman-Ford."},
+  {em:"🔁", h:"Always write the base case first", t:"Every recursion needs a <b>stopping condition</b>. Write it before the recursive call, or you'll loop forever / overflow the stack."},
+  {em:"⛓️", h:"Linked-list lifesavers", t:"<b>Dummy head node</b> removes edge cases when the head changes. <b>Fast/slow pointers</b> find the middle and detect cycles. These two solve most list problems."},
+  {em:"🧩", h:"Backtracking mantra", t:"<b>Choose → Explore → Un-choose.</b> Add the choice, recurse, then remove it before trying the next. Used for every 'generate all…' problem."},
+  {em:"📐", h:"Sort first?", t:"When stuck, ask: <b>'does sorting unlock this?'</b> Sorting (O(n log n)) often enables binary search, two pointers, greedy, or easy dedup — turning a hard problem into a known pattern."}
+];
+
+</script>
+<script>
+/* ============================================================
+   THE DSA FIELD MANUAL — app logic
+   ============================================================ */
+
+/* ---------- tiny Python syntax highlighter (self-contained) ---------- */
+const PY_KW = new Set(["def","return","if","elif","else","for","while","in","not","and","or",
+  "is","None","True","False","class","import","from","as","with","lambda","yield","break",
+  "continue","pass","global","nonlocal","try","except","finally","raise","assert","del"]);
+const PY_BI = new Set(["len","range","enumerate","print","sorted","sum","max","min","map",
+  "filter","set","dict","list","tuple","int","str","float","abs","zip","reversed","heapq",
+  "deque","defaultdict","Counter","float","bin","pow","gcd"]);
+
+function escHtml(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+
+function highlightPy(code){
+  const lines = code.split("\n");
+  return lines.map(line=>{
+    // comment
+    let ci = -1, inStr = false, q = "";
+    for(let i=0;i<line.length;i++){
+      const c=line[i];
+      if(inStr){ if(c===q) inStr=false; continue; }
+      if(c==='"'||c==="'"){ inStr=true; q=c; continue; }
+      if(c==='#'){ ci=i; break; }
+    }
+    let codePart = ci>=0 ? line.slice(0,ci) : line;
+    let comment = ci>=0 ? line.slice(ci) : "";
+    // tokenize codePart
+    let out = "";
+    const re = /(\"[^\"]*\"|'[^']*'|\b\d+\.?\d*\b|[A-Za-z_]\w*|[^\sA-Za-z0-9_])/g;
+    let m, last=0;
+    while((m=re.exec(codePart))!==null){
+      out += escHtml(codePart.slice(last, m.index));
+      const tok = m[0];
+      if(/^["']/.test(tok)){ out += '<span class="tk-str">'+escHtml(tok)+'</span>'; }
+      else if(/^\d/.test(tok)){ out += '<span class="tk-num">'+escHtml(tok)+'</span>'; }
+      else if(/^[A-Za-z_]/.test(tok)){
+        // function definition name
+        const before = codePart.slice(0,m.index);
+        if(PY_KW.has(tok)) out += '<span class="tk-kw">'+tok+'</span>';
+        else if(PY_BI.has(tok)) out += '<span class="tk-bi">'+tok+'</span>';
+        else if(/\bdef\s+$/.test(before)) out += '<span class="tk-def">'+tok+'</span>';
+        else if(codePart[m.index+tok.length]==='(') out += '<span class="tk-def">'+tok+'</span>';
+        else out += escHtml(tok);
+      }
+      else if(/[=+\-*/%<>!&|^~:]/.test(tok)){ out += '<span class="tk-op">'+escHtml(tok)+'</span>'; }
+      else { out += escHtml(tok); }
+      last = m.index + tok.length;
+    }
+    out += escHtml(codePart.slice(last));
+    if(comment) out += '<span class="tk-com">'+escHtml(comment)+'</span>';
+    return out;
+  }).join("\n");
+}
+
+/* ---------- complexity color classes ---------- */
+function cxClass(v){
+  const s = String(v).toLowerCase().replace(/\s/g,"");
+  if(s.includes("n²")||s.includes("n^2")||s.includes("2ⁿ")||s.includes("n!")||s.includes("v³")||s.includes("v·e")||s.includes("v*e")) return "cx-On2";
+  if(s.includes("nlog")||s.includes("elog")||s.includes("vlog")) return "cx-Onlog";
+  if(s.includes("logn")||s.includes("logv")||s.includes("log")) return "cx-Olog";
+  if(s.includes("o(1)")||s==="~o(1)"||s.includes("amortized")) return "cx-O1";
+  if(s.includes("o(n")||s.includes("o(v")||s.includes("o(e")||s.includes("o(l")||s.includes("o(k")) return "cx-On";
+  return "";
+}
+
+/* ---------- icons ---------- */
+const ICON = {
+  copy:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>',
+  chev:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 6 15 12 9 18"/></svg>',
+  search:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.5" y2="16.5"/></svg>',
+  remember:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10c1 1 1 2 1 3h6c0-1 0-2 1-3a6 6 0 0 0-4-10z"/></svg>'
+};
+
+/* ---------- code block builder ---------- */
+function codeBlock(code){
+  return `<div class="codewrap">
+    <div class="codebar">
+      <span class="lang">python</span>
+      <button class="copybtn" onclick="copyCode(this)">${ICON.copy}<span>Copy</span></button>
+    </div>
+    <pre><code>${highlightPy(code)}</code></pre>
+    <textarea style="display:none">${escHtml(code)}</textarea>
+  </div>`;
+}
+function copyCode(btn){
+  const wrap = btn.closest(".codewrap");
+  const txt = wrap.querySelector("textarea").value;
+  navigator.clipboard.writeText(txt).then(()=>{
+    btn.classList.add("done");
+    btn.querySelector("span").textContent = "Copied!";
+    setTimeout(()=>{ btn.classList.remove("done"); btn.querySelector("span").textContent="Copy"; },1400);
+  });
+}
+
+/* ---------- concept card builder ---------- */
+function conceptCard(item, accent){
+  const cx = Object.entries(item.complexity||{}).map(([k,v])=>
+    `<div class="cx-cell"><div class="k">${k}</div><div class="v ${cxClass(v)}">${v}</div></div>`).join("");
+  const concept = (Array.isArray(item.concept)?item.concept:[item.concept])
+    .map(p=>`<p>${p}</p>`).join("");
+  const uses = (item.uses||[]).map(u=>`<li>${u}</li>`).join("");
+  const searchText = [item.name,item.one,...(item.tags||[]),...(Array.isArray(item.concept)?item.concept:[item.concept])].join(" ").toLowerCase();
+  return `<div class="card" id="${item.id}" data-search="${escHtml(searchText)}">
+    <div class="card-top" onclick="toggleCard(this)">
+      <div class="card-ic" style="background:var(--${accent}-soft);color:var(--${accent})">${item.abbr}</div>
+      <div class="card-tt">
+        <h4>${item.name}</h4>
+        <div class="one">${item.one}</div>
+      </div>
+      <div class="card-chev">${ICON.chev}</div>
+    </div>
+    <div class="card-body">
+      <div class="block">
+        <div class="h">Concept</div>
+        ${concept}
+      </div>
+      <div class="block">
+        <div class="h">Complexity</div>
+        <div class="cx-grid">${cx}</div>
+      </div>
+      <div class="block">
+        <div class="h">Code · Python</div>
+        ${codeBlock(item.code)}
+      </div>
+      <div class="block remember">
+        <div class="h">${ICON.remember} Remember it</div>
+        <p>${item.remember}</p>
+      </div>
+      <div class="block">
+        <div class="h">Reach for it when</div>
+        <ul style="color:var(--${accent})">${uses}</ul>
+      </div>
+    </div>
+  </div>`;
+}
+
+function toggleCard(el){ el.closest(".card").classList.toggle("open"); }
+
+/* ---------- BUILD: navigation ---------- */
+function buildNav(){
+  const groups = [
+    {lab:"Foundations", color:"cx", links:[["bigo-sec","Big-O Complexity"]]},
+    {lab:"Data Structures", color:"ds", links:DATA.dataStructures.map(d=>[d.id,d.name])},
+    {lab:"Algorithms", color:"algo", links:DATA.algorithms.map(a=>[a.id,a.name])},
+    {lab:"Study", color:"tip", links:[["tips-sec","Memory Tricks"]]},
+    {lab:"Interview", color:"intv", links:[["interview-sec","Top Questions"]]},
+    {lab:"Decisions", color:"dec", links:[["decision-sec","Which One? Guide"]]}
+  ];
+  document.getElementById("nav").innerHTML = groups.map(g=>`
+    <div class="navgroup">
+      <div class="lab"><span class="dot" style="background:var(--${g.color})"></span>${g.lab}</div>
+      ${g.links.map(([id,name])=>`<a class="navlink" href="#${id}" data-target="${id}">${name}</a>`).join("")}
+    </div>`).join("");
+}
+
+/* ---------- BUILD: hero stats ---------- */
+function buildStats(){
+  const total = DATA.dataStructures.length + DATA.algorithms.length;
+  const ivCount = DATA.interview.reduce((s,t)=>s+t.qs.length,0);
+  document.getElementById("heroStats").innerHTML = [
+    [DATA.dataStructures.length,"data structures","ds"],
+    [DATA.algorithms.length,"algorithms & patterns","algo"],
+    [ivCount,"interview questions","intv"],
+    [DATA.decision.length,"decision signals","dec"]
+  ].map(([n,l,c])=>`<div class="stat"><b style="color:var(--${c})">${n}</b><span>${l}</span></div>`).join("");
+}
+
+/* ---------- BUILD: Big-O section ---------- */
+function buildBigO(){
+  const rows = DATA.bigO.rows.map(([o,name,desc,ex,cls])=>
+    `<tr><td class="${cls}">${o}</td><td>${name}</td><td style="color:var(--dim)">${desc}</td><td style="color:var(--dim)">${ex}</td></tr>`).join("");
+  const rules = DATA.bigO.rules.map(r=>`<li>${r}</li>`).join("");
+  return `<section class="sec" id="bigo-sec">
+    <div class="sec-head">
+      <span class="tag" style="background:var(--cx-soft);color:var(--cx)">START HERE</span>
+      <h3>Big-O Complexity</h3>
+    </div>
+    <p class="sec-desc">${DATA.bigO.intro}</p>
+    <div class="card open" data-search="big o complexity time space n log notation growth">
+      <div class="card-body" style="display:block;padding:22px">
+        <table class="bigO-table">
+          <thead><tr><th>Notation</th><th>Name</th><th>Meaning</th><th>Example</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+        <div class="block" style="margin-top:22px">
+          <div class="h">The 5 rules that matter</div>
+          <ul>${rules}</ul>
+        </div>
+        <div class="callout" style="margin-top:18px;margin-bottom:0">
+          <div class="h">Rule of thumb for interviews</div>
+          <p>If n ≤ ~10: <code>O(n!)</code>/<code>O(2ⁿ)</code> is fine. If n ≤ ~10³: <code>O(n²)</code> works. If n ≤ ~10⁶: aim for <code>O(n log n)</code> or <code>O(n)</code>. If n is huge: you need <code>O(log n)</code> or <code>O(1)</code>.</p>
+        </div>
+      </div>
+    </div>
+  </section>`;
+}
+
+/* ---------- BUILD: structures & algorithms ---------- */
+function buildStructures(){
+  return `<section class="sec" id="ds-sec">
+    <div class="sec-head">
+      <span class="tag" style="background:var(--ds-soft);color:var(--ds)">HOW YOU STORE DATA</span>
+      <h3>Data Structures</h3>
+    </div>
+    <p class="sec-desc">The containers. Each shapes what's fast and what's slow. Pick the structure and half the problem solves itself. Tap any card to expand.</p>
+    ${DATA.dataStructures.map(d=>conceptCard(d,"ds")).join("")}
+  </section>`;
+}
+function buildAlgorithms(){
+  return `<section class="sec" id="algo-sec">
+    <div class="sec-head">
+      <span class="tag" style="background:var(--algo-soft);color:var(--algo)">WHAT YOU DO WITH IT</span>
+      <h3>Algorithms &amp; Patterns</h3>
+    </div>
+    <p class="sec-desc">The moves. Most interview problems are one of these patterns in disguise — learn to recognize the trigger words and you'll know the approach before you've finished reading the question.</p>
+    ${DATA.algorithms.map(a=>conceptCard(a,"algo")).join("")}
+  </section>`;
+}
+
+/* ---------- BUILD: tips ---------- */
+function buildTips(){
+  const cards = DATA.tips.map(t=>`
+    <div class="tip-card" data-search="${escHtml((t.h+' '+t.t).toLowerCase())}">
+      <h4><span class="em">${t.em}</span>${t.h}</h4>
+      <p>${t.t}</p>
+    </div>`).join("");
+  return `<section class="sec" id="tips-sec">
+    <div class="sec-head">
+      <span class="tag" style="background:var(--tip-soft);color:var(--tip)">MAKE IT STICK</span>
+      <h3>Memory Tricks</h3>
+    </div>
+    <p class="sec-desc">Analogies and trigger-word cheats so the right tool comes to mind instantly — under interview pressure or while studying.</p>
+    <div class="tip-grid">${cards}</div>
+  </section>`;
+}
+
+/* ---------- BUILD: interview ---------- */
+function buildInterview(){
+  const topics = DATA.interview.map(t=>{
+    const qs = t.qs.map((item,i)=>`
+      <div class="iv-q" data-search="${escHtml((item.q+' '+item.a).toLowerCase())}">
+        <div class="qh" onclick="this.parentElement.classList.toggle('open')">
+          <span class="qn">${String(i+1).padStart(2,'0')}</span>
+          <span class="qt">${item.q}</span>
+          <span class="qd ${item.d}">${item.d}</span>
+        </div>
+        <div class="qa"><b>Approach:</b> ${item.a}</div>
+      </div>`).join("");
+    return `<div class="iv-topic">
+      <h4>${t.topic}</h4>
+      <div class="qsub">${t.sub}</div>
+      ${qs}
+    </div>`;
+  }).join("");
+  return `<section class="sec" id="interview-sec">
+    <div class="sec-head">
+      <span class="tag" style="background:var(--intv-soft);color:var(--intv)">MOST ASKED</span>
+      <h3>Interview Questions</h3>
+    </div>
+    <p class="sec-desc">The classics, grouped by topic and tagged by difficulty. Tap a question to reveal the approach. Master these patterns and most variations fall out.</p>
+    ${topics}
+  </section>`;
+}
+
+/* ---------- BUILD: decision guide ---------- */
+const DG_CATS = [
+  ["all","All"],["search","Searching"],["graph","Graphs"],["window","Windows/Sums"],
+  ["optimize","Optimization"],["enumerate","Enumeration"],["structure","Structures"],
+  ["order","Ordering"],["count","Counting"],["string","Strings"]
+];
+function buildDecision(){
+  const chips = DG_CATS.map(([id,lab])=>
+    `<span class="dg-chip${id==='all'?' on':''}" data-cat="${id}" onclick="filterDecision(this)">${lab}</span>`).join("");
+  return `<section class="sec" id="decision-sec">
+    <div class="sec-head">
+      <span class="tag" style="background:var(--dec-soft);color:var(--dec)">THE BIG ONE</span>
+      <h3>Which One Do I Use?</h3>
+    </div>
+    <p class="sec-desc">The hardest part isn't knowing the tools — it's matching them to a problem. Type the clue words from a question (e.g. "sorted", "shortest path", "all subsets", "number of ways") and this filters to the technique, why it fits, and example problems.</p>
+    <div class="dg-search">
+      ${ICON.search}
+      <input id="dgInput" type="text" placeholder='Describe the problem or paste clue words…' autocomplete="off" oninput="filterDecision()">
+    </div>
+    <div class="dg-chips">${chips}</div>
+    <div id="dgResults"></div>
+  </section>`;
+}
+let dgActiveCat = "all";
+function dgCard(d){
+  const ex = d.ex ? `<div class="ex"><b>EXAMPLES</b><br>${d.ex}</div>` : "";
+  return `<div class="dg-card">
+    <div class="sig">
+      <b>${d.sig}</b><span class="arrow">→</span><span class="use">${d.use}</span>
+    </div>
+    <div class="why">${d.why}</div>
+    ${ex}
+  </div>`;
+}
+function filterDecision(chip){
+  if(chip && chip.dataset){
+    dgActiveCat = chip.dataset.cat;
+    document.querySelectorAll(".dg-chip").forEach(c=>c.classList.toggle("on", c===chip));
+  }
+  const q = (document.getElementById("dgInput").value||"").toLowerCase().trim();
+  const words = q.split(/\s+/).filter(Boolean);
+  const matches = DATA.decision.filter(d=>{
+    const catOk = dgActiveCat==="all" || (d.cat||[]).includes(dgActiveCat);
+    if(!catOk) return false;
+    if(!words.length) return true;
+    const hay = (d.sig+" "+d.use+" "+d.why+" "+d.ex).toLowerCase();
+    return words.some(w=>hay.includes(w));
+  });
+  const box = document.getElementById("dgResults");
+  box.innerHTML = matches.length
+    ? matches.map(dgCard).join("")
+    : `<div class="dg-empty">No technique matched those clues. Try simpler keywords like "sorted", "tree", "shortest", "subset", or "ways".</div>`;
+}
+
+/* ---------- assemble ---------- */
+function build(){
+  buildNav();
+  buildStats();
+  document.getElementById("content").innerHTML =
+    buildBigO() + buildStructures() + buildAlgorithms() +
+    buildTips() + buildInterview() + buildDecision();
+  filterDecision();
+  wireGlobalSearch();
+  wireScrollSpy();
+  wireMobileNav();
+  wireTheme();
+  wireKeyboard();
+}
+
+/* ---------- global search (filters cards across the page) ---------- */
+function wireGlobalSearch(){
+  const input = document.getElementById("globalSearch");
+  input.addEventListener("input", ()=>{
+    const q = input.value.toLowerCase().trim();
+    const items = document.querySelectorAll("[data-search]");
+    let any = false;
+    items.forEach(el=>{
+      const hit = !q || el.dataset.search.includes(q);
+      el.style.display = hit ? "" : "none";
+      if(hit) any = true;
+      if(hit && q && el.classList.contains("card")) el.classList.add("open");
+      if(!q && el.classList.contains("card") && el.id!=="" && !el.closest("#bigo-sec")) el.classList.remove("open");
+    });
+    // hide empty section headers / topics
+    document.querySelectorAll(".sec, .iv-topic").forEach(sec=>{
+      const visibleCards = sec.querySelectorAll("[data-search]");
+      let shown = 0; visibleCards.forEach(c=>{ if(c.style.display!=="none") shown++; });
+      sec.style.display = (q && visibleCards.length && shown===0) ? "none" : "";
+    });
+    document.getElementById("noResults").style.display = (q && !any) ? "block" : "none";
+  });
+}
+
+/* ---------- scroll spy for nav highlight ---------- */
+function wireScrollSpy(){
+  const links = [...document.querySelectorAll(".navlink")];
+  const map = {};
+  links.forEach(l=>{ const t=document.getElementById(l.dataset.target); if(t) map[l.dataset.target]=l; });
+  const obs = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){
+        links.forEach(l=>l.classList.remove("active"));
+        const l = map[e.target.id]; if(l) l.classList.add("active");
+      }
+    });
+  }, {rootMargin:"-10% 0px -80% 0px", threshold:0});
+  Object.keys(map).forEach(id=>{ const t=document.getElementById(id); if(t) obs.observe(t); });
+}
+
+/* ---------- mobile nav ---------- */
+function wireMobileNav(){
+  const sb=document.getElementById("sidebar"), sc=document.getElementById("scrim"), mt=document.getElementById("menuToggle");
+  const open=()=>{sb.classList.add("show");sc.classList.add("show");};
+  const close=()=>{sb.classList.remove("show");sc.classList.remove("show");};
+  mt.addEventListener("click",open); sc.addEventListener("click",close);
+  document.querySelectorAll(".navlink").forEach(l=>l.addEventListener("click",close));
+}
+
+/* ---------- theme ---------- */
+function wireTheme(){
+  const btn=document.getElementById("themeBtn"), lab=document.getElementById("themeLabel");
+  function set(t){ document.documentElement.dataset.theme=t; lab.textContent = t==="dark"?"Light mode":"Dark mode"; }
+  btn.addEventListener("click",()=>{
+    set(document.documentElement.dataset.theme==="dark"?"light":"dark");
+  });
+}
+
+/* ---------- keyboard: "/" focuses search ---------- */
+function wireKeyboard(){
+  document.addEventListener("keydown",(e)=>{
+    if(e.key==="/" && document.activeElement.tagName!=="INPUT" && document.activeElement.tagName!=="TEXTAREA"){
+      e.preventDefault(); document.getElementById("globalSearch").focus();
+    }
+    if(e.key==="Escape"){ const gs=document.getElementById("globalSearch"); if(document.activeElement===gs){ gs.value=""; gs.dispatchEvent(new Event("input")); gs.blur(); } }
+  });
+}
+
+document.addEventListener("DOMContentLoaded", build);
+
+</script>
+</body>
+</html>

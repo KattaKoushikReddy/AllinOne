@@ -1,0 +1,2000 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>React, from scratch — the course</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+:root{
+  --bg:#fbfbfd; --surface:#ffffff; --surface-2:#f5f5f7;
+  --text:#1d1d1f; --text-2:#6e6e73; --text-3:#86868b;
+  --hairline:#d2d2d7; --hairline-2:#e8e8ed;
+  --ink-soft:#86868b;
+  --accent:#0071e3; --accent-press:#0058b9; --link:#0066cc;
+  --accent-soft:#ebf3ff;
+  --green:#34c759; --green-soft:#e7f9ec; --red:#ff3b30; --red-soft:#ffeceb;
+  --r:18px; --r-sm:12px; --r-xs:8px; --pill:980px;
+  --sidebar-w:280px;
+  --shadow:0 1px 3px rgba(0,0,0,.04),0 8px 24px rgba(0,0,0,.04);
+  --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Inter","Helvetica Neue",Helvetica,Arial,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);font-size:17px;line-height:1.47;letter-spacing:-0.003em;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;}
+mark{background:rgba(255,214,10,.45);color:inherit;padding:0 2px;border-radius:3px;}
+a{color:var(--link);}
+.layout{display:flex;max-width:1320px;margin:0 auto;}
+
+/* ---------- sidebar ---------- */
+aside{width:var(--sidebar-w);flex-shrink:0;position:sticky;top:0;height:100vh;overflow-y:auto;padding:28px 16px 40px;border-right:1px solid var(--hairline-2);background:rgba(251,251,253,.8);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);}
+aside h1{font-size:19px;font-weight:600;letter-spacing:-0.02em;margin:0 0 4px;}
+aside .tagline{font-size:12.5px;color:var(--text-3);margin:0 0 18px;}
+.hub-link{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;font-weight:500;color:var(--text-2);text-decoration:none;margin:0 0 12px;transition:color .15s;}
+.hub-link:hover{color:var(--accent);}
+.toggle-row{display:flex;gap:8px;margin-bottom:14px;}
+.iconbtn{flex:1;background:var(--surface-2);border:none;border-radius:var(--pill);padding:9px 14px;font-size:13px;font-weight:500;color:var(--text);cursor:pointer;font-family:inherit;transition:background .2s,transform .1s;}
+.iconbtn:hover{background:#ebebf0;}
+.iconbtn:active{transform:scale(.97);}
+.searchbox{position:relative;margin-bottom:8px;}
+.searchbox input{width:100%;padding:10px 14px 10px 36px;border:none;border-radius:10px;background:var(--surface-2);font-family:inherit;font-size:14px;color:var(--text);transition:box-shadow .2s;}
+.searchbox input::placeholder{color:var(--text-3);}
+.searchbox input:focus{outline:none;box-shadow:0 0 0 4px rgba(0,113,227,.15);}
+.searchbox svg{position:absolute;left:12px;top:11px;width:16px;height:16px;stroke:var(--text-3);}
+.search-count{font-size:11.5px;color:var(--text-3);min-height:15px;margin:0 0 14px;padding-left:4px;}
+.unit-label{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--text-3);font-weight:600;margin:22px 0 6px;padding-left:10px;}
+aside a{display:flex;gap:10px;align-items:baseline;font-size:14px;color:var(--text-2);text-decoration:none;padding:7px 10px;border-radius:8px;transition:background .15s,color .15s;}
+aside a:hover{background:var(--surface-2);color:var(--text);}
+aside a.active{background:var(--accent-soft);color:var(--accent);font-weight:600;}
+aside a.hidden-nav{display:none;}
+aside a .num{font-size:11px;color:var(--text-3);font-weight:600;min-width:18px;font-variant-numeric:tabular-nums;}
+aside a.active .num{color:var(--accent);}
+
+/* ---------- main ---------- */
+main{flex:1;min-width:0;padding:0 0 120px;}
+header.hero{padding:72px 56px 40px;}
+.eyebrow{font-size:13px;letter-spacing:0;color:var(--accent);font-weight:600;margin:0 0 12px;}
+h1.title{font-size:52px;font-weight:700;letter-spacing:-0.02em;line-height:1.05;margin:0 0 18px;}
+.sub{font-size:20px;line-height:1.4;color:var(--text-2);max-width:640px;margin:0;font-weight:400;}
+.banner{background:var(--surface-2);border:none;border-radius:var(--r-sm);padding:14px 18px;margin:22px 0 0;font-size:13.5px;color:var(--text-2);max-width:640px;}
+.banner strong{color:var(--text);font-weight:600;}
+
+/* ---------- progress (refined) ---------- */
+.progress-wrap{position:sticky;top:0;z-index:5;background:rgba(251,251,253,.82);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);padding:14px 56px 13px;border-bottom:1px solid var(--hairline-2);margin-bottom:0;}
+.progress-label{font-size:12.5px;color:var(--text-3);margin:0 0 8px;letter-spacing:-0.01em;}
+.progress-label strong{color:var(--text);font-weight:600;font-variant-numeric:tabular-nums;}
+.progress-bar{height:6px;background:var(--hairline-2);border-radius:var(--pill);overflow:hidden;}
+.progress-fill{height:100%;width:0;background:linear-gradient(90deg,#0a84ff,#0071e3);border-radius:var(--pill);transition:width .4s cubic-bezier(.4,0,.2,1);}
+
+/* ---------- lessons ---------- */
+section.lesson{padding:56px;border-bottom:1px solid var(--hairline-2);scroll-margin-top:80px;}
+section.lesson.hidden{display:none;}
+.unit-title{padding:48px 56px 0;}
+.unit-title.hidden{display:none;}
+.unit-title h3{font-size:13px;letter-spacing:.02em;text-transform:uppercase;color:var(--accent);font-weight:600;margin:0;}
+.no-results{padding:72px 56px;font-size:17px;color:var(--text-2);display:none;}
+.tag{font-size:12px;letter-spacing:.02em;text-transform:uppercase;color:var(--text-3);font-weight:600;display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.tag .n{display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:26px;padding:0 6px;border-radius:var(--pill);background:var(--accent-soft);color:var(--accent);font-size:12px;font-variant-numeric:tabular-nums;}
+h2{font-size:34px;font-weight:700;letter-spacing:-0.02em;line-height:1.1;margin:0 0 18px;}
+h4{font-size:12px;letter-spacing:.02em;text-transform:uppercase;color:var(--text-3);font-weight:600;margin:32px 0 12px;}
+p{font-size:17px;margin:0 0 16px;color:var(--text);}
+
+/* takeaway */
+.oneliner{background:var(--accent-soft);border-radius:var(--r);padding:16px 20px;margin:8px 0 22px;font-size:16px;line-height:1.45;color:var(--text);}
+.oneliner strong{color:var(--accent);font-weight:600;}
+
+/* cards: analogy / example / problem / links / tryit */
+.analogy,.example,.problem,.links{background:var(--surface-2);border-radius:var(--r);padding:18px 20px;margin:18px 0;}
+.analogy .label,.example .label,.problem .label,.links .label{font-size:11px;letter-spacing:.04em;text-transform:uppercase;font-weight:600;margin-bottom:7px;}
+.analogy .label{color:#bf5af2;}/* purple */
+.example .label{color:var(--green);}
+.problem .label{color:#ff9500;}/* orange */
+.links .label{color:var(--accent);}
+.analogy p,.example p,.problem p{margin:0;font-size:15.5px;color:var(--text);}
+.problem p{margin-bottom:10px;}
+.links ul{margin:0;padding-left:18px;font-size:15px;}
+.links li{margin-bottom:6px;color:var(--text-2);}
+.links a{color:var(--link);text-decoration:none;}
+.links a:hover{text-decoration:underline;}
+
+/* diagrams: clean light card in both themes */
+.diagram{background:#f5f5f7;border:1px solid var(--hairline-2);border-radius:var(--r);padding:22px;margin:20px 0;}
+.diagram svg{display:block;width:100%;height:auto;}
+
+/* tables */
+table.compare{width:100%;border-collapse:collapse;margin:18px 0;font-size:15px;background:var(--surface);border-radius:var(--r-sm);overflow:hidden;border:1px solid var(--hairline-2);}
+table.compare th{background:var(--surface-2);color:var(--text-2);text-align:left;padding:12px 16px;font-size:12px;letter-spacing:.02em;text-transform:uppercase;font-weight:600;}
+table.compare td{padding:12px 16px;border-top:1px solid var(--hairline-2);vertical-align:top;color:var(--text);}
+
+/* solution disclosure */
+details.solution{margin-top:6px;}
+details.solution summary{cursor:pointer;font-size:14px;font-weight:500;color:var(--accent);list-style:none;display:inline-flex;align-items:center;gap:6px;}
+details.solution summary::-webkit-details-marker{display:none;}
+details.solution summary::before{content:"›";font-size:18px;line-height:1;transition:transform .2s;display:inline-block;}
+details.solution[open] summary::before{transform:rotate(90deg);}
+details.solution .sol-body{padding-top:12px;font-size:15px;color:var(--text-2);line-height:1.5;}
+
+/* lesson complete check */
+.lesson-check{display:flex;align-items:center;gap:9px;margin:28px 0 0;padding-top:18px;border-top:1px solid var(--hairline-2);font-size:14px;color:var(--text-2);cursor:pointer;user-select:none;}
+.lesson-check input{appearance:none;-webkit-appearance:none;width:20px;height:20px;border:1.5px solid var(--hairline);border-radius:50%;cursor:pointer;position:relative;transition:background .2s,border-color .2s;flex-shrink:0;}
+.lesson-check input:checked{background:var(--accent);border-color:var(--accent);}
+.lesson-check input:checked::after{content:"✓";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700;}
+
+/* code */
+.codeblock{background:#1d1d1f;border-radius:var(--r-sm);padding:16px 18px;margin:18px 0;overflow-x:auto;box-shadow:var(--shadow);}
+.codeblock .code-label{font-size:11px;letter-spacing:.02em;color:#86868b;font-weight:600;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;}
+.codeblock pre{margin:0;font-family:var(--mono);font-size:13px;line-height:1.65;color:#f5f5f7;white-space:pre;}
+.codeblock .cm{color:#7f8c98;}
+.codeblock .kw{color:#ff7ab2;}
+.codeblock .st{color:#9fe3c2;}
+.codeblock .fn{color:#d9c97a;}
+/* ---- JSX syntax colors ---- */
+.codeblock .tg{color:#79c0ff;}
+.codeblock .at{color:#d2a8ff;}
+.codeblock .nm{color:#ffa657;}
+
+/* ---- React live demos ---- */
+.rr-box{background:var(--surface);border-radius:12px;padding:18px;box-shadow:inset 0 0 0 1px var(--hairline-2);text-align:center;transition:box-shadow .1s;}
+.rr-box.flash{animation:rrflash .5s ease;}
+@keyframes rrflash{0%{box-shadow:inset 0 0 0 2px var(--accent),0 0 0 7px rgba(0,113,227,.20);}100%{box-shadow:inset 0 0 0 1px var(--hairline-2);}}
+.rr-big{font-size:36px;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums;line-height:1.1;}
+.rr-meta{font-size:12px;color:var(--text-3);margin-top:6px;}
+.tryit .btnrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;}
+.tryit button.act{background:var(--accent);color:#fff;border:none;border-radius:var(--pill);padding:9px 16px;font-family:inherit;font-size:14px;font-weight:500;cursor:pointer;transition:background .15s,transform .1s;}
+.tryit button.act:hover{background:var(--accent-press);}
+.tryit button.act:active{transform:scale(.97);}
+.tryit button.ghost{background:var(--surface);color:var(--text);box-shadow:inset 0 0 0 1px var(--hairline);border:none;border-radius:var(--pill);padding:9px 16px;font-family:inherit;font-size:14px;font-weight:500;cursor:pointer;transition:transform .1s;}
+.tryit button.ghost:active{transform:scale(.97);}
+.tryit .note{font-size:13px;color:var(--text-2);margin-top:12px;min-height:18px;line-height:1.4;}
+.tryit .radio-row{display:flex;gap:14px;flex-wrap:wrap;font-size:14px;color:var(--text);margin:4px 0 4px;}
+.tryit .radio-row label{display:inline-flex;align-items:center;gap:6px;cursor:pointer;}
+.tryit code{background:var(--surface);padding:1px 6px;border-radius:6px;font-family:var(--mono);font-size:13px;box-shadow:inset 0 0 0 1px var(--hairline-2);}
+.tree-grid{display:flex;flex-direction:column;align-items:center;gap:10px;}
+.tree-row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;}
+.tnode{background:var(--surface);border-radius:10px;padding:10px 16px;font-size:14px;font-weight:600;box-shadow:inset 0 0 0 1px var(--hairline-2);min-width:90px;text-align:center;transition:box-shadow .1s,background .1s;}
+.tnode.lit{background:var(--accent-soft);box-shadow:inset 0 0 0 2px var(--accent);color:var(--accent);}
+.eff-pill{display:inline-block;border-radius:var(--pill);padding:4px 12px;font-size:12px;font-weight:600;font-family:var(--mono);}
+.eff-ran{background:var(--green-soft);color:var(--green);}
+.eff-skip{background:var(--surface);color:var(--text-3);box-shadow:inset 0 0 0 1px var(--hairline-2);}
+code{font-family:var(--mono);font-size:.92em;}
+
+.copybtn{background:rgba(255,255,255,.08);border:none;color:#9fe3c2;border-radius:var(--pill);font-size:11px;padding:4px 12px;cursor:pointer;font-family:inherit;font-weight:500;transition:background .15s;}
+.copybtn:hover{background:rgba(255,255,255,.16);}
+
+/* interactive try-it */
+.tryit{background:var(--surface-2);border-radius:var(--r);padding:20px;margin:18px 0;}
+.tryit .label{font-size:11px;letter-spacing:.04em;text-transform:uppercase;font-weight:600;margin-bottom:12px;color:var(--accent);}
+.tryit input[type=text]{width:100%;padding:11px 14px;border:none;border-radius:10px;background:var(--surface);font-family:inherit;font-size:15px;color:var(--text);margin-bottom:12px;box-shadow:inset 0 0 0 1px var(--hairline-2);}
+.tryit input[type=text]:focus{outline:none;box-shadow:inset 0 0 0 1px var(--accent),0 0 0 4px rgba(0,113,227,.12);}
+.tryit .out{font-family:var(--mono);font-size:14px;background:var(--surface);border-radius:10px;padding:12px 14px;min-height:26px;color:var(--text);box-shadow:inset 0 0 0 1px var(--hairline-2);}
+.token-chip{display:inline-block;background:var(--accent-soft);color:var(--accent);border-radius:7px;padding:3px 9px;margin:3px;font-size:13px;font-weight:500;}
+.tryit .slider-row{display:flex;align-items:center;gap:14px;margin-bottom:12px;}
+.tryit input[type=range]{flex:1;-webkit-appearance:none;height:6px;border-radius:var(--pill);background:var(--hairline-2);outline:none;}
+.tryit input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.25);cursor:pointer;}
+.tryit input[type=range]::-moz-range-thumb{width:22px;height:22px;border:none;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.25);cursor:pointer;}
+
+/* deeper disclosure */
+.deeper{margin:18px 0;border:1px solid var(--hairline-2);border-radius:var(--r);overflow:hidden;background:var(--surface);}
+.deeper summary{cursor:pointer;list-style:none;padding:14px 18px;font-size:14px;font-weight:500;color:var(--text);}
+.deeper summary::-webkit-details-marker{display:none;}
+.deeper summary::before{content:"􀊫 Going deeper — ";color:var(--text-3);font-weight:400;}
+.deeper[open] summary{border-bottom:1px solid var(--hairline-2);}
+.deeper .deeper-body{padding:16px 18px;font-size:15px;color:var(--text-2);line-height:1.55;}
+
+/* quiz */
+.quiz{background:var(--surface-2);border-radius:var(--r);padding:22px;margin:34px 0;}
+.quiz h4{margin:0 0 4px;color:var(--accent);font-size:13px;letter-spacing:0;text-transform:none;font-weight:600;}
+.quiz .q{font-size:16px;font-weight:600;margin:16px 0 8px;color:var(--text);}
+.quiz .opt{display:block;width:100%;text-align:left;background:var(--surface);border:1px solid var(--hairline-2);border-radius:12px;padding:11px 15px;margin:7px 0;font-family:inherit;font-size:15px;color:var(--text);cursor:pointer;transition:background .15s,border-color .15s,transform .1s;}
+.quiz .opt:hover{background:#fafafa;border-color:var(--hairline);}
+.quiz .opt:active{transform:scale(.995);}
+.quiz .opt.correct{background:var(--green-soft);border-color:var(--green);color:#1d6b30;font-weight:600;}
+.quiz .opt.wrong{background:var(--red-soft);border-color:var(--red);color:#a3271f;}
+.quiz .feedback{font-size:13.5px;margin-top:8px;color:var(--text-2);min-height:18px;}
+.quiz .qscore{font-size:14px;font-weight:600;color:var(--accent);margin-top:14px;}
+
+/* future card (unused but styled) */
+.future-card{background:var(--surface-2);border-radius:var(--r);padding:18px 20px;margin:16px 0;}
+.future-card .topics{font-size:15px;color:var(--text-2);margin:8px 0 0;}
+.future-card button{margin-top:14px;background:var(--accent);color:#fff;border:none;border-radius:var(--pill);padding:9px 18px;font-family:inherit;font-size:14px;font-weight:500;cursor:pointer;}
+.future-card button:hover{background:var(--accent-press);}
+
+footer{text-align:center;padding:56px 28px;font-size:13px;color:var(--text-3);}
+
+/* floating controls */
+#backtop{position:fixed;right:24px;bottom:24px;z-index:20;background:rgba(255,255,255,.7);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);color:var(--accent);border:1px solid var(--hairline-2);border-radius:50%;width:46px;height:46px;font-size:20px;cursor:pointer;opacity:0;pointer-events:none;transition:opacity .25s,transform .15s;box-shadow:var(--shadow);}
+#backtop.show{opacity:1;pointer-events:auto;}
+#backtop:hover{transform:translateY(-2px);}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:14;backdrop-filter:blur(2px);}
+.overlay.show{display:block;}
+.hamburger{display:none;}
+
+/* ---------- dark mode (true black, Apple style) ---------- */
+[data-theme="dark"]{
+  --bg:#000000; --surface:#1c1c1e; --surface-2:#1c1c1e;
+  --text:#f5f5f7; --text-2:#a1a1a6; --text-3:#86868b;
+  --hairline:#48484a; --hairline-2:#2c2c2e;
+  --ink-soft:#86868b;
+  --accent:#2997ff; --accent-press:#0a84ff; --link:#2997ff;
+  --accent-soft:rgba(41,151,255,.16);
+  --green:#30d158; --green-soft:rgba(48,209,88,.16); --red:#ff453a; --red-soft:rgba(255,69,58,.16);
+  --shadow:0 1px 3px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.4);
+}
+[data-theme="dark"] aside{background:rgba(0,0,0,.7);}
+[data-theme="dark"] .progress-wrap{background:rgba(0,0,0,.72);}
+[data-theme="dark"] .iconbtn:hover{background:#2c2c2e;}
+[data-theme="dark"] .diagram{background:#f5f5f7;border-color:#f5f5f7;}/* keep diagrams light so SVG text stays readable */
+[data-theme="dark"] table.compare{background:#1c1c1e;}
+[data-theme="dark"] table.compare th{background:#2c2c2e;}
+[data-theme="dark"] .quiz .opt:hover{background:#2c2c2e;}
+[data-theme="dark"] .quiz .opt.correct{color:#7fe89a;}
+[data-theme="dark"] .quiz .opt.wrong{color:#ff9d96;}
+[data-theme="dark"] #backtop{background:rgba(28,28,30,.7);border-color:#2c2c2e;}
+[data-theme="dark"] .tryit input[type=range]{background:#2c2c2e;}
+
+/* ---------- responsive ---------- */
+@media(max-width:980px){
+  header.hero{padding:64px 40px 36px;}
+  h1.title{font-size:44px;}
+  section.lesson{padding:48px 40px;}
+  .unit-title{padding:40px 40px 0;}
+  .progress-wrap{padding-left:40px;padding-right:40px;}
+}
+@media(max-width:880px){
+  aside{display:block;position:fixed;left:0;top:0;height:100vh;width:280px;transform:translateX(-100%);transition:transform .3s cubic-bezier(.4,0,.2,1);z-index:15;background:rgba(251,251,253,.96);}
+  aside.open{transform:translateX(0);}
+  .hamburger{display:flex;position:fixed;top:14px;left:14px;z-index:16;background:rgba(255,255,255,.7);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);color:var(--text);border:1px solid var(--hairline-2);border-radius:11px;width:44px;height:44px;font-size:19px;cursor:pointer;align-items:center;justify-content:center;box-shadow:var(--shadow);}
+  header.hero{padding:74px 24px 28px;}
+  h1.title{font-size:32px;}
+  .sub{font-size:17px;}
+  .banner{font-size:13px;}
+  section.lesson{padding:40px 24px;}
+  .unit-title{padding:36px 24px 0;}
+  h2{font-size:25px;}
+  p,.analogy p,.example p,.problem p{font-size:16px;}
+  .progress-wrap{padding:13px 24px 12px 60px;}
+  .no-results{padding:56px 24px;}
+  /* wide diagrams stay legible — swipe horizontally */
+  .diagram{overflow-x:auto;-webkit-overflow-scrolling:touch;padding:16px;position:relative;}
+  .diagram svg{width:600px;min-width:600px;height:auto;}
+  .diagram::after{content:"􀯻 swipe";position:absolute;top:8px;right:12px;font-size:9px;letter-spacing:.04em;color:var(--text-3);text-transform:uppercase;}
+  table.compare{font-size:13.5px;}
+  table.compare th,table.compare td{padding:10px 12px;}
+  .oneliner{font-size:15px;}
+  .codeblock pre{font-size:12px;}
+  .quiz .opt{font-size:14.5px;}
+  #backtop{right:16px;bottom:16px;}
+}
+[data-theme="dark"] .hamburger{background:rgba(28,28,30,.7);color:var(--text);border-color:#2c2c2e;}
+@media(max-width:430px){
+  header.hero,section.lesson,.unit-title,.no-results{padding-left:18px;padding-right:18px;}
+  h1.title{font-size:28px;}
+  h2{font-size:22px;}
+  .diagram svg{width:520px;min-width:520px;}
+  .progress-wrap{padding-left:60px;}
+}
+
+</style>
+</head>
+<body>
+<button class="hamburger" id="hamburger" aria-label="Open menu">☰</button>
+<div class="overlay" id="overlay"></div>
+<div class="layout">
+
+<aside>
+  <a href="index.html" class="hub-link">← Study Hub</a>
+  <h1>⚛️ React</h1>
+  <p class="tagline">From first component to shipping — one idea at a time</p>
+  <div class="toggle-row">
+    <button class="iconbtn" id="themeBtn">🌙 Dark mode</button>
+  </div>
+  <div class="searchbox">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input id="search" type="text" placeholder="Search e.g. useState, props, re-render…" autocomplete="off">
+  </div>
+  <p class="search-count" id="searchCount"></p>
+
+  <nav id="nav">
+  <div class="unit-label" data-unit>Unit 1 · Foundations</div>
+  <a href="#l1"><span class="num">01</span>Why React exists</a>
+  <a href="#l2"><span class="num">02</span>Components</a>
+  <a href="#l3"><span class="num">03</span>JSX</a>
+  <a href="#l4"><span class="num">04</span>Render &amp; the Virtual DOM</a>
+  <a href="#l5"><span class="num">05</span>Elements vs components</a>
+
+  <div class="unit-label" data-unit>Unit 2 · Props &amp; data flow</div>
+  <a href="#l6"><span class="num">06</span>Props</a>
+  <a href="#l7"><span class="num">07</span>Composition &amp; children</a>
+  <a href="#l8"><span class="num">08</span>One-way data flow</a>
+  <a href="#l9"><span class="num">09</span>Lists &amp; keys</a>
+
+  <div class="unit-label" data-unit>Unit 3 · State &amp; reactivity</div>
+  <a href="#l10"><span class="num">10</span>useState</a>
+  <a href="#l11"><span class="num">11</span>State is a snapshot</a>
+  <a href="#l12"><span class="num">12</span>Updating state immutably</a>
+  <a href="#l13"><span class="num">13</span>Batching &amp; updater fns</a>
+  <a href="#l14"><span class="num">14</span>Derived vs stored state</a>
+  <a href="#l15"><span class="num">15</span>Lifting state up</a>
+
+  <div class="unit-label" data-unit>Unit 4 · Events &amp; forms</div>
+  <a href="#l16"><span class="num">16</span>Handling events</a>
+  <a href="#l17"><span class="num">17</span>Controlled vs uncontrolled</a>
+  <a href="#l18"><span class="num">18</span>Forms</a>
+
+  <div class="unit-label" data-unit>Unit 5 · Effects</div>
+  <a href="#l19"><span class="num">19</span>useEffect</a>
+  <a href="#l20"><span class="num">20</span>The dependency array</a>
+  <a href="#l21"><span class="num">21</span>Cleanup</a>
+  <a href="#l22"><span class="num">22</span>You might not need an Effect</a>
+
+  <div class="unit-label" data-unit>Unit 6 · Hooks toolbox</div>
+  <a href="#l23"><span class="num">23</span>useRef</a>
+  <a href="#l24"><span class="num">24</span>useReducer</a>
+  <a href="#l25"><span class="num">25</span>useContext</a>
+  <a href="#l26"><span class="num">26</span>useMemo &amp; useCallback</a>
+  <a href="#l27"><span class="num">27</span>Custom hooks</a>
+  <a href="#l28"><span class="num">28</span>Rules of Hooks</a>
+
+  <div class="unit-label" data-unit>Unit 7 · Rendering &amp; performance</div>
+  <a href="#l29"><span class="num">29</span>What triggers a re-render</a>
+  <a href="#l30"><span class="num">30</span>React.memo</a>
+  <a href="#l31"><span class="num">31</span>Lazy &amp; Suspense</a>
+
+  <div class="unit-label" data-unit>Unit 8 · Patterns</div>
+  <a href="#l32"><span class="num">32</span>Conditional rendering</a>
+  <a href="#l33"><span class="num">33</span>Composition patterns</a>
+  <a href="#l34"><span class="num">34</span>Where state belongs</a>
+
+  <div class="unit-label" data-unit>Unit 9 · Data fetching</div>
+  <a href="#l35"><span class="num">35</span>Fetching data</a>
+  <a href="#l36"><span class="num">36</span>Loading / error / success</a>
+  <a href="#l37"><span class="num">37</span>Server state (React Query)</a>
+
+  <div class="unit-label" data-unit>Unit 10 · Ecosystem</div>
+  <a href="#l38"><span class="num">38</span>Vite vs Next.js</a>
+  <a href="#l39"><span class="num">39</span>State management libs</a>
+  <a href="#l40"><span class="num">40</span>Styling approaches</a>
+
+  <div class="unit-label" data-unit>Next steps</div>
+  <a href="#resources"><span class="num">★</span>Resources &amp; build path</a>
+  </nav>
+</aside>
+
+<main>
+<header class="hero">
+  <p class="eyebrow">Course · built concept by concept</p>
+  <h1 class="title">React, from scratch to shipping</h1>
+  <p class="sub">Zero assumed knowledge. Each lesson: a one-line takeaway, an everyday analogy, a diagram or comparison, a worked example, runnable code where it helps, and a practice problem with a hidden solution. Several lessons have <strong>live demos</strong> so you can watch the screen change the moment state changes. Use the search box to jump to any concept.</p>
+  <div class="banner">📌 <strong>Freshness note:</strong> the core React model — components, props, state, effects, re-rendering — is stable and is the focus here. Fast-moving specifics (React 19 / the Compiler, Server Components, framework defaults, which library is “standard now”) are snapshots as of mid-2026; lessons that contain them say so inline. Verify those against react.dev.</div>
+</header>
+
+<p class="no-results" id="noResults">No lessons match that search. Try a simpler word like "state", "props", or "effect".</p>
+
+<div class="unit-title" data-unit-section="Unit 1 · Foundations"><h3>Unit 1 · Foundations</h3></div>
+
+<section class="lesson" id="l1" data-keywords="why react ui library declarative imperative dom vanilla javascript update render component spa single page">
+  <div class="tag"><span class="n">1</span>foundation</div>
+  <h2>Why React exists</h2>
+  <div class="oneliner"><strong>In one line:</strong> You describe what the UI <em>should look like</em> for the current data, and React figures out how to update the screen — instead of you editing the DOM by hand.</div>
+  <p>In plain JavaScript you change the page <em>imperatively</em>: find an element, change its text, toggle a class, add a node. As an app grows, keeping every piece of the screen in sync with your data becomes a tangle of manual updates. React is <em>declarative</em>: you write a function that returns the UI for some data, and whenever the data changes, React re-runs that function and updates only what actually changed.</p>
+  <div class="analogy"><div class="label">Everyday analogy</div><p>Imperative is giving turn-by-turn driving directions ("turn left, now right, now stop"). Declarative is telling a GPS the destination ("take me home") and letting it work out the route. With React you state the destination — the UI for this data — and it drives the DOM there.</p></div>
+  <div class="diagram"><svg viewBox="0 0 800 230" xmlns="http://www.w3.org/2000/svg">
+    <text x="20" y="26" font-family="Inter" font-size="13" font-weight="600" fill="#23211C">Vanilla DOM — you do every update</text>
+    <rect x="20" y="38" width="150" height="42" rx="8" fill="#F1EFE8" stroke="#888780"/><text x="95" y="64" text-anchor="middle" font-family="Inter" font-size="12" fill="#23211C">data changes</text>
+    <line x1="170" y1="59" x2="205" y2="59" stroke="#888780" stroke-width="1.5"/><polygon points="205,54 205,64 215,59" fill="#888780"/>
+    <rect x="217" y="38" width="200" height="42" rx="8" fill="#FAEEDA" stroke="#854F0B"/><text x="317" y="58" text-anchor="middle" font-family="Inter" font-size="11" fill="#412402">you find nodes by hand</text><text x="317" y="73" text-anchor="middle" font-family="Inter" font-size="11" fill="#633806">querySelector, .textContent…</text>
+    <line x1="417" y1="59" x2="452" y2="59" stroke="#888780" stroke-width="1.5"/><polygon points="452,54 452,64 462,59" fill="#888780"/>
+    <rect x="464" y="38" width="180" height="42" rx="8" fill="#FAECE7" stroke="#993C1D"/><text x="554" y="64" text-anchor="middle" font-family="Inter" font-size="11" fill="#4A1B0C">easy to get out of sync</text>
+    <text x="20" y="138" font-family="Inter" font-size="13" font-weight="600" fill="#23211C">React — you describe, it syncs</text>
+    <rect x="20" y="150" width="150" height="42" rx="8" fill="#E1F5EE" stroke="#0F6E56"/><text x="95" y="176" text-anchor="middle" font-family="Inter" font-size="12" fill="#04342C">data changes</text>
+    <line x1="170" y1="171" x2="205" y2="171" stroke="#888780" stroke-width="1.5"/><polygon points="205,166 205,176 215,171" fill="#888780"/>
+    <rect x="217" y="150" width="200" height="42" rx="8" fill="#EEEDFE" stroke="#534AB7"/><text x="317" y="170" text-anchor="middle" font-family="Inter" font-size="11" fill="#26215C">you return UI for that data</text><text x="317" y="185" text-anchor="middle" font-family="Inter" font-size="11" fill="#534AB7">a component function</text>
+    <line x1="417" y1="171" x2="452" y2="171" stroke="#888780" stroke-width="1.5"/><polygon points="452,166 452,176 462,171" fill="#888780"/>
+    <rect x="464" y="150" width="180" height="42" rx="8" fill="#E1F5EE" stroke="#0F6E56"/><text x="554" y="176" text-anchor="middle" font-family="Inter" font-size="11" fill="#04342C">React patches the DOM</text>
+  </svg></div>
+  <h4>Comparison</h4>
+  <table class="compare">
+    <tr><th></th><th>Vanilla JS (imperative)</th><th>React (declarative)</th></tr>
+    <tr><td>You write</td><td>Steps to mutate the DOM</td><td>What the UI looks like for given data</td></tr>
+    <tr><td>Keeping UI in sync</td><td>Your job, manually</td><td>React's job, automatically</td></tr>
+    <tr><td>As app grows</td><td>Update logic multiplies</td><td>Add components, data flows</td></tr>
+    <tr><td>Reusing UI</td><td>Copy/paste, fragile</td><td>Reusable components</td></tr>
+  </table>
+  <div class="example"><div class="label">Example</div><p>A "like" button showing a count. Vanilla: on click, read the number, add one, write it back to the element. React: store the count in state, write <code>&lt;button&gt;{count} likes&lt;/button&gt;</code>, and update the count — React re-draws the button for you.</p></div>
+  <div class="problem"><div class="label">Practice problem</div>
+    <p>You have a list of 50 todos and toggle one as "done". In plain JS, what's the risk versus React?</p>
+    <details class="solution"><summary>Show solution</summary><div class="sol-body">In plain JS you must find that exact row and update its checkbox, class, and maybe a "3 of 50 done" counter — three manual updates that can drift apart. In React you flip the item's <code>done</code> in state and re-render; the row, its style, and the counter all reflect the new data because they're all derived from it.</div></details>
+  </div>
+  <div class="links"><div class="label">Go deeper</div><ul>
+    <li><a href="https://react.dev/learn/thinking-in-react" target="_blank">react.dev — Thinking in React</a></li>
+  </ul></div>
+</section>
+
+<section class="lesson" id="l2" data-keywords="component function reusable building block return jsx props composition tree app">
+  <div class="tag"><span class="n">2</span>foundation</div>
+  <h2>Components</h2>
+  <div class="oneliner"><strong>In one line:</strong> A component is a JavaScript function that returns some UI — and you build apps by nesting components inside components.</div>
+  <p>Components are the unit of reuse and the unit of thought in React. A component is just a function whose name starts with a capital letter and that returns markup (JSX). You use it like a custom HTML tag: <code>&lt;Profile /&gt;</code>. Components nest to form a tree — one root <code>&lt;App /&gt;</code> contains the whole UI.</p>
+  <div class="analogy"><div class="label">Everyday analogy</div><p>LEGO bricks. A small brick (Button) clicks into a bigger brick (Toolbar), which clicks into a wall (Page). The same brick can appear many times. You design the brick once, then snap copies together.</p></div>
+  <div class="diagram"><svg viewBox="0 0 800 210" xmlns="http://www.w3.org/2000/svg">
+    <rect x="320" y="12" width="160" height="38" rx="8" fill="#EEEDFE" stroke="#534AB7"/><text x="400" y="36" text-anchor="middle" font-family="Inter" font-size="13" font-weight="600" fill="#26215C">&lt;App /&gt;</text>
+    <line x1="400" y1="50" x2="220" y2="84" stroke="#888780" stroke-width="1.2"/><line x1="400" y1="50" x2="400" y2="84" stroke="#888780" stroke-width="1.2"/><line x1="400" y1="50" x2="580" y2="84" stroke="#888780" stroke-width="1.2"/>
+    <rect x="140" y="86" width="160" height="36" rx="8" fill="#E1F5EE" stroke="#0F6E56"/><text x="220" y="109" text-anchor="middle" font-family="Inter" font-size="12" font-weight="600" fill="#04342C">&lt;Header /&gt;</text>
+    <rect x="320" y="86" width="160" height="36" rx="8" fill="#FAEEDA" stroke="#854F0B"/><text x="400" y="109" text-anchor="middle" font-family="Inter" font-size="12" font-weight="600" fill="#412402">&lt;TodoList /&gt;</text>
+    <rect x="500" y="86" width="160" height="36" rx="8" fill="#FAECE7" stroke="#993C1D"/><text x="580" y="109" text-anchor="middle" font-family="Inter" font-size="12" font-weight="600" fill="#4A1B0C">&lt;Footer /&gt;</text>
+    <line x1="400" y1="122" x2="340" y2="158" stroke="#888780" stroke-width="1.2"/><line x1="400" y1="122" x2="460" y2="158" stroke="#888780" stroke-width="1.2"/>
+    <rect x="270" y="160" width="140" height="34" rx="8" fill="#F1EFE8" stroke="#888780"/><text x="340" y="182" text-anchor="middle" font-family="Inter" font-size="12" fill="#23211C">&lt;TodoItem /&gt;</text>
+    <rect x="420" y="160" width="140" height="34" rx="8" fill="#F1EFE8" stroke="#888780"/><text x="490" y="182" text-anchor="middle" font-family="Inter" font-size="12" fill="#23211C">&lt;TodoItem /&gt;</text>
+  </svg></div>
+  <div class="codeblock"><div class="code-label"><span>jsx · a component is a function that returns UI</span><button class="copybtn" data-copy="comp">Copy</button></div><pre id="code-comp"><span class="cm">// Capitalized name → React treats it as a component</span>
+<span class="kw">function</span> <span class="fn">Welcome</span>() {
+  <span class="kw">return</span> <span class="tg">&lt;h1&gt;</span>Hello, React<span class="tg">&lt;/h1&gt;</span>;
+}
+
+<span class="cm">// Use it like a tag — and reuse it freely</span>
+<span class="kw">function</span> <span class="fn">App</span>() {
+  <span class="kw">return</span> (
+    <span class="tg">&lt;div&gt;</span>
+      <span class="tg">&lt;</span><span class="nm">Welcome</span> <span class="tg">/&gt;</span>
+      <span class="tg">&lt;</span><span class="nm">Welcome</span> <span class="tg">/&gt;</span>
+    <span class="tg">&lt;/div&gt;</span>
+  );
+}</pre></div>
+  <div class="problem"><div class="label">Practice problem</div>
+    <p>Why must a component name be capitalized (<code>Welcome</code>, not <code>welcome</code>)?</p>
+    <details class="solution"><summary>Show solution</summary><div class="sol-body">JSX uses capitalization to tell components from HTML tags. Lowercase <code>&lt;welcome /&gt;</code> is treated as an unknown DOM tag; capitalized <code>&lt;Welcome /&gt;</code> is read as your component.</div></details>
+  </div>
+  <div class="links"><div class="label">Go deeper</div><ul>
+    <li><a href="https://react.dev/learn/your-first-component" target="_blank">react.dev — Your first component</a></li>
+  </ul></div>
+</section>
+
+<section class="lesson" id="l3" data-keywords="jsx syntax expression curly braces className htmlfor fragment babel transpile markup javascript">
+  <div class="tag"><span class="n">3</span>foundation</div>
+  <h2>JSX</h2>
+  <div class="oneliner"><strong>In one line:</strong> JSX lets you write HTML-like markup inside JavaScript; a build step turns it into normal function calls.</div>
+  <p>JSX is not HTML and not a string — it's syntax sugar. <code>&lt;h1&gt;Hi&lt;/h1&gt;</code> compiles to a function call that creates a React element (a plain object describing the UI). Inside JSX, anything in <code>{ }</code> is live JavaScript: variables, expressions, function calls.</p>
+  <div class="analogy"><div class="label">Everyday analogy</div><p>Like a fill-in-the-blank form letter. The fixed text is the markup; the <code>{blanks}</code> are where you drop in live values — a name, a total, today's date.</p></div>
+  <h4>JSX gotchas (it looks like HTML, but isn't)</h4>
+  <table class="compare">
+    <tr><th>HTML</th><th>JSX</th><th>Why</th></tr>
+    <tr><td><code>class="x"</code></td><td><code>className="x"</code></td><td><code>class</code> is a JS keyword</td></tr>
+    <tr><td><code>for="id"</code></td><td><code>htmlFor="id"</code></td><td><code>for</code> is a JS keyword</td></tr>
+    <tr><td><code>onclick=</code></td><td><code>onClick={fn}</code></td><td>camelCase + a function, not a string</td></tr>
+    <tr><td>multiple roots ok</td><td>one root only</td><td>wrap in a <code>&lt;&gt;…&lt;/&gt;</code> fragment</td></tr>
+    <tr><td><code>style="color:red"</code></td><td><code>style={{color:'red'}}</code></td><td>an object, not a string</td></tr>
+  </table>
+  <div class="codeblock"><div class="code-label"><span>jsx · braces inject live JavaScript</span><button class="copybtn" data-copy="jsx">Copy</button></div><pre id="code-jsx"><span class="kw">function</span> <span class="fn">Greeting</span>() {
+  <span class="kw">const</span> name = <span class="st">"Sam"</span>;
+  <span class="kw">const</span> hour = <span class="kw">new</span> <span class="fn">Date</span>().<span class="fn">getHours</span>();
+  <span class="kw">return</span> (
+    <span class="cm">// &lt;&gt;…&lt;/&gt; is a Fragment: one root, no extra div</span>
+    <span class="tg">&lt;&gt;</span>
+      <span class="tg">&lt;h1&gt;</span>Hi, {name}!<span class="tg">&lt;/h1&gt;</span>
+      <span class="tg">&lt;p&gt;</span>{hour &lt; <span class="st">12</span> ? <span class="st">"Good morning"</span> : <span class="st">"Hello"</span>}<span class="tg">&lt;/p&gt;</span>
+    <span class="tg">&lt;/&gt;</span>
+  );
+}</pre></div>
+  <div class="problem"><div class="label">Practice problem</div>
+    <p>This errors: <code>return &lt;h1&gt;A&lt;/h1&gt;&lt;p&gt;B&lt;/p&gt;;</code>. Why, and how do you fix it?</p>
+    <details class="solution"><summary>Show solution</summary><div class="sol-body">A component must return a single root element. Wrap both in a fragment: <code>return &lt;&gt;&lt;h1&gt;A&lt;/h1&gt;&lt;p&gt;B&lt;/p&gt;&lt;/&gt;;</code> (or a single <code>&lt;div&gt;</code>).</div></details>
+  </div>
+  <div class="links"><div class="label">Go deeper</div><ul>
+    <li><a href="https://react.dev/learn/writing-markup-with-jsx" target="_blank">react.dev — Writing markup with JSX</a></li>
+    <li><a href="https://react.dev/learn/javascript-in-jsx-with-curly-braces" target="_blank">react.dev — JavaScript in JSX</a></li>
+  </ul></div>
+</section>
+
+<section class="lesson" id="l4" data-keywords="render virtual dom reconciliation diff re-render state change update screen commit how ui changes when code changes">
+  <div class="tag"><span class="n">4</span>core mechanism</div>
+  <h2>Render &amp; the Virtual DOM</h2>
+  <div class="oneliner"><strong>In one line:</strong> When your data changes, React re-runs your components to build a fresh description of the UI, compares it to the previous one, and updates only the parts of the real screen that actually differ.</div>
+  <p>This is the heart of "how the UI changes when your code/state changes." A render is just React calling your component function. The output is a lightweight tree of objects (the <em>virtual DOM</em>). React keeps the previous tree, <em>diffs</em> the new one against it (reconciliation), and <em>commits</em> only the minimal set of real DOM changes. You never touch the DOM yourself.</p>
+  <div class="analogy"><div class="label">Everyday analogy</div><p>An editor with "track changes." You hand in a fully rewritten draft; the editor compares it to the old version and only marks the sentences that actually changed — they don't reprint the whole book. React reprints only what differs.</p></div>
+  <div class="diagram"><svg viewBox="0 0 800 200" xmlns="http://www.w3.org/2000/svg">
+    <rect x="14" y="78" width="150" height="48" rx="8" fill="#E6F1FB" stroke="#185FA5"/><text x="89" y="100" text-anchor="middle" font-family="Inter" font-size="12" font-weight="600" fill="#042C53">state changes</text><text x="89" y="116" text-anchor="middle" font-family="Inter" font-size="10" fill="#0C447C">setState(...)</text>
+    <line x1="164" y1="102" x2="196" y2="102" stroke="#888780" stroke-width="1.5"/><polygon points="196,97 196,107 206,102" fill="#888780"/>
+    <rect x="208" y="78" width="150" height="48" rx="8" fill="#EEEDFE" stroke="#534AB7"/><text x="283" y="100" text-anchor="middle" font-family="Inter" font-size="12" font-weight="600" fill="#26215C">RENDER</text><text x="283" y="116" text-anchor="middle" font-family="Inter" font-size="10" fill="#534AB7">re-run component</text>
+    <line x1="358" y1="102" x2="390" y2="102" stroke="#888780" stroke-width="1.5"/><polygon points="390,97 390,107 400,102" fill="#888780"/>
+    <rect x="402" y="78" width="160" height="48" rx="8" fill="#FAEEDA" stroke="#854F0B"/><text x="482" y="100" text-anchor="middle" font-family="Inter" font-size="12" font-weight="600" fill="#412402">DIFF</text><text x="482" y="116" text-anchor="middle" font-family="Inter" font-size="10" fill="#633806">new tree vs old tree</text>
+    <line x1="562" y1="102" x2="594" y2="102" stroke="#888780" stroke-width="1.5"/><polygon points="594,97 594,107 604,102" fill="#888780"/>
+    <rect x="606" y="78" width="180" height="48" rx="8" fill="#E1F5EE" stroke="#0F6E56"/><text x="696" y="100" text-anchor="middle" font-family="Inter" font-size="12" font-weight="600" fill="#04342C">COMMIT</text><text x="696" y="116" text-anchor="middle" font-family="Inter" font-size="10" fill="#085041">patch only what changed</text>
+    <text x="400" y="22" text-anchor="middle" font-family="Inter" font-size="12" font-weight="600" fill="#23211C">The render cycle</text>
+    <path d="M696 126 V160 H89 V126" fill="none" stroke="#B4B2A9" stroke-width="1.2" stroke-dasharray="4 4"/><text x="400" y="178" text-anchor="middle" font-family="Inter" font-size="10" fill="#888780">…repeats on the next state change</text>
+  </svg></div>
+  <div class="tryit"><div class="label">Live: state change → re-render → screen updates</div>
+    <p style="font-size:13.5px;color:var(--text-2);margin:0 0 4px">Each click sets state, which makes React re-run the component (watch the border flash = one render) and patch the number on screen.</p>
+    <div class="rr-box" id="rr-root">
+      <div class="rr-big" id="rr-count">0</div>
+      <div class="rr-meta">clicks (state) · component re-rendered <strong id="rr-renders">1</strong> time(s)</div>
+    </div>
+    <div class="btnrow">
+      <button class="act" id="rr-inc">setCount(count + 1)</button>
+      <button class="ghost" id="rr-reset">reset</button>
+    </div>
+  </div>
+  <div class="problem"><div class="label">Practice problem</div>
+    <p>People often say "the virtual DOM is fast." What's the more precise truth?</p>
+    <details class="solution"><summary>Show solution</summary><div class="sol-body">Building the virtual tree isn't free. The win is that React commits the <em>minimal</em> real-DOM changes after diffing — and real DOM mutations are the expensive part. It also frees you from writing manual, error-prone updates. "Fast enough, and correct by default" is the honest claim.</div></details>
+  </div>
+  <div class="links"><div class="label">Go deeper</div><ul>
+    <li><a href="https://react.dev/learn/render-and-commit" target="_blank">react.dev — Render and commit</a></li>
+  </ul></div>
+</section>
+
+<section class="lesson" id="l5" data-keywords="element vs component instance object createElement description blueprint render output tree">
+  <div class="tag"><span class="n">5</span>mental model</div>
+  <h2>Elements vs components</h2>
+  <div class="oneliner"><strong>In one line:</strong> A component is a function (a blueprint); an element is a plain object it produces (a description of what to show); React turns elements into real DOM.</div>
+  <p>Three things get conflated. The <em>component</em> is your function <code>Button</code>. An <em>element</em> is what <code>&lt;Button /&gt;</code> evaluates to — a cheap object like <code>{type: Button, props: {...}}</code>. Elements are descriptions, not the actual screen; React reads them and creates/updates the real DOM. Understanding this explains why rendering is cheap to describe and why React can diff so freely.</p>
+  <div class="analogy"><div class="label">Everyday analogy</div><p>A recipe (component) vs a written-down order ticket for one dish (element) vs the plated food (DOM). The kitchen can re-issue tickets cheaply; only plating costs real work.</p></div>
+  <table class="compare">
+    <tr><th>Term</th><th>What it is</th><th>Example</th></tr>
+    <tr><td>Component</td><td>A function that returns elements</td><td><code>function Button() {…}</code></td></tr>
+    <tr><td>Element</td><td>A plain object describing UI</td><td><code>&lt;Button /&gt;</code> → an object</td></tr>
+    <tr><td>DOM node</td><td>The real thing on screen</td><td>an actual <code>&lt;button&gt;</code></td></tr>
+  </table>
+  <div class="example"><div class="label">Example</div><p><code>&lt;Button /&gt;</code> is sugar for <code>React.createElement(Button)</code>, which returns an object. Returning that object doesn't run anything visible yet — React decides when to call the component and when to commit DOM.</p></div>
+  <div class="problem"><div class="label">Practice problem</div>
+    <p>Is calling <code>Button()</code> directly the same as writing <code>&lt;Button /&gt;</code>?</p>
+    <details class="solution"><summary>Show solution</summary><div class="sol-body">No. <code>&lt;Button /&gt;</code> creates an element React manages (it owns state, lifecycle, and re-renders). Calling <code>Button()</code> just inlines its output as if it were part of the parent, losing its identity as a separate component. Use JSX, not direct calls.</div></details>
+  </div>
+</section>
+
+<div class="unit-title" data-unit-section="Unit 2 · Props &amp; data flow"><h3>Unit 2 · Props &amp; data flow</h3></div>
+
+<section class="lesson" id="l6" data-keywords="props properties pass data parent child read only immutable arguments destructure default values">
+  <div class="tag"><span class="n">6</span>data flow</div>
+  <h2>Props</h2>
+  <div class="oneliner"><strong>In one line:</strong> Props are the inputs a parent passes down to a child component — read-only arguments that customize it.</div>
+  <p>A component receives one object, <code>props</code>, holding everything the parent passed. You read props but never change them — they belong to the parent. Different props produce different output, which is exactly why the same component can render many ways.</p>
+  <div class="analogy"><div class="label">Everyday analogy</div><p>Function arguments. <code>makeCoffee("oat", "large")</code> — the recipe is fixed, the inputs vary the result. Props are arguments for UI.</p></div>
+  <div class="codeblock"><div class="code-label"><span>jsx · pass props down, read them in the child</span><button class="copybtn" data-copy="props">Copy</button></div><pre id="code-props"><span class="cm">// Child destructures the props it needs (with a default)</span>
+<span class="kw">function</span> <span class="fn">Avatar</span>({ name, size = <span class="st">48</span> }) {
+  <span class="kw">return</span> <span class="tg">&lt;img</span> <span class="at">width</span>={size} <span class="at">alt</span>={name} <span class="tg">/&gt;</span>;
+}
+
+<span class="cm">// Parent passes props like HTML attributes</span>
+<span class="kw">function</span> <span class="fn">App</span>() {
+  <span class="kw">return</span> <span class="tg">&lt;</span><span class="nm">Avatar</span> <span class="at">name</span>=<span class="st">"Sam"</span> <span class="at">size</span>={64} <span class="tg">/&gt;</span>;
+}</pre></div>
+  <div class="problem"><div class="label">Practice problem</div>
+    <p>A child does <code>props.count = props.count + 1</code>. Why is this wrong?</p>
+    <details class="solution"><summary>Show solution</summary><div class="sol-body">Props are read-only. To change a value, the data must live as <em>state</em> in some component (often the parent), and the parent updates it — the child can't mutate its props. Changing props directly does nothing useful and breaks React's model.</div></details>
+  </div>
+  <div class="links"><div class="label">Go deeper</div><ul>
+    <li><a href="https://react.dev/learn/passing-props-to-a-component" target="_blank">react.dev — Passing props to a component</a></li>
+  </ul></div>
+</section>
+
+<section class="lesson" id="l7" data-keywords="composition children prop slot wrapper layout card reuse nesting render content">
+  <div class="tag"><span class="n">7</span>pattern</div>
+  <h2>Composition &amp; children</h2>
+  <div class="oneliner"><strong>In one line:</strong> The special <code>children</code> prop lets a component wrap whatever you put between its tags — so you build flexible layouts by nesting, not by inheritance.</div>
+  <p>Whatever you write between a component's opening and closing tags arrives as <code>props.children</code>. This makes generic "wrapper" components — cards, modals, layouts — that don't care what's inside. React favors composition (nesting components) over class-style inheritance.</p>
+  <div class="analogy"><div class="label">Everyday analogy</div><p>A picture frame. The frame (component) is reusable; the photo you slide in (children) changes. Same frame, any photo.</p></div>
+  <div class="codeblock"><div class="code-label"><span>jsx · a reusable Card that accepts any children</span><button class="copybtn" data-copy="children">Copy</button></div><pre id="code-children"><span class="kw">function</span> <span class="fn">Card</span>({ children }) {
+  <span class="kw">return</span> <span class="tg">&lt;div</span> <span class="at">className</span>=<span class="st">"card"</span><span class="tg">&gt;</span>{children}<span class="tg">&lt;/div&gt;</span>;
+}
+
+<span class="kw">function</span> <span class="fn">App</span>() {
+  <span class="kw">return</span> (
+    <span class="tg">&lt;</span><span class="nm">Card</span><span class="tg">&gt;</span>
+      <span class="tg">&lt;h2&gt;</span>Title<span class="tg">&lt;/h2&gt;</span>
+      <span class="tg">&lt;p&gt;</span>Anything can go inside.<span class="tg">&lt;/p&gt;</span>
+    <span class="tg">&lt;/</span><span class="nm">Card</span><span class="tg">&gt;</span>
+  );
+}</pre></div>
+  <div class="example"><div class="label">Example</div><p>One <code>Modal</code> with a <code>children</code> slot can host a login form, a confirmation, or an image gallery — without the modal knowing anything about its contents.</p></div>
+  <div class="problem"><div class="label">Practice problem</div>
+    <p>You need a layout with a fixed sidebar and a swappable main area. Composition or copy-paste per page?</p>
+    <details class="solution"><summary>Show solution</summary><div class="sol-body">Composition: build <code>&lt;Layout&gt;{pageContent}&lt;/Layout&gt;</code> where <code>Layout</code> renders the sidebar plus <code>{children}</code>. Each page passes its own main content as children — no duplication of the shell.</div></details>
+  </div>
+  <div class="links"><div class="label">Go deeper</div><ul>
+    <li><a href="https://react.dev/learn/passing-props-to-a-component#passing-jsx-as-children" target="_blank">react.dev — Passing JSX as children</a></li>
+  </ul></div>
+</section>
+
+<section class="lesson" id="l8" data-keywords="one way data flow unidirectional props down events up callback lift state parent child source of truth">
+  <div class="tag"><span class="n">8</span>core mechanism</div>
+  <h2>One-way data flow</h2>
+  <div class="oneliner"><strong>In one line:</strong> Data flows <em>down</em> via props; changes flow <em>up</em> via callback functions — children ask the parent to update, the parent owns the data.</div>
+  <p>This is the rule that keeps React predictable, and it directly answers "where does data live and how does it change?" State lives in a parent (the source of truth). The parent passes the value down as a prop and passes a function down too. When the child wants a change, it <em>calls that function</em>; the parent updates its state; new props flow back down.</p>
+  <div class="analogy"><div class="label">Everyday analogy</div><p>A vending machine. The display (child) shows what the machine (parent) decides. You press a button (event up); the machine updates its state and changes the display (data down). The display never edits itself.</p></div>
+  <div class="diagram"><svg viewBox="0 0 800 200" xmlns="http://www.w3.org/2000/svg">
+    <rect x="300" y="14" width="200" height="50" rx="8" fill="#EEEDFE" stroke="#534AB7"/><text x="400" y="36" text-anchor="middle" font-family="Inter" font-size="13" font-weight="600" fill="#26215C">Parent</text><text x="400" y="53" text-anchor="middle" font-family="Inter" font-size="10" fill="#534AB7">owns state (source of truth)</text>
+    <line x1="350" y1="64" x2="250" y2="120" stroke="#0F6E56" stroke-width="1.6"/><polygon points="245,114 255,118 248,126" fill="#0F6E56"/>
+    <text x="250" y="98" font-family="Inter" font-size="10" fill="#0F6E56">props (data) ↓</text>
+    <line x1="250" y1="130" x2="350" y2="74" stroke="#993C1D" stroke-width="1.6" stroke-dasharray="4 3"/><polygon points="352,80 344,72 358,72" fill="#993C1D"/>
+    <text x="455" y="98" font-family="Inter" font-size="10" fill="#993C1D">onChange (event) ↑</text>
+    <line x1="450" y1="64" x2="550" y2="120" stroke="#0F6E56" stroke-width="1.6"/>
+    <rect x="150" y="124" width="200" height="50" rx="8" fill="#E1F5EE" stroke="#0F6E56"/><text x="250" y="146" text-anchor="middle" font-family="Inter" font-size="13" font-weight="600" fill="#04342C">Child A</text><text x="250" y="163" text-anchor="middle" font-family="Inter" font-size="10" fill="#085041">displays value, calls onChange</text>
+    <rect x="450" y="124" width="200" height="50" rx="8" fill="#E1F5EE" stroke="#0F6E56"/><text x="550" y="146" text-anchor="middle" font-family="Inter" font-size="13" font-weight="600" fill="#04342C">Child B</text><text x="550" y="163" text-anchor="middle" font-family="Inter" font-size="10" fill="#085041">reads same value as a prop</text>
+  </svg></div>
+  <div class="problem"><div class="label">Practice problem</div>
+    <p>Two sibling components must show the same counter. Where does the count live?</p>
+    <details class="solution"><summary>Show solution</summary><div class="sol-body">In their closest common parent. The parent holds the count in state and passes it (and an update function) to both siblings. This is "lifting state up" — covered in Lesson 15.</div></details>
+  </div>
+  <div class="links"><div class="label">Go deeper</div><ul>
+    <li><a href="https://react.dev/learn/sharing-state-between-components" target="_blank">react.dev — Sharing state between components</a></li>
+  </ul></div>
+</section>
+
+<section class="lesson" id="l9" data-keywords="lists map keys array render iteration index unique identity reconciliation bug key prop">
+  <div class="tag"><span class="n">9</span>core mechanism</div>
+  <h2>Lists &amp; keys</h2>
+  <div class="oneliner"><strong>In one line:</strong> Render a list by mapping data to elements, and give each a stable <code>key</code> so React can track which item is which across renders.</div>
+  <p>You turn an array into UI with <code>.map()</code>. The <code>key</code> prop is how React matches items between the old and new render — so when the list reorders, inserts, or deletes, React moves the right DOM nodes instead of rebuilding everything. Keys must be <em>stable</em> and <em>unique</em> among siblings (usually an id from your data, not the array index).</p>
+  <div class="analogy"><div class="label">Everyday analogy</div><p>Name tags at a conference. If everyone wears a permanent name, the organizer can reseat people correctly. If tags say "Seat 1, Seat 2" (the index) and you reorder the row, the tags now lie — and React gets confused the same way.</p></div>
+  <div class="codeblock"><div class="code-label"><span>jsx · map data to elements with stable keys</span><button class="copybtn" data-copy="keys">Copy</button></div><pre id="code-keys"><span class="kw">function</span> <span class="fn">TodoList</span>({ todos }) {
+  <span class="kw">return</span> (
+    <span class="tg">&lt;ul&gt;</span>
+      {todos.<span class="fn">map</span>((todo) =&gt; (
+        <span class="tg">&lt;li</span> <span class="at">key</span>={todo.id}<span class="tg">&gt;</span>{todo.text}<span class="tg">&lt;/li&gt;</span>
+      ))}
+    <span class="tg">&lt;/ul&gt;</span>
+  );
+}</pre></div>
+  <div class="problem"><div class="label">Practice problem</div>
+    <p>You used <code>key={index}</code>. After inserting an item at the top, an input's typed text "jumps" to the wrong row. Why?</p>
+    <details class="solution"><summary>Show solution</summary><div class="sol-body">Index keys shift when the list changes order: the item that was index 0 is now index 1, so React reuses the old DOM (and its input state) for the wrong item. Use a stable id as the key so identity follows the data, not the position.</div></details>
+  </div>
+  <div class="links"><div class="label">Go deeper</div><ul>
+    <li><a href="https://react.dev/learn/rendering-lists" target="_blank">react.dev — Rendering lists</a></li>
+  </ul></div>
+</section>
+
+<div class="unit-title" data-unit-section="Unit 3 · State &amp; reactivity"><h3>Unit 3 · State &amp; reactivity</h3></div>
+
+<section class="lesson" id="l10" data-keywords="usestate hook state variable setter re-render initial value declare component memory reactive update">
+  <div class="tag"><span class="n">10</span>core mechanism</div>
+  <h2>useState</h2>
+  <div class="oneliner"><strong>In one line:</strong> <code>useState</code> gives a component a piece of memory that survives re-renders — and changing it tells React to re-render.</div>
+  <p>A normal variable resets every render and changing it doesn't redraw anything. State is different: React remembers it across renders, and calling the setter both stores the new value <em>and</em> schedules a re-render. <code>const [value, setValue] = useState(initial)</code> returns the current value and the function to update it.</p>
+  <div class="analogy"><div class="label">Everyday analogy</div><p>A scoreboard with a remote. The number stays put between plays (memory). Pressing the remote (the setter) both changes the number and lights up the board (re-render). A scribble on a sticky note (a plain variable) neither persists nor updates the board.</p></div>
+  <div class="codeblock"><div class="code-label"><span>jsx · the canonical counter</span><button class="copybtn" data-copy="usestate">Copy</button></div><pre id="code-usestate"><span class="kw">import</span> { useState } <span class="kw">from</span> <span class="st">"react"</span>;
+
+<span class="kw">function</span> <span class="fn">Counter</span>() {
+  <span class="kw">const</span> [count, setCount] = <span class="fn">useState</span>(<span class="st">0</span>);
+  <span class="kw">return</span> (
+    <span class="tg">&lt;button</span> <span class="at">onClick</span>={() =&gt; <span class="fn">setCount</span>(count + <span class="st">1</span>)}<span class="tg">&gt;</span>
+      Clicked {count} times
+    <span class="tg">&lt;/button&gt;</span>
+  );
+}</pre></div>
+  <div class="tryit"><div class="label">Live: a plain variable vs state</div>
+    <p style="font-size:13.5px;color:var(--text-2);margin:0 0 4px">The left value is real React-style state (updates the screen). The right pretends to be a plain variable — it changes in memory but the screen never refreshes, so you never see it.</p>
+    <div class="rr-box" id="us-root">
+      <div class="rr-big" id="us-count">0</div>
+      <div class="rr-meta">state value · <span id="us-shadow">plain variable is actually at: 0</span></div>
+    </div>
+    <div class="btnrow">
+      <button class="act" id="us-state">setCount(count + 1)  → re-renders</button>
+      <button class="ghost" id="us-plain">plainVar++  → no re-render</button>
+    </div>
+    <div class="note" id="us-note"></div>
+  </div>
+  <div class="problem"><div class="label">Practice problem</div>
+    <p>Why won't <code>let count = 0; count++</code> inside a component update the screen?</p>
+    <details class="solution"><summary>Show solution</summary><div class="sol-body">Two reasons: a local variable is recreated as <code>0</code> on every render (no memory), and changing it doesn't tell React to re-render. State solves both — it persists and it triggers a re-render.</div></details>
+  </div>
+  <div class="links"><div class="label">Go deeper</div><ul>
+    <li><a href="https://react.dev/learn/state-a-components-memory" target="_blank">react.dev — State: a component's memory</a></li>
+  </ul></div>
+</section>
+
+<section class="lesson" id="l11" data-keywords="state snapshot stale closure value frozen render multiple set same not updated immediately asynchronous">
+  <div class="tag"><span class="n">11</span>mental model</div>
+  <h2>State is a snapshot</h2>
+  <div class="oneliner"><strong>In one line:</strong> Within one render, state holds a fixed value; calling the setter doesn't change that value mid-render — it schedules the <em>next</em> render with the new value.</div>
+  <p>A surprising-but-crucial idea. The <code>count</code> you read during a render is a snapshot, frozen for that render. So calling <code>setCount(count + 1)</code> three times in a row from the same snapshot all compute from the same old value — you get +1, not +3. To build on the latest value, pass an <em>updater function</em>: <code>setCount(c =&gt; c + 1)</code>.</p>
+  <div class="analogy"><div class="label">Everyday analogy</div><p>A photo taken at the start of the render. Everyone in that render looks at the same photo. Saying "add one to the photo's number" three times still reads the same photo each time. Asking "add one to whatever it becomes" (the updater) chains correctly.</p></div>
+  <div class="tryit"><div class="label">Live: snapshot (+1) vs updater (+3)</div>
+    <div class="rr-box"><div class="rr-big" id="snap-count">0</div><div class="rr-meta" id="snap-meta">tap a button below</div></div>
+    <div class="btnrow">
+      <button class="ghost" id="snap-stale">3× setCount(count + 1)</button>
+      <button class="act" id="snap-fresh">3× setCount(c =&gt; c + 1)</button>
+      <button class="ghost" id="snap-reset">reset</button>
+    </div>
+    <div class="note" id="snap-note"></div>
+  </div>
+  <div class="codeblock"><div class="code-label"><span>jsx · same snapshot vs chained updates</span><button class="copybtn" data-copy="snap">Copy</button></div><pre id="code-snap"><span class="cm">// reads the SAME snapshot 3× → ends at +1</span>
+<span class="fn">setCount</span>(count + <span class="st">1</span>);
+<span class="fn">setCount</span>(count + <span class="st">1</span>);
+<span class="fn">setCount</span>(count + <span class="st">1</span>);
+
+<span class="cm">// updater builds on the latest → ends at +3</span>
+<span class="fn">setCount</span>(c =&gt; c + <span class="st">1</span>);
+<span class="fn">setCount</span>(c =&gt; c + <span class="st">1</span>);
+<span class="fn">setCount</span>(c =&gt; c + <span class="st">1</span>);</pre></div>
+  <div class="problem"><div class="label">Practice problem</div>
+    <p>You call <code>setOpen(true)</code> then immediately <code>console.log(open)</code>. It prints <code>false</code>. Bug?</p>
+    <details class="solution"><summary>Show solution</summary><div class="sol-body">No — expected. <code>open</code> is the snapshot for the current render; the new value only appears on the <em>next</em> render. Read the new value in the next render (or in an effect), not on the line after the setter.</div></details>
+  </div>
+  <div class="links"><div class="label">Go deeper</div><ul>
+    <li><a href="https://react.dev/learn/state-as-a-snapshot" target="_blank">react.dev — State as a snapshot</a></li>
+  </ul></div>
+</section>
+
+<section class="lesson" id="l12" data-keywords="immutability immutable update copy spread object array state mutation push splice new reference change detection">
+  <div class="tag"><span class="n">12</span>core mechanism</div>
+  <h2>Updating state immutably</h2>
+  <div class="oneliner"><strong>In one line:</strong> Never mutate state in place — create a new object/array with the change, so React sees a new reference and knows to re-render.</div>
+  <p>React decides whether to re-render partly by comparing references. If you <code>push</code> into the same array or set a property on the same object, the reference is unchanged and React may skip the update — or behave unpredictably. Always produce a <em>new</em> value: spread the old one and override what changed.</p>
+  <div class="analogy"><div class="label">Everyday analogy</div><p>Editing a shared document by sending a fresh copy with edits, rather than scribbling on the original behind everyone's back. The fresh copy is obviously "new"; the secret scribble might go unnoticed.</p></div>
+  <div class="codeblock"><div class="code-label"><span>jsx · copy-then-change for objects and arrays</span><button class="copybtn" data-copy="immut">Copy</button></div><pre id="code-immut"><span class="cm">// ❌ mutates the same object — React may not notice</span>
+user.name = <span class="st">"Sam"</span>;
+<span class="fn">setUser</span>(user);
+
+<span class="cm">// ✅ new object with the change</span>
+<span class="fn">setUser</span>({ ...user, name: <span class="st">"Sam"</span> });
+
+<span class="cm">// arrays: build new ones, don't push/splice in place</span>
+<span class="fn">setItems</span>([...items, newItem]);              <span class="cm">// add</span>
+<span class="fn">setItems</span>(items.<span class="fn">filter</span>(i =&gt; i.id !== id));    <span class="cm">// remove</span>
+<span class="fn">setItems</span>(items.<span class="fn">map</span>(i =&gt;
+  i.id === id ? { ...i, done: <span class="kw">true</span> } : i));    <span class="cm">// update one</span></pre></div>
+  <table class="compare">
+    <tr><th>Action</th><th>Don't (mutate)</th><th>Do (new value)</th></tr>
+    <tr><td>Add to array</td><td><code>arr.push(x)</code></td><td><code>[...arr, x]</code></td></tr>
+    <tr><td>Remove</td><td><code>arr.splice(i,1)</code></td><td><code>arr.filter(…)</code></td></tr>
+    <tr><td>Change object field</td><td><code>obj.k = v</code></td><td><code>{...obj, k: v}</code></td></tr>
+  </table>
+  <div class="problem"><div class="label">Practice problem</div>
+    <p>You <code>todos.push(newTodo); setTodos(todos)</code> and the list doesn't update. Why?</p>
+    <details class="solution"><summary>Show solution</summary><div class="sol-body">You handed React the same array reference. It compares old vs new, sees the same array, and bails. Use <code>setTodos([...todos, newTodo])</code> so the reference changes.</div></details>
+  </div>
+  <div class="links"><div class="label">Go deeper</div><ul>
+    <li><a href="https://react.dev/learn/updating-objects-in-state" target="_blank">react.dev — Updating objects in state</a></li>
+    <li><a href="https://react.dev/learn/updating-arrays-in-state" target="_blank">react.dev — Updating arrays in state</a></li>
+  </ul></div>
+</section>
+
+<section class="lesson" id="l13" data-keywords="batching batch multiple setstate one render functional updater event handler react 18 automatic performance">
+  <div class="tag"><span class="n">13</span>mechanism</div>
+  <h2>Batching &amp; updater functions</h2>
+  <div class="oneliner"><strong>In one line:</strong> React groups multiple state updates in the same event into a single re-render (batching); use updater functions when each update depends on the previous one.</div>
+  <p>If you call several setters in one click handler, React doesn't re-render after each — it batches them and re-renders once with all the changes. That's faster and avoids flickering. The catch from Lesson 11 returns: if updates build on each other, use the updater form so each sees the latest queued value.</p>
+  <div class="analogy"><div class="label">Everyday analogy</div><p>A waiter taking your whole table's order before going to the kitchen, instead of running back per dish. One trip (one render) with everything.</p></div>
+  <div class="codeblock"><div class="code-label"><span>jsx · three sets, one render</span><button class="copybtn" data-copy="batch">Copy</button></div><pre id="code-batch"><span class="kw">function</span> <span class="fn">handleClick</span>() {
+  <span class="fn">setName</span>(<span class="st">"Sam"</span>);
+  <span class="fn">setAge</span>(<span class="st">30</span>);
+  <span class="fn">setActive</span>(<span class="kw">true</span>);
+  <span class="cm">// React batches these → ONE re-render, not three</span>
+}</pre></div>
+  <div class="example"><div class="label">Example</div><p>Since React 18, batching also applies inside promises, timeouts, and native handlers ("automatic batching"), not just React events — so the one-render behavior is consistent everywhere.</p></div>
+  <div class="problem"><div class="label">Practice problem</div>
+    <p>In one handler you call <code>setCount(count+1)</code> twice expecting +2 but get +1. Fix?</p>
+    <details class="solution"><summary>Show solution</summary><div class="sol-body">Both reads use the same snapshot of <code>count</code>. Use updater functions so they chain: <code>setCount(c =&gt; c + 1); setCount(c =&gt; c + 1);</code> → +2 in one batched render.</div></details>
+  </div>
+  <div class="links"><div class="label">Go deeper</div><ul>
+    <li><a href="https://react.dev/learn/queueing-a-series-of-state-updates" target="_blank">react.dev — Queueing a series of state updates</a></li>
+  </ul></div>
+</section>
+
+<section class="lesson" id="l14" data-keywords="derived state computed during render avoid redundant duplicate single source of truth calculate instead of store filter sort">
+  <div class="tag"><span class="n">14</span>which to use</div>
+  <h2>Derived vs stored state</h2>
+  <div class="oneliner"><strong>In one line:</strong> If a value can be calculated from existing state or props, calculate it during render — don't store it as separate state.</div>
+  <p>A common beginner mistake is storing things that are really just computations of other state — a filtered list, a total, a "isValid" flag. Stored copies drift out of sync. The rule: keep the minimal source of truth in state, and derive everything else inline while rendering.</p>
+  <div class="analogy"><div class="label">Everyday analogy</div><p>A receipt's total. You don't store the total and the line items separately and hope they match — you add up the items each time. The total is derived, not stored.</p></div>
+  <table class="compare">
+    <tr><th>Value</th><th>Store as state?</th><th>Why</th></tr>
+    <tr><td>The list of items</td><td>Yes</td><td>Source of truth</td></tr>
+    <tr><td>The search text</td><td>Yes</td><td>User input, can't be derived</td></tr>
+    <tr><td>The filtered list</td><td>No — derive</td><td><code>items.filter(matchesSearch)</code></td></tr>
+    <tr><td>"How many done"</td><td>No — derive</td><td><code>items.filter(i =&gt; i.done).length</code></td></tr>
+  </table>
+  <div class="codeblock"><div class="code-label"><span>jsx · derive during render</span><button class="copybtn" data-copy="derived">Copy</button></div><pre id="code-derived"><span class="kw">const</span> [items, setItems] = <span class="fn">useState</span>([]);
+<span class="kw">const</span> [query, setQuery] = <span class="fn">useState</span>(<span class="st">""</span>);
+
+<span class="cm">// derived — recomputed each render, always in sync</span>
+<span class="kw">const</span> visible = items.<span class="fn">filter</span>(i =&gt; i.text.<span class="fn">includes</span>(query));
+<span class="kw">const</span> doneCount = items.<span class="fn">filter</span>(i =&gt; i.done).length;</pre></div>
+  <div class="problem"><div class="label">Practice problem</div>
+    <p>You keep <code>fullName</code> in state alongside <code>first</code> and <code>last</code>, updating it in three places. What goes wrong?</p>
+    <details class="solution"><summary>Show solution</summary><div class="sol-body">They drift apart — miss one update site and <code>fullName</code> is stale. Drop the state; derive it: <code>const fullName = first + " " + last;</code> during render. One source of truth.</div></details>
+  </div>
+  <div class="links"><div class="label">Go deeper</div><ul>
+    <li><a href="https://react.dev/learn/choosing-the-state-structure" target="_blank">react.dev — Choosing the state structure</a></li>
+  </ul></div>
+</section>
+
+<section class="lesson" id="l15" data-keywords="lifting state up shared common parent siblings move state source of truth pass down callback synchronize">
+  <div class="tag"><span class="n">15</span>where to put it</div>
+  <h2>Lifting state up</h2>
+  <div class="oneliner"><strong>In one line:</strong> When two components need the same data, move that state up to their closest common parent and pass it down to both.</div>
+  <p>This is the standard answer to "where should this state live?" Put state in the lowest component that <em>all</em> the components needing it share as an ancestor. The parent holds the value and an updater; each child receives the value as a prop and calls the updater to change it. Now they're always in sync.</p>
+  <div class="analogy"><div class="label">Everyday analogy</div><p>Two kids arguing over the TV remote. The fix isn't two remotes — it's giving the remote to the parent (common ancestor), who changes the channel for both. One source of truth.</p></div>
+  <div class="diagram"><svg viewBox="0 0 800 200" xmlns="http://www.w3.org/2000/svg">
+    <rect x="290" y="14" width="220" height="52" rx="8" fill="#EEEDFE" stroke="#534AB7"/><text x="400" y="36" text-anchor="middle" font-family="Inter" font-size="13" font-weight="600" fill="#26215C">Common parent</text><text x="400" y="54" text-anchor="middle" font-family="Inter" font-size="10" fill="#534AB7">useState lives here</text>
+    <line x1="340" y1="66" x2="220" y2="120" stroke="#0F6E56" stroke-width="1.5"/><polygon points="216,114 226,118 219,126" fill="#0F6E56"/>
+    <line x1="460" y1="66" x2="580" y2="120" stroke="#0F6E56" stroke-width="1.5"/><polygon points="584,126 574,118 584,114" fill="#0F6E56"/>
+    <rect x="120" y="124" width="200" height="52" rx="8" fill="#E1F5EE" stroke="#0F6E56"/><text x="220" y="146" text-anchor="middle" font-family="Inter" font-size="12" font-weight="600" fill="#04342C">Input</text><text x="220" y="164" text-anchor="middle" font-family="Inter" font-size="10" fill="#085041">value + onChange (props)</text>
+    <rect x="480" y="124" width="200" height="52" rx="8" fill="#FAEEDA" stroke="#854F0B"/><text x="580" y="146" text-anchor="middle" font-family="Inter" font-size="12" font-weight="600" fill="#412402">Preview</text><text x="580" y="164" text-anchor="middle" font-family="Inter" font-size="10" fill="#633806">reads same value (prop)</text>
+  </svg></div>
+  <div class="problem"><div class="label">Practice problem</div>
+    <p>A temperature app has a Celsius input and a Fahrenheit input that should stay in sync. Where's the state?</p>
+    <details class="solution"><summary>Show solution</summary><div class="sol-body">Lift it to the parent — store one temperature (say, Celsius) and a setter there. Both inputs are controlled by props derived from it and call the setter on change. The parent converts as needed, keeping both fields consistent.</div></details>
+  </div>
+  <div class="links"><div class="label">Go deeper</div><ul>
+    <li><a href="https://react.dev/learn/sharing-state-between-components" target="_blank">react.dev — Sharing state between components</a></li>
+  </ul></div>
+</section>
+
+<div class="unit-title" data-unit-section="Unit 4 · Events &amp; forms"><h3>Unit 4 · Events &amp; forms</h3></div>
+
+<section class="lesson" id="l16" data-keywords="events onclick onchange handler function synthetic event prevent default arguments pass parameter inline">
+  <div class="tag"><span class="n">16</span>core mechanism</div>
+  <h2>Handling events</h2>
+  <div class="oneliner"><strong>In one line:</strong> Pass a <em>function</em> to event props like <code>onClick</code> — React calls it when the event happens.</div>
+  <p>Event handlers are functions you attach via camelCase props (<code>onClick</code>, <code>onChange</code>, <code>onSubmit</code>). Pass the function itself, not its result. To pass arguments, wrap it in an arrow function. Most handlers end by updating state, which triggers a re-render.</p>
+  <div class="analogy"><div class="label">Everyday analogy</div><p>Leaving instructions with a receptionist: "when this person arrives, do X." You hand over the instructions (the function), you don't perform X right now.</p></div>
+  <div class="codeblock"><div class="code-label"><span>jsx · pass the function, not the call</span><button class="copybtn" data-copy="events">Copy</button></div><pre id="code-events"><span class="cm">// ✅ pass the function reference</span>
+<span class="tg">&lt;button</span> <span class="at">onClick</span>={handleClick}<span class="tg">&gt;</span>Go<span class="tg">&lt;/button&gt;</span>
+
+<span class="cm">// ✅ wrap to pass an argument</span>
+<span class="tg">&lt;button</span> <span class="at">onClick</span>={() =&gt; <span class="fn">remove</span>(id)}<span class="tg">&gt;</span>Delete<span class="tg">&lt;/button&gt;</span>
+
+<span class="cm">// ❌ this CALLS handleClick during render, not on click</span>
+<span class="tg">&lt;button</span> <span class="at">onClick</span>={<span class="fn">handleClick</span>()}<span class="tg">&gt;</span>Go<span class="tg">&lt;/button&gt;</span></pre></div>
+  <div class="problem"><div class="label">Practice problem</div>
+    <p>Your button's handler runs once on page load and never on click. What did you write?</p>
+    <details class="solution"><summary>Show solution</summary><div class="sol-body">You wrote <code>onClick={handleClick()}</code> with parentheses — that calls it during render and passes the return value (often <code>undefined</code>) as the handler. Remove the parentheses, or wrap: <code>onClick={() =&gt; handleClick()}</code>.</div></details>
+  </div>
+  <div class="links"><div class="label">Go deeper</div><ul>
+    <li><a href="https://react.dev/learn/responding-to-events" target="_blank">react.dev — Responding to events</a></li>
+  </ul></div>
+</section>
+
+<section class="lesson" id="l17" data-keywords="controlled uncontrolled input value onchange ref defaultvalue form which to use single source of truth react owns">
+  <div class="tag"><span class="n">17</span>which to use</div>
+  <h2>Controlled vs uncontrolled</h2>
+  <div class="oneliner"><strong>In one line:</strong> A controlled input's value lives in React state (React is the source of truth); an uncontrolled input keeps its own value in the DOM and you read it only when needed.</div>
+  <p>Controlled: <code>value={state}</code> + <code>onChange</code> — every keystroke flows through state, so the UI always reflects state and you can validate or transform live. Uncontrolled: let the DOM hold the value and grab it via a <code>ref</code> on submit — simpler, less re-rendering, but you can't react to each change.</p>
+  <div class="analogy"><div class="label">Everyday analogy</div><p>Controlled is a live teleprompter — every word you type is mirrored on the screen instantly because the screen drives it. Uncontrolled is scribbling on paper and reading it aloud only at the end.</p></div>
+  <div class="tryit"><div class="label">Live: controlled input mirrors state every keystroke</div>
+    <input type="text" id="ctl-input" placeholder="type here…">
+    <div class="out" id="ctl-out">state.value = ""</div>
+    <div class="note" id="ctl-note">Every keystroke → onChange → setState → re-render → screen reflects state.</div>
+  </div>
+  <table class="compare">
+    <tr><th></th><th>Controlled</th><th>Uncontrolled</th></tr>
+    <tr><td>Value lives in</td><td>React state</td><td>The DOM node</td></tr>
+    <tr><td>You write</td><td><code>value</code> + <code>onChange</code></td><td><code>ref</code> (+ <code>defaultValue</code>)</td></tr>
+    <tr><td>Live validation / formatting</td><td>Easy</td><td>Hard</td></tr>
+    <tr><td>Re-renders per keystroke</td><td>Yes</td><td>No</td></tr>
+    <tr><td>Best for</td><td>Most forms, interactive fields</td><td>Simple/one-off inputs, file inputs, perf-sensitive</td></tr>
+  </table>
+  <div class="problem"><div class="label">Practice problem</div>
+    <p>You want to disable a "submit" button until the email field contains "@". Controlled or uncontrolled?</p>
+    <details class="solution"><summary>Show solution</summary><div class="sol-body">Controlled — you need the value on every keystroke to compute <code>disabled={!email.includes("@")}</code>. An uncontrolled input only gives you the value on submit, too late to update the button live.</div></details>
+  </div>
+  <div class="links"><div class="label">Go deeper</div><ul>
+    <li><a href="https://react.dev/reference/react-dom/components/input" target="_blank">react.dev — &lt;input&gt; reference</a></li>
+  </ul></div>
+</section>
+
+<section class="lesson" id="l18" data-keywords="forms onsubmit preventdefault multiple fields object state submit validation handle change name attribute">
+  <div class="tag"><span class="n">18</span>practical</div>
+  <h2>Forms</h2>
+  <div class="oneliner"><strong>In one line:</strong> Handle a form with one <code>onSubmit</code> (call <code>preventDefault</code>), and manage fields with controlled state — often a single object for many fields.</div>
+  <p>The browser's default form behavior reloads the page; <code>event.preventDefault()</code> stops that so you handle submission in JS. For many fields, store them in one object and update by key, so you don't write a separate handler per input.</p>
+  <div class="analogy"><div class="label">Everyday analogy</div><p>A single intake clipboard with many lines. One pen updates whichever line you're on; one "submit" hands the whole clipboard in at once.</p></div>
+  <div class="codeblock"><div class="code-label"><span>jsx · one object, one change handler, one submit</span><button class="copybtn" data-copy="form">Copy</button></div><pre id="code-form"><span class="kw">const</span> [form, setForm] = <span class="fn">useState</span>({ name: <span class="st">""</span>, email: <span class="st">""</span> });
+
+<span class="kw">function</span> <span class="fn">change</span>(e) {
+  <span class="fn">setForm</span>({ ...form, [e.target.name]: e.target.value });
+}
+<span class="kw">function</span> <span class="fn">submit</span>(e) {
+  e.<span class="fn">preventDefault</span>();          <span class="cm">// stop the page reload</span>
+  <span class="fn">save</span>(form);
+}
+
+<span class="tg">&lt;form</span> <span class="at">onSubmit</span>={submit}<span class="tg">&gt;</span>
+  <span class="tg">&lt;input</span> <span class="at">name</span>=<span class="st">"name"</span>  <span class="at">value</span>={form.name}  <span class="at">onChange</span>={change} <span class="tg">/&gt;</span>
+  <span class="tg">&lt;input</span> <span class="at">name</span>=<span class="st">"email"</span> <span class="at">value</span>={form.email} <span class="at">onChange</span>={change} <span class="tg">/&gt;</span>
+  <span class="tg">&lt;button&gt;</span>Save<span class="tg">&lt;/button&gt;</span>
+<span class="tg">&lt;/form&gt;</span></pre></div>
+  <div class="problem"><div class="label">Practice problem</div>
+    <p>Your form briefly flashes and the data vanishes on submit. Likely cause?</p>
+    <details class="solution"><summary>Show solution</summary><div class="sol-body">You forgot <code>e.preventDefault()</code>, so the browser performed its default submit and reloaded the page, wiping state. Add it as the first line of your submit handler.</div></details>
+  </div>
+  <div class="links"><div class="label">Go deeper</div><ul>
+    <li><a href="https://react.dev/reference/react-dom/components/form" target="_blank">react.dev — &lt;form&gt; reference</a></li>
+  </ul></div>
+</section>
+
+<div class="unit-title" data-unit-section="Unit 5 · Effects"><h3>Unit 5 · Effects</h3></div>
+
+<section class="lesson" id="l19" data-keywords="useeffect side effect synchronize outside system fetch subscription timer dom after render lifecycle escape hatch">
+  <div class="tag"><span class="n">19</span>core mechanism</div>
+  <h2>useEffect</h2>
+  <div class="oneliner"><strong>In one line:</strong> <code>useEffect</code> runs code <em>after</em> render to synchronize your component with something outside React — a network request, a subscription, a timer, the document title.</div>
+  <p>Rendering should be pure: compute UI from props/state, no surprises. Anything that reaches the outside world (called a "side effect") goes in <code>useEffect</code>, which React runs after committing the DOM. Think of it as "keep this external thing in sync with my state," not "do this on a button click" (that's an event handler).</p>
+  <div class="analogy"><div class="label">Everyday analogy</div><p>After you finish redecorating a room (render), you then water the plants and adjust the thermostat (effects) — the after-the-fact chores that connect the room to the outside world.</p></div>
+  <div class="codeblock"><div class="code-label"><span>jsx · sync the document title with state</span><button class="copybtn" data-copy="effect">Copy</button></div><pre id="code-effect"><span class="kw">import</span> { useState, useEffect } <span class="kw">from</span> <span class="st">"react"</span>;
+
+<span class="kw">function</span> <span class="fn">Title</span>() {
+  <span class="kw">const</span> [count, setCount] = <span class="fn">useState</span>(<span class="st">0</span>);
+
+  <span class="fn">useEffect</span>(() =&gt; {
+    document.title = <span class="st">`Count: ${count}`</span>;  <span class="cm">// side effect</span>
+  }, [count]);                          <span class="cm">// re-sync when count changes</span>
+
+  <span class="kw">return</span> <span class="tg">&lt;button</span> <span class="at">onClick</span>={() =&gt; <span class="fn">setCount</span>(count + <span class="st">1</span>)}<span class="tg">&gt;</span>+<span class="tg">&lt;/button&gt;</span>;
+}</pre></div>
+  <div class="problem"><div class="label">Practice problem</div>
+    <p>Should "save the form when the user clicks Save" go in a <code>useEffect</code>?</p>
+    <details class="solution"><summary>Show solution</summary><div class="sol-body">No. That's a response to a specific user action — put it in the button's <code>onClick</code> handler. Effects are for synchronizing with external systems based on state, not for handling discrete events.</div></details>
+  </div>
+  <div class="links"><div class="label">Go deeper</div><ul>
+    <li><a href="https://react.dev/learn/synchronizing-with-effects" target="_blank">react.dev — Synchronizing with effects</a></li>
+  </ul></div>
+</section>
+
+<section class="lesson" id="l20" data-keywords="dependency array deps useeffect re-run when changes empty array mount every render missing dependency lint exhaustive">
+  <div class="tag"><span class="n">20</span>core mechanism</div>
+  <h2>The dependency array</h2>
+  <div class="oneliner"><strong>In one line:</strong> The second argument to <code>useEffect</code> lists the values it depends on; React re-runs the effect only when one of them changes between renders.</div>
+  <p>This array is exactly "how the effect changes when your data changes." <code>[]</code> = run once after mount. <code>[a, b]</code> = run after mount and whenever <code>a</code> or <code>b</code> changes. No array = run after <em>every</em> render. List every prop/state the effect reads, or it'll work with stale values — the linter's "exhaustive-deps" rule catches this.</p>
+  <div class="analogy"><div class="label">Everyday analogy</div><p>A standing instruction with a trigger: "re-check the weather only when the city changes." If you never list the trigger, you never re-check; if you list the wrong one, you re-check at the wrong times.</p></div>
+  <div class="tryit"><div class="label">Live: does the effect re-run?</div>
+    <p style="font-size:13.5px;color:var(--text-2);margin:0 0 8px">Choose a dependency array, then change values. The effect runs on mount, and afterward only when a <em>listed</em> dependency changed.</p>
+    <div class="radio-row" id="dep-mode">
+      <label><input type="radio" name="depmode" value="count" checked> deps: <code>[count]</code></label>
+      <label><input type="radio" name="depmode" value="empty"> deps: <code>[]</code></label>
+      <label><input type="radio" name="depmode" value="none"> no array</label>
+    </div>
+    <div class="rr-box">
+      <div style="display:flex;gap:24px;justify-content:center;font-variant-numeric:tabular-nums">
+        <div><div class="rr-big" id="dep-count" style="font-size:26px">0</div><div class="rr-meta">count (listed)</div></div>
+        <div><div class="rr-big" id="dep-other" style="font-size:26px">0</div><div class="rr-meta">other (not listed)</div></div>
+      </div>
+      <div style="margin-top:10px"><span class="eff-pill eff-skip" id="dep-pill">effect ready</span> · ran <strong id="dep-runs">0</strong>×</div>
+    </div>
+    <div class="btnrow">
+      <button class="act" id="dep-c">count++ (re-render)</button>
+      <button class="ghost" id="dep-o">other++ (re-render)</button>
+      <button class="ghost" id="dep-reset">remount</button>
+    </div>
+    <div class="note" id="dep-note"></div>
+  </div>
+  <table class="compare">
+    <tr><th>Dependency array</th><th>Effect runs</th></tr>
+    <tr><td><code>[]</code></td><td>Once, after the first render (mount)</td></tr>
+    <tr><td><code>[a, b]</code></td><td>After mount + whenever a or b changes</td></tr>
+    <tr><td>omitted</td><td>After every render (rarely what you want)</td></tr>
+  </table>
+  <div class="problem"><div class="label">Practice problem</div>
+    <p>Your effect fetches <code>user/{id}</code> but uses <code>[]</code>. Switching users doesn't refetch. Fix?</p>
+    <details class="solution"><summary>Show solution</summary><div class="sol-body">The effect reads <code>id</code> but doesn't depend on it, so it never re-runs. Add it: <code>[id]</code>. Now changing <code>id</code> re-runs the fetch for the new user.</div></details>
+  </div>
+  <div class="links"><div class="label">Go deeper</div><ul>
+    <li><a href="https://react.dev/learn/lifecycle-of-reactive-effects" target="_blank">react.dev — Lifecycle of reactive effects</a></li>
+  </ul></div>
+</section>
+
+<section class="lesson" id="l21" data-keywords="cleanup return function unsubscribe clear interval abort remove listener memory leak teardown effect runs again unmount">
+  <div class="tag"><span class="n">21</span>core mechanism</div>
+  <h2>Cleanup</h2>
+  <div class="oneliner"><strong>In one line:</strong> Return a function from an effect to undo it — React runs that cleanup before the effect re-runs and when the component unmounts.</div>
+  <p>If your effect starts something ongoing — a timer, a subscription, an event listener — you must stop it, or you leak resources and stack duplicates. The returned cleanup function runs before each re-run (to tear down the old version) and on unmount. Setup and cleanup come in pairs.</p>
+  <div class="analogy"><div class="label">Everyday analogy</div><p>Open a window for fresh air (setup); close it before you leave (cleanup). Forget to close, and you've left windows open all over the house every time you re-decorate.</p></div>
+  <div class="codeblock"><div class="code-label"><span>jsx · subscribe on setup, unsubscribe on cleanup</span><button class="copybtn" data-copy="cleanup">Copy</button></div><pre id="code-cleanup"><span class="fn">useEffect</span>(() =&gt; {
+  <span class="kw">const</span> id = <span class="fn">setInterval</span>(tick, <span class="st">1000</span>);   <span class="cm">// setup</span>
+  <span class="kw">return</span> () =&gt; <span class="fn">clearInterval</span>(id);       <span class="cm">// cleanup</span>
+}, []);                                  <span class="cm">// one timer, cleared on unmount</span></pre></div>
+  <div class="problem"><div class="label">Practice problem</div>
+    <p>You add a <code>resize</code> listener in an effect with no cleanup. After many re-renders the page slows to a crawl. Why?</p>
+    <details class="solution"><summary>Show solution</summary><div class="sol-body">Each run adds another listener without removing the old ones, so dozens fire on every resize. Return a cleanup that calls <code>removeEventListener</code> so each run replaces, not stacks.</div></details>
+  </div>
+  <div class="links"><div class="label">Go deeper</div><ul>
+    <li><a href="https://react.dev/learn/synchronizing-with-effects#how-to-handle-the-effect-firing-twice-in-development" target="_blank">react.dev — Effects &amp; cleanup</a></li>
+  </ul></div>
+</section>
+
+<section class="lesson" id="l22" data-keywords="you might not need useeffect avoid overuse derived state event handler transform data fetching anti-pattern when not to use">
+  <div class="tag"><span class="n">22</span>where NOT to use</div>
+  <h2>You might not need an Effect</h2>
+  <div class="oneliner"><strong>In one line:</strong> Effects are an escape hatch for external systems — if you're only transforming data for render or responding to a user action, you usually don't need one.</div>
+  <p>Effects are overused. Two big "don't" cases: computing a value from props/state (derive it during render instead — Lesson 14), and reacting to a specific event (do it in the handler instead — Lesson 19). Reserve effects for genuine external synchronization: network, subscriptions, the DOM, browser APIs.</p>
+  <div class="analogy"><div class="label">Everyday analogy</div><p>Don't hire a courier (an effect) to walk a note across your own desk. Just pick it up (derive it). Couriers are for things outside the building.</p></div>
+  <table class="compare">
+    <tr><th>Goal</th><th>Don't use an Effect</th><th>Do instead</th></tr>
+    <tr><td>A filtered/total value</td><td>store + sync via effect</td><td>derive during render</td></tr>
+    <tr><td>Respond to a click</td><td>set state, then react in effect</td><td>put the logic in the handler</td></tr>
+    <tr><td>Reset state when a prop changes</td><td>effect that calls setState</td><td>a <code>key</code> prop to remount, or compute</td></tr>
+    <tr><td>Fetch on mount</td><td>—</td><td>Effect (or a data library) — this <em>is</em> a valid use</td></tr>
+  </table>
+  <div class="problem"><div class="label">Practice problem</div>
+    <p>You set <code>fullName</code> in an effect whenever <code>first</code> or <code>last</code> changes. Better approach?</p>
+    <details class="solution"><summary>Show solution</summary><div class="sol-body">Drop the effect and the extra state. Compute it during render: <code>const fullName = first + " " + last;</code>. No effect, no extra render, never stale.</div></details>
+  </div>
+  <div class="links"><div class="label">Go deeper</div><ul>
+    <li><a href="https://react.dev/learn/you-might-not-need-an-effect" target="_blank">react.dev — You might not need an Effect</a></li>
+  </ul></div>
+</section>
+
+<div class="unit-title" data-unit-section="Unit 6 · Hooks toolbox"><h3>Unit 6 · Hooks toolbox</h3></div>
+
+<section class="lesson" id="l23" data-keywords="useref mutable value persist no re-render dom reference focus measure previous value timer id current escape hatch">
+  <div class="tag"><span class="n">23</span>which to use</div>
+  <h2>useRef</h2>
+  <div class="oneliner"><strong>In one line:</strong> <code>useRef</code> holds a mutable value that persists across renders but, unlike state, changing it does <em>not</em> trigger a re-render.</div>
+  <p>Two main uses: (1) grab a DOM node to focus, measure, or scroll it; (2) store a value you want to remember without re-rendering — a timer id, a previous value, a flag. You read/write <code>ref.current</code>. Rule of thumb: if changing the value should update the screen, use state; if it shouldn't, use a ref.</p>
+  <div class="analogy"><div class="label">Everyday analogy</div><p>A sticky note on your monitor. It survives between tasks (persists), but writing on it doesn't redraw your screen (no re-render). State is the screen; a ref is the sticky note.</p></div>
+  <div class="codeblock"><div class="code-label"><span>jsx · focus an input via a DOM ref</span><button class="copybtn" data-copy="ref">Copy</button></div><pre id="code-ref"><span class="kw">function</span> <span class="fn">SearchBox</span>() {
+  <span class="kw">const</span> inputRef = <span class="fn">useRef</span>(<span class="kw">null</span>);
+  <span class="kw">return</span> (
+    <span class="tg">&lt;&gt;</span>
+      <span class="tg">&lt;input</span> <span class="at">ref</span>={inputRef} <span class="tg">/&gt;</span>
+      <span class="tg">&lt;button</span> <span class="at">onClick</span>={() =&gt; inputRef.current.<span class="fn">focus</span>()}<span class="tg">&gt;</span>
+        Focus
+      <span class="tg">&lt;/button&gt;</span>
+    <span class="tg">&lt;/&gt;</span>
+  );
+}</pre></div>
+  <table class="compare">
+    <tr><th></th><th>useState</th><th>useRef</th></tr>
+    <tr><td>Triggers re-render on change</td><td>Yes</td><td>No</td></tr>
+    <tr><td>Survives re-renders</td><td>Yes</td><td>Yes</td></tr>
+    <tr><td>Read during render?</td><td>Yes</td><td>Avoid (read in handlers/effects)</td></tr>
+    <tr><td>Use for</td><td>Anything shown on screen</td><td>DOM nodes, timers, "previous" values</td></tr>
+  </table>
+  <div class="problem"><div class="label">Practice problem</div>
+    <p>You store a <code>setInterval</code> id in state to clear it later, and notice an extra re-render. Better tool?</p>
+    <details class="solution"><summary>Show solution</summary><div class="sol-body">A ref. The timer id isn't displayed, so storing it in state causes a needless re-render. <code>const idRef = useRef(); idRef.current = setInterval(...)</code> persists it without re-rendering.</div></details>
+  </div>
+  <div class="links"><div class="label">Go deeper</div><ul>
+    <li><a href="https://react.dev/learn/referencing-values-with-refs" target="_blank">react.dev — Referencing values with refs</a></li>
+  </ul></div>
+</section>
+
+<section class="lesson" id="l24" data-keywords="usereducer reducer action dispatch complex state transitions vs usestate which to use multiple related fields state machine">
+  <div class="tag"><span class="n">24</span>which to use</div>
+  <h2>useReducer</h2>
+  <div class="oneliner"><strong>In one line:</strong> <code>useReducer</code> centralizes complex state updates in one function (a reducer) that takes the current state and an action and returns the next state.</div>
+  <p>When state has many related fields or many ways to change, scattered <code>setState</code> calls get messy. A reducer puts all transitions in one place; components just <code>dispatch</code> actions like <code>{type: 'increment'}</code>. It's the same idea as Redux, built into React. Choose it over <code>useState</code> when update logic is complex or the next state depends heavily on the previous.</p>
+  <div class="analogy"><div class="label">Everyday analogy</div><p>A front desk that processes request slips. You don't reach into the filing cabinet yourself; you submit a slip ("check in guest"), and one clerk (the reducer) applies the rules and updates the records consistently.</p></div>
+  <div class="diagram"><svg viewBox="0 0 800 150" xmlns="http://www.w3.org/2000/svg">
+    <rect x="20" y="50" width="160" height="48" rx="8" fill="#E6F1FB" stroke="#185FA5"/><text x="100" y="72" text-anchor="middle" font-family="Inter" font-size="12" font-weight="600" fill="#042C53">component</text><text x="100" y="88" text-anchor="middle" font-family="Inter" font-size="10" fill="#0C447C">dispatch(action)</text>
+    <line x1="180" y1="74" x2="230" y2="74" stroke="#888780" stroke-width="1.5"/><polygon points="230,69 230,79 240,74" fill="#888780"/>
+    <rect x="242" y="50" width="200" height="48" rx="8" fill="#EEEDFE" stroke="#534AB7"/><text x="342" y="72" text-anchor="middle" font-family="Inter" font-size="12" font-weight="600" fill="#26215C">reducer(state, action)</text><text x="342" y="88" text-anchor="middle" font-family="Inter" font-size="10" fill="#534AB7">all transition rules here</text>
+    <line x1="442" y1="74" x2="492" y2="74" stroke="#888780" stroke-width="1.5"/><polygon points="492,69 492,79 502,74" fill="#888780"/>
+    <rect x="504" y="50" width="170" height="48" rx="8" fill="#E1F5EE" stroke="#0F6E56"/><text x="589" y="72" text-anchor="middle" font-family="Inter" font-size="12" font-weight="600" fill="#04342C">next state</text><text x="589" y="88" text-anchor="middle" font-family="Inter" font-size="10" fill="#085041">→ re-render</text>
+  </svg></div>
+  <table class="compare">
+    <tr><th>Use</th><th>useState</th><th>useReducer</th></tr>
+    <tr><td>Few independent values</td><td>✔ simpler</td><td>overkill</td></tr>
+    <tr><td>Many related fields / complex transitions</td><td>gets messy</td><td>✔ organized</td></tr>
+    <tr><td>Next state depends on prev in many ways</td><td>scattered</td><td>✔ one place</td></tr>
+  </table>
+  <div class="problem"><div class="label">Practice problem</div>
+    <p>A multi-step wizard tracks step, answers, errors, and "canGoNext", with rules tying them together. useState or useReducer?</p>
+    <details class="solution"><summary>Show solution</summary><div class="sol-body">useReducer. The fields interact and transitions have rules ("next step only if valid"). Centralizing them in a reducer keeps the logic consistent and testable, instead of several interdependent setState calls.</div></details>
+  </div>
+  <div class="links"><div class="label">Go deeper</div><ul>
+    <li><a href="https://react.dev/learn/extracting-state-logic-into-a-reducer" target="_blank">react.dev — Extracting state logic into a reducer</a></li>
+  </ul></div>
+</section>
+
+<section class="lesson" id="l25" data-keywords="usecontext context provider consumer prop drilling global shared theme auth avoid passing props deeply where to use">
+  <div class="tag"><span class="n">25</span>where to use</div>
+  <h2>useContext</h2>
+  <div class="oneliner"><strong>In one line:</strong> Context lets a parent broadcast a value to all its descendants without passing it through every prop in between (no "prop drilling").</div>
+  <p>When many components deep in the tree need the same value — theme, current user, language — threading it as a prop through every layer is painful. A Context <em>Provider</em> sets the value once; any descendant reads it with <code>useContext</code>. Best for low-frequency, broadly-shared, app-wide values — not as a general-purpose state manager for everything.</p>
+  <div class="analogy"><div class="label">Everyday analogy</div><p>A building's PA system. Instead of relaying a message person-to-person down every hallway (prop drilling), you announce once and everyone who's listening hears it directly.</p></div>
+  <div class="codeblock"><div class="code-label"><span>jsx · provide once, read anywhere below</span><button class="copybtn" data-copy="ctx">Copy</button></div><pre id="code-ctx"><span class="kw">const</span> ThemeContext = <span class="fn">createContext</span>(<span class="st">"light"</span>);
+
+<span class="kw">function</span> <span class="fn">App</span>() {
+  <span class="kw">return</span> (
+    <span class="tg">&lt;</span><span class="nm">ThemeContext.Provider</span> <span class="at">value</span>=<span class="st">"dark"</span><span class="tg">&gt;</span>
+      <span class="tg">&lt;</span><span class="nm">Toolbar</span> <span class="tg">/&gt;</span>   <span class="cm">// no theme prop needed</span>
+    <span class="tg">&lt;/</span><span class="nm">ThemeContext.Provider</span><span class="tg">&gt;</span>
+  );
+}
+
+<span class="kw">function</span> <span class="fn">Button</span>() {           <span class="cm">// deep descendant</span>
+  <span class="kw">const</span> theme = <span class="fn">useContext</span>(ThemeContext);
+  <span class="kw">return</span> <span class="tg">&lt;button</span> <span class="at">className</span>={theme} <span class="tg">/&gt;</span>;
+}</pre></div>
+  <div class="problem"><div class="label">Practice problem</div>
+    <p>Two components 5 levels apart need the logged-in user. Prop drilling or context?</p>
+    <details class="solution"><summary>Show solution</summary><div class="sol-body">Context. The user is app-wide and rarely changes — a perfect fit. Wrap the app in a user Provider and read it via <code>useContext</code> wherever needed, skipping the intermediate props.</div></details>
+  </div>
+  <div class="links"><div class="label">Go deeper</div><ul>
+    <li><a href="https://react.dev/learn/passing-data-deeply-with-context" target="_blank">react.dev — Passing data deeply with context</a></li>
+  </ul></div>
+</section>
+
+<section class="lesson" id="l26" data-keywords="usememo usecallback memoize performance expensive calculation referential equality avoid recompute when to use premature optimization">
+  <div class="tag"><span class="n">26</span>when to use</div>
+  <h2>useMemo &amp; useCallback</h2>
+  <div class="oneliner"><strong>In one line:</strong> <code>useMemo</code> caches an expensive computed value and <code>useCallback</code> caches a function, recomputing only when their dependencies change — use them to skip needless work, not by default.</div>
+  <p>Both are performance tools. <code>useMemo(() =&gt; compute(a), [a])</code> avoids recomputing on unrelated renders. <code>useCallback(fn, [a])</code> keeps the same function reference so a memoized child (Lesson 30) doesn't re-render. They have a cost, so reach for them when you have a measured, real expense — a heavy calculation or a stable reference a memoized child needs.</p>
+  <div class="analogy"><div class="label">Everyday analogy</div><p>Saving the result of a slow calculation on a sticky note so you don't redo it next time — useful for genuinely slow sums, pointless for "2 + 2."</p></div>
+  <div class="codeblock"><div class="code-label"><span>jsx · cache only the expensive part</span><button class="copybtn" data-copy="memo">Copy</button></div><pre id="code-memo"><span class="cm">// recompute the sorted list only when items/order change</span>
+<span class="kw">const</span> sorted = <span class="fn">useMemo</span>(
+  () =&gt; <span class="fn">heavySort</span>(items, order),
+  [items, order]
+);
+
+<span class="cm">// keep a stable function so &lt;Child/&gt; (memoized) won't re-render</span>
+<span class="kw">const</span> handleSelect = <span class="fn">useCallback</span>(
+  (id) =&gt; <span class="fn">setSelected</span>(id),
+  []
+);</pre></div>
+  <table class="compare">
+    <tr><th>Tool</th><th>Caches</th><th>Use when</th></tr>
+    <tr><td>useMemo</td><td>a computed value</td><td>the computation is genuinely expensive</td></tr>
+    <tr><td>useCallback</td><td>a function reference</td><td>passing a callback to a memoized child</td></tr>
+  </table>
+  <div class="example"><div class="label">Heads-up</div><p>React's newer compiler can apply much of this memoization automatically — when it's in use, hand-written <code>useMemo</code>/<code>useCallback</code> become less necessary. Treat this as a fast-moving specific; check react.dev for current status.</p></div>
+  <div class="problem"><div class="label">Practice problem</div>
+    <p>Should you wrap every value in <code>useMemo</code> "to be safe"?</p>
+    <details class="solution"><summary>Show solution</summary><div class="sol-body">No. Memoization isn't free — it adds memory and comparison cost and clutters code. Apply it where you've measured a real problem (a slow computation, or a reference a memoized child depends on), not preemptively.</div></details>
+  </div>
+  <div class="links"><div class="label">Go deeper</div><ul>
+    <li><a href="https://react.dev/reference/react/useMemo" target="_blank">react.dev — useMemo</a></li>
+    <li><a href="https://react.dev/reference/react/useCallback" target="_blank">react.dev — useCallback</a></li>
+  </ul></div>
+</section>
+
+<section class="lesson" id="l27" data-keywords="custom hook reuse logic extract stateful function use prefix share between components abstraction composition">
+  <div class="tag"><span class="n">27</span>pattern</div>
+  <h2>Custom hooks</h2>
+  <div class="oneliner"><strong>In one line:</strong> A custom hook is a function starting with <code>use</code> that bundles reusable stateful logic by calling other hooks — sharing behavior, not UI.</div>
+  <p>When two components need the same logic (track window size, debounce a value, fetch a resource), extract it into a function named <code>useSomething</code> that calls the built-in hooks and returns what callers need. Each component that uses it gets its <em>own</em> independent state — you're sharing the logic, not the data.</p>
+  <div class="analogy"><div class="label">Everyday analogy</div><p>A recipe card you can hand to any cook. Everyone follows the same steps, but each makes their own dish in their own kitchen. The card (hook) is shared; the meals (state) are separate.</p></div>
+  <div class="codeblock"><div class="code-label"><span>jsx · extract logic into a reusable hook</span><button class="copybtn" data-copy="custom">Copy</button></div><pre id="code-custom"><span class="cm">// reusable: tracks the window width</span>
+<span class="kw">function</span> <span class="fn">useWindowWidth</span>() {
+  <span class="kw">const</span> [w, setW] = <span class="fn">useState</span>(window.innerWidth);
+  <span class="fn">useEffect</span>(() =&gt; {
+    <span class="kw">const</span> on = () =&gt; <span class="fn">setW</span>(window.innerWidth);
+    window.<span class="fn">addEventListener</span>(<span class="st">"resize"</span>, on);
+    <span class="kw">return</span> () =&gt; window.<span class="fn">removeEventListener</span>(<span class="st">"resize"</span>, on);
+  }, []);
+  <span class="kw">return</span> w;
+}
+
+<span class="cm">// any component can now use it in one line</span>
+<span class="kw">function</span> <span class="fn">Layout</span>() {
+  <span class="kw">const</span> width = <span class="fn">useWindowWidth</span>();
+  <span class="kw">return</span> width &lt; <span class="st">700</span> ? <span class="tg">&lt;</span><span class="nm">Mobile</span><span class="tg">/&gt;</span> : <span class="tg">&lt;</span><span class="nm">Desktop</span><span class="tg">/&gt;</span>;
+}</pre></div>
+  <div class="problem"><div class="label">Practice problem</div>
+    <p>Two custom hooks both call <code>useState(0)</code>. Do they share that count?</p>
+    <details class="solution"><summary>Show solution</summary><div class="sol-body">No. Each call to a hook creates its own independent state. Custom hooks share <em>logic</em>, not state — every component (and every hook call) gets a fresh copy.</div></details>
+  </div>
+  <div class="links"><div class="label">Go deeper</div><ul>
+    <li><a href="https://react.dev/learn/reusing-logic-with-custom-hooks" target="_blank">react.dev — Reusing logic with custom hooks</a></li>
+  </ul></div>
+</section>
+
+<section class="lesson" id="l28" data-keywords="rules of hooks top level not conditional loop only react functions order call lint eslint plugin consistent">
+  <div class="tag"><span class="n">28</span>rules</div>
+  <h2>Rules of Hooks</h2>
+  <div class="oneliner"><strong>In one line:</strong> Call hooks only at the top level of a component (or another hook), in the same order every render — never inside conditions, loops, or nested functions.</div>
+  <p>React tracks hook state <em>by call order</em>, not by name. If a hook is sometimes skipped (inside an <code>if</code>), the order shifts and React mixes up which state belongs to which hook. So hooks must run unconditionally and only from React functions. The official ESLint plugin enforces this for you.</p>
+  <div class="analogy"><div class="label">Everyday analogy</div><p>Numbered lockers handed out in order. If you sometimes skip a person in line, everyone after gets the wrong locker. Always go in the same order so the numbering stays aligned.</p></div>
+  <div class="codeblock"><div class="code-label"><span>jsx · keep hooks unconditional</span><button class="copybtn" data-copy="rules">Copy</button></div><pre id="code-rules"><span class="cm">// ❌ conditional hook — order can change between renders</span>
+<span class="kw">if</span> (loggedIn) {
+  <span class="kw">const</span> [name, setName] = <span class="fn">useState</span>(<span class="st">""</span>);
+}
+
+<span class="cm">// ✅ hook at top level; put the condition inside</span>
+<span class="kw">const</span> [name, setName] = <span class="fn">useState</span>(<span class="st">""</span>);
+<span class="kw">if</span> (loggedIn) { <span class="cm">/* use name */</span> }</pre></div>
+  <div class="problem"><div class="label">Practice problem</div>
+    <p>You wrap <code>useEffect</code> in <code>if (data)</code> and get "rendered fewer hooks than expected." Why?</p>
+    <details class="solution"><summary>Show solution</summary><div class="sol-body">On renders where <code>data</code> is falsy the effect is skipped, changing the number/order of hook calls. Move the hook to the top level and put the <code>if</code> <em>inside</em> the effect (or use the dependency array).</div></details>
+  </div>
+  <div class="links"><div class="label">Go deeper</div><ul>
+    <li><a href="https://react.dev/reference/rules/rules-of-hooks" target="_blank">react.dev — Rules of Hooks</a></li>
+  </ul></div>
+</section>
+
+<div class="unit-title" data-unit-section="Unit 7 · Rendering &amp; performance"><h3>Unit 7 · Rendering &amp; performance</h3></div>
+
+<section class="lesson" id="l29" data-keywords="what triggers re-render state change parent re-render context change cascade children propagate down tree how ui updates">
+  <div class="tag"><span class="n">29</span>core mechanism</div>
+  <h2>What triggers a re-render</h2>
+  <div class="oneliner"><strong>In one line:</strong> A component re-renders when its own state changes, when its parent re-renders, or when a context it reads changes — and re-rendering a component re-renders its children by default.</div>
+  <p>This is the precise version of "how the UI changes when code changes." Three triggers: (1) you call a state setter in this component; (2) the parent re-rendered (so this child re-runs too); (3) a context value this component consumes changed. Crucially, when a component re-renders, all its descendants re-render too — unless you stop that with memoization (next lesson).</p>
+  <div class="analogy"><div class="label">Everyday analogy</div><p>Updating a slide near the top of a deck re-prints it and everything nested under it. The slides above are untouched; the branch below refreshes.</p></div>
+  <div class="tryit"><div class="label">Live: re-renders flow DOWN from where state changed</div>
+    <p style="font-size:13.5px;color:var(--text-2);margin:0 0 10px">Tap a node to "set its state." It and everything below it re-render (highlight); nodes above are untouched.</p>
+    <div class="tree-grid">
+      <div class="tree-row"><div class="tnode" id="tn-app" data-node="app">App</div></div>
+      <div class="tree-row"><div class="tnode" id="tn-parent" data-node="parent">Parent</div></div>
+      <div class="tree-row">
+        <div class="tnode" id="tn-a" data-node="a">Child A</div>
+        <div class="tnode" id="tn-b" data-node="b">Child B</div>
+      </div>
+    </div>
+    <div class="btnrow" style="justify-content:center">
+      <button class="act" data-set="app">setState in App</button>
+      <button class="act" data-set="parent">setState in Parent</button>
+      <button class="ghost" data-set="a">setState in Child A</button>
+    </div>
+    <div class="note" id="tree-note">Tap a button above.</div>
+  </div>
+  <table class="compare">
+    <tr><th>Trigger</th><th>What re-renders</th></tr>
+    <tr><td>This component's state changes</td><td>This component + all its children</td></tr>
+    <tr><td>Parent re-renders</td><td>This component (by default)</td></tr>
+    <tr><td>A consumed context changes</td><td>Components reading that context</td></tr>
+  </table>
+  <div class="problem"><div class="label">Practice problem</div>
+    <p>A counter at the top of your app re-renders the entire page on each click. Is that "broken"?</p>
+    <details class="solution"><summary>Show solution</summary><div class="sol-body">Not necessarily — re-rendering is cheap when output is unchanged, since React still only commits real DOM diffs. If it's actually slow, move the state down to where it's used, or memoize heavy children. Don't optimize before measuring.</div></details>
+  </div>
+  <div class="links"><div class="label">Go deeper</div><ul>
+    <li><a href="https://react.dev/learn/render-and-commit" target="_blank">react.dev — Render and commit</a></li>
+  </ul></div>
+</section>
+
+<section class="lesson" id="l30" data-keywords="react memo prevent re-render skip props unchanged shallow comparison performance optimization pure component when to use">
+  <div class="tag"><span class="n">30</span>when to use</div>
+  <h2>React.memo</h2>
+  <div class="oneliner"><strong>In one line:</strong> Wrapping a component in <code>React.memo</code> lets it skip re-rendering when its props haven't changed (by shallow comparison).</div>
+  <p>By default a child re-renders whenever its parent does. <code>React.memo</code> makes a child re-render only when its props actually change — useful for an expensive child whose props rarely change while the parent updates often. It pairs with <code>useCallback</code>/<code>useMemo</code> so the props you pass keep stable references; otherwise the comparison always sees "changed."</p>
+  <div class="analogy"><div class="label">Everyday analogy</div><p>A "do not disturb" sign that says "only knock if something actually changed for me." If nothing relevant changed, the worker keeps their previous result instead of redoing it.</p></div>
+  <div class="codeblock"><div class="code-label"><span>jsx · skip re-render when props are equal</span><button class="copybtn" data-copy="reactmemo">Copy</button></div><pre id="code-reactmemo"><span class="kw">const</span> Row = React.<span class="fn">memo</span>(<span class="kw">function</span> <span class="fn">Row</span>({ item }) {
+  <span class="cm">// re-renders only when `item` changes</span>
+  <span class="kw">return</span> <span class="tg">&lt;li&gt;</span>{item.text}<span class="tg">&lt;/li&gt;</span>;
+});</pre></div>
+  <div class="problem"><div class="label">Practice problem</div>
+    <p>You wrap a child in <code>React.memo</code> but it still re-renders every time. You pass it <code>onClick={() =&gt; ...}</code>. Why?</p>
+    <details class="solution"><summary>Show solution</summary><div class="sol-body">A new inline arrow function is created each render, so the <code>onClick</code> prop is a different reference every time and memo sees "props changed." Stabilize it with <code>useCallback</code> so the reference stays the same across renders.</div></details>
+  </div>
+  <div class="links"><div class="label">Go deeper</div><ul>
+    <li><a href="https://react.dev/reference/react/memo" target="_blank">react.dev — memo</a></li>
+  </ul></div>
+</section>
+
+<section class="lesson" id="l31" data-keywords="lazy suspense code splitting dynamic import fallback loading bundle size defer route based split performance">
+  <div class="tag"><span class="n">31</span>performance</div>
+  <h2>Lazy loading &amp; Suspense</h2>
+  <div class="oneliner"><strong>In one line:</strong> <code>React.lazy</code> loads a component's code only when it's first needed, and <code>&lt;Suspense&gt;</code> shows a fallback while it loads — shrinking your initial bundle.</div>
+  <p>Loading your whole app upfront is slow. Code-splitting defers parts (a heavy chart, a rarely-visited route) until they're actually rendered. <code>lazy(() =&gt; import('./Chart'))</code> creates a component fetched on demand; wrap it in <code>&lt;Suspense fallback={…}&gt;</code> to render a spinner meanwhile.</p>
+  <div class="analogy"><div class="label">Everyday analogy</div><p>A buffet that cooks dishes to order instead of laying out everything at once. You wait briefly for the dish you actually want, and the kitchen isn't overwhelmed upfront.</p></div>
+  <div class="codeblock"><div class="code-label"><span>jsx · load on demand with a fallback</span><button class="copybtn" data-copy="lazy">Copy</button></div><pre id="code-lazy"><span class="kw">const</span> Chart = React.<span class="fn">lazy</span>(() =&gt; <span class="fn">import</span>(<span class="st">"./Chart"</span>));
+
+<span class="kw">function</span> <span class="fn">Dashboard</span>() {
+  <span class="kw">return</span> (
+    <span class="tg">&lt;</span><span class="nm">Suspense</span> <span class="at">fallback</span>={<span class="tg">&lt;</span><span class="nm">Spinner</span> <span class="tg">/&gt;</span>}<span class="tg">&gt;</span>
+      <span class="tg">&lt;</span><span class="nm">Chart</span> <span class="tg">/&gt;</span>   <span class="cm">// its code loads only now</span>
+    <span class="tg">&lt;/</span><span class="nm">Suspense</span><span class="tg">&gt;</span>
+  );
+}</pre></div>
+  <div class="problem"><div class="label">Practice problem</div>
+    <p>Where's the biggest, easiest win for code-splitting in a typical multi-page app?</p>
+    <details class="solution"><summary>Show solution</summary><div class="sol-body">At the route level — lazy-load each page so visitors download only the route they're on, not every page upfront. Heavy, rarely-used widgets (editors, charts) are the next best candidates.</div></details>
+  </div>
+  <div class="links"><div class="label">Go deeper</div><ul>
+    <li><a href="https://react.dev/reference/react/lazy" target="_blank">react.dev — lazy</a></li>
+    <li><a href="https://react.dev/reference/react/Suspense" target="_blank">react.dev — Suspense</a></li>
+  </ul></div>
+</section>
+
+<div class="unit-title" data-unit-section="Unit 8 · Patterns that scale"><h3>Unit 8 · Patterns that scale</h3></div>
+
+<section class="lesson" id="l32" data-keywords="conditional rendering ternary logical and short circuit if else null early return falsy zero pitfall toggle show hide">
+  <div class="tag"><span class="n">32</span>patterns</div>
+  <h2>Conditional rendering</h2>
+  <div class="oneliner"><strong>In one line:</strong> JSX is just expressions, so you choose what to show with ordinary JavaScript — a ternary, a <code>&&</code>, or returning <code>null</code> to render nothing.</div>
+  <p>There's no special "if" syntax in JSX. You decide what an element should be <em>before</em> you put it in the tree. The three everyday tools: <code>cond ? &lt;A/&gt; : &lt;B/&gt;</code> to pick between two things, <code>cond && &lt;A/&gt;</code> to show something or nothing, and <code>if (…) return …</code> at the top of a component for whole-screen branches like loading states.</p>
+  <div class="analogy"><div class="label">Everyday analogy</div><p>A traffic light. The same intersection shows different signals depending on state — you don't build a new road, you pick which light is on right now.</p></div>
+  <div class="problem"><div class="label">Common pitfall</div>
+    <p>Why does <code>{count && &lt;Badge/&gt;}</code> render a stray <code>0</code> on screen when <code>count</code> is zero?</p>
+    <details class="solution"><summary>Show solution</summary><div class="sol-body">Because <code>0</code> is falsy, <code>0 && …</code> evaluates to <code>0</code> — and React renders the number 0 as text. <code>false</code>, <code>null</code>, and <code>undefined</code> render nothing, but <code>0</code> and <code>NaN</code> are real values. Fix it with a real boolean: <code>{count > 0 && &lt;Badge/&gt;}</code>.</div></details>
+  </div>
+  <div class="codeblock"><div class="code-label"><span>jsx · three ways to branch</span><button class="copybtn" data-copy="cond">Copy</button></div><pre id="code-cond"><span class="cm">// 1) whole-screen branch — early return</span>
+<span class="kw">if</span> (isLoading) <span class="kw">return</span> <span class="tg">&lt;</span><span class="nm">Spinner</span> <span class="tg">/&gt;</span>;
+
+<span class="kw">return</span> (
+  <span class="tg">&lt;</span><span class="nm">div</span><span class="tg">&gt;</span>
+    <span class="cm">{/* 2) show-or-nothing — guard with a real boolean */}</span>
+    {items.length &gt; <span class="nm">0</span> &amp;&amp; <span class="tg">&lt;</span><span class="nm">List</span> <span class="at">items</span>={items} <span class="tg">/&gt;</span>}
+    <span class="cm">{/* 3) pick one of two — ternary */}</span>
+    {user ? <span class="tg">&lt;</span><span class="nm">Profile</span> <span class="tg">/&gt;</span> : <span class="tg">&lt;</span><span class="nm">LoginButton</span> <span class="tg">/&gt;</span>}
+  <span class="tg">&lt;/</span><span class="nm">div</span><span class="tg">&gt;</span>
+);</pre></div>
+  <div class="links"><div class="label">Go deeper</div><ul>
+    <li><a href="https://react.dev/learn/conditional-rendering" target="_blank">react.dev — Conditional Rendering</a></li>
+  </ul></div>
+</section>
+
+<section class="lesson" id="l33" data-keywords="composition patterns children slots compound components render props specialization wrapper layout reuse flexible api props">
+  <div class="tag"><span class="n">33</span>patterns</div>
+  <h2>Composition over configuration</h2>
+  <div class="oneliner"><strong>In one line:</strong> instead of one giant component with dozens of props, build small pieces and let users combine them — pass JSX through <code>children</code> and named slots.</div>
+  <p>When a component grows a long list of boolean props (<code>showHeader</code>, <code>showFooter</code>, <code>variant</code>, <code>size</code>…), that's a signal to compose instead. A flexible <code>&lt;Card&gt;</code> doesn't try to anticipate every layout — it accepts <code>children</code> (and maybe a <code>header</code> or <code>actions</code> slot) and lets the caller arrange the inside. This keeps each component simple and the combinations open-ended.</p>
+  <div class="analogy"><div class="label">Everyday analogy</div><p>LEGO vs. a pre-molded toy. A molded toy does exactly one thing; LEGO bricks do anything because they're designed to snap together. Composition gives you bricks.</p></div>
+  <table class="compare">
+    <thead><tr><th>Configuration (props for everything)</th><th>Composition (pass children/slots)</th></tr></thead>
+    <tbody>
+      <tr><td>One component, many flags</td><td>Small components combined by the caller</td></tr>
+      <tr><td>New use case → new prop</td><td>New use case → rearrange existing pieces</td></tr>
+      <tr><td>Hard to anticipate every layout</td><td>Layout decided where it's used</td></tr>
+      <tr><td>Prop list keeps growing</td><td>API stays small and stable</td></tr>
+    </tbody>
+  </table>
+  <div class="codeblock"><div class="code-label"><span>jsx · a card that composes instead of configures</span><button class="copybtn" data-copy="compose">Copy</button></div><pre id="code-compose"><span class="kw">function</span> <span class="fn">Card</span>({ title, actions, children }) {
+  <span class="kw">return</span> (
+    <span class="tg">&lt;</span><span class="nm">section</span> <span class="at">className</span>=<span class="st">"card"</span><span class="tg">&gt;</span>
+      <span class="tg">&lt;</span><span class="nm">header</span><span class="tg">&gt;</span>{title}{actions}<span class="tg">&lt;/</span><span class="nm">header</span><span class="tg">&gt;</span>
+      <span class="tg">&lt;</span><span class="nm">div</span><span class="tg">&gt;</span>{children}<span class="tg">&lt;/</span><span class="nm">div</span><span class="tg">&gt;</span>
+    <span class="tg">&lt;/</span><span class="nm">section</span><span class="tg">&gt;</span>
+  );
+}
+
+<span class="cm">// caller decides the inside — no new props needed</span>
+<span class="tg">&lt;</span><span class="nm">Card</span> <span class="at">title</span>={<span class="tg">&lt;</span><span class="nm">h2</span><span class="tg">&gt;</span>Sales<span class="tg">&lt;/</span><span class="nm">h2</span><span class="tg">&gt;</span>} <span class="at">actions</span>={<span class="tg">&lt;</span><span class="nm">Button</span><span class="tg">&gt;</span>Edit<span class="tg">&lt;/</span><span class="nm">Button</span><span class="tg">&gt;</span>}<span class="tg">&gt;</span>
+  <span class="tg">&lt;</span><span class="nm">Chart</span> <span class="tg">/&gt;</span>
+<span class="tg">&lt;/</span><span class="nm">Card</span><span class="tg">&gt;</span></pre></div>
+  <div class="problem"><div class="label">Practice problem</div>
+    <p>You have a <code>&lt;Modal&gt;</code> with props <code>title</code>, <code>body</code>, <code>showCancel</code>, <code>showConfirm</code>, <code>confirmText</code>… and it keeps growing. What's the compositional fix?</p>
+    <details class="solution"><summary>Show solution</summary><div class="sol-body">Let <code>&lt;Modal&gt;</code> render <code>children</code> and provide small building blocks (<code>Modal.Header</code>, <code>Modal.Body</code>, <code>Modal.Footer</code>, or just plain JSX). The caller composes the exact buttons and text it wants, so Modal stops needing a new prop for every variation.</div></details>
+  </div>
+  <div class="links"><div class="label">Go deeper</div><ul>
+    <li><a href="https://react.dev/learn/passing-props-to-a-component#passing-jsx-as-children" target="_blank">react.dev — Passing JSX as children</a></li>
+  </ul></div>
+</section>
+
+<section class="lesson" id="l34" data-keywords="where state belongs colocation lift down single source of truth ownership local global which component owns state placement design">
+  <div class="tag"><span class="n">34</span>patterns</div>
+  <h2>Where should state live?</h2>
+  <div class="oneliner"><strong>In one line:</strong> put each piece of state in the lowest component that needs it — and if two siblings need it, move it up to their closest common parent, no higher.</div>
+  <p>This is the question that decides whether an app stays sane. The rule of thumb: <strong>colocate</strong> — keep state as close as possible to where it's used. Only "lift" it when a second component needs to read or change the same value. Lifting too high makes a parent re-render on every keystroke deep below; keeping it too low means siblings can't share it. Aim for the smallest scope that still works.</p>
+  <div class="analogy"><div class="label">Everyday analogy</div><p>Storing things at home. Keep the salt in the kitchen, not the garage. Shared stuff (the thermostat) goes somewhere both roommates can reach — but you don't move the thermostat to the roof "just in case."</p></div>
+  <table class="compare">
+    <thead><tr><th>Situation</th><th>Where the state should live</th></tr></thead>
+    <tbody>
+      <tr><td>Only one component reads &amp; writes it</td><td>Inside that component (colocated)</td></tr>
+      <tr><td>Two siblings need it</td><td>Their closest common parent (lift up — L15)</td></tr>
+      <tr><td>Most of the tree needs it</td><td>Context (L25) or a state library (L39)</td></tr>
+      <tr><td>It lives on a server</td><td>Server cache, not local state (L37)</td></tr>
+      <tr><td>It's derivable from other state/props</td><td>Don't store it — compute it (L14)</td></tr>
+    </tbody>
+  </table>
+  <div class="problem"><div class="label">Practice problem</div>
+    <p>A form's open/closed state currently sits in the top-level <code>App</code>. Only the form and its trigger button use it. What should you do, and why?</p>
+    <details class="solution"><summary>Show solution</summary><div class="sol-body">Push it down to the smallest component that contains both the trigger and the form. Keeping it in <code>App</code> re-renders the entire app each time the form toggles, and clutters the top with detail nobody else needs. Colocation makes it faster and easier to reason about.</div></details>
+  </div>
+  <div class="links"><div class="label">Go deeper</div><ul>
+    <li><a href="https://react.dev/learn/sharing-state-between-components" target="_blank">react.dev — Sharing State Between Components</a></li>
+    <li><a href="https://kentcdodds.com/blog/colocation" target="_blank">Kent C. Dodds — Colocation</a></li>
+  </ul></div>
+</section>
+
+<div class="unit-title" data-unit-section="Unit 9 · Talking to a server"><h3>Unit 9 · Talking to a server</h3></div>
+
+<section class="lesson" id="l35" data-keywords="data fetching useEffect fetch async await api request network on mount race condition cleanup ignore flag stale response order">
+  <div class="tag"><span class="n">35</span>data</div>
+  <h2>Fetching data with Effects</h2>
+  <div class="oneliner"><strong>In one line:</strong> fetching is a side effect, so it lives in <code>useEffect</code> — kick off the request on mount (or when inputs change), and guard against responses arriving out of order.</div>
+  <p>To load data when a component appears, run a <code>fetch</code> inside <code>useEffect</code> and store the result in state. The subtle part is <strong>race conditions</strong>: if a prop changes fast, an older request can resolve <em>after</em> a newer one and overwrite fresh data with stale data. The fix is an <code>ignore</code> flag set in the effect's cleanup — when a new effect runs, the old one is told to discard its result.</p>
+  <div class="analogy"><div class="label">Everyday analogy</div><p>Ordering takeout, then changing your order. If the first kitchen is slower, its meal might show up last. The <code>ignore</code> flag is you telling the door: "if the old order arrives, refuse it — I only want the latest."</p></div>
+  <div class="codeblock"><div class="code-label"><span>jsx · fetch on change, ignore stale responses</span><button class="copybtn" data-copy="fetch">Copy</button></div><pre id="code-fetch"><span class="kw">useEffect</span>(() =&gt; {
+  <span class="kw">let</span> ignore = <span class="nm">false</span>;            <span class="cm">// this run's "is it still current?" flag</span>
+  <span class="fn">setData</span>(<span class="nm">null</span>);               <span class="cm">// show loading while we fetch</span>
+  <span class="fn">fetch</span>(<span class="st">`/api/user/`</span> + id)
+    .<span class="fn">then</span>(r =&gt; r.<span class="fn">json</span>())
+    .<span class="fn">then</span>(json =&gt; { <span class="kw">if</span> (!ignore) <span class="fn">setData</span>(json); });
+  <span class="kw">return</span> () =&gt; { ignore = <span class="nm">true</span>; };  <span class="cm">// next run disowns this one</span>
+}, [id]);                       <span class="cm">// re-fetch whenever id changes</span></pre></div>
+  <div class="problem"><div class="label">Practice problem</div>
+    <p>Without the <code>ignore</code> flag, you type "a", then quickly "ab". Sometimes the screen shows results for "a". Why?</p>
+    <details class="solution"><summary>Show solution</summary><div class="sol-body">Network responses aren't guaranteed to return in the order they were sent. The "a" request can resolve after "ab", calling <code>setData</code> last and clobbering the newer results. The cleanup flag makes the stale callback a no-op, so only the latest request can update state.</div></details>
+  </div>
+  <div class="links"><div class="label">Go deeper</div><ul>
+    <li><a href="https://react.dev/learn/synchronizing-with-effects#fetching-data" target="_blank">react.dev — Fetching data in Effects</a></li>
+  </ul></div>
+</section>
+
+<section class="lesson" id="l36" data-keywords="loading error success states ui status idle pending settled spinner empty state try catch resilient ux three states render branches">
+  <div class="tag"><span class="n">36</span>data</div>
+  <h2>Loading, error, success</h2>
+  <div class="oneliner"><strong>In one line:</strong> any async data has at least three on-screen states — loading, error, and success — and your UI should explicitly render all three, not just the happy path.</div>
+  <p>Beginners render only the success case, so the screen is blank while loading and crashes (or stays blank) on failure. A resilient component tracks status and branches: show a spinner or skeleton while pending, a friendly message plus retry on error, and the data on success. Don't forget the <em>empty</em> success case — "loaded fine, but there are zero items" deserves its own message.</p>
+  <div class="analogy"><div class="label">Everyday analogy</div><p>An elevator panel. It tells you it's coming (loading), it's out of service (error), or which floor it's on (success). A panel that only lights up when the elevator arrives leaves you staring at a blank wall.</p></div>
+  <div class="codeblock"><div class="code-label"><span>jsx · render every state explicitly</span><button class="copybtn" data-copy="states">Copy</button></div><pre id="code-states"><span class="kw">if</span> (status === <span class="st">"loading"</span>) <span class="kw">return</span> <span class="tg">&lt;</span><span class="nm">Spinner</span> <span class="tg">/&gt;</span>;
+<span class="kw">if</span> (status === <span class="st">"error"</span>)   <span class="kw">return</span> <span class="tg">&lt;</span><span class="nm">Error</span> <span class="at">onRetry</span>={refetch} <span class="tg">/&gt;</span>;
+<span class="kw">if</span> (items.length === <span class="nm">0</span>) <span class="kw">return</span> <span class="tg">&lt;</span><span class="nm">Empty</span> <span class="tg">/&gt;</span>;
+<span class="kw">return</span> <span class="tg">&lt;</span><span class="nm">List</span> <span class="at">items</span>={items} <span class="tg">/&gt;</span>;   <span class="cm">// success with data</span></pre></div>
+  <div class="example"><div class="label">Why it matters</div><p>Treating status as a single value (<code>"idle" | "loading" | "error" | "success"</code>) instead of juggling separate <code>isLoading</code> / <code>isError</code> booleans prevents impossible combinations like "loading <em>and</em> error at once."</p></div>
+  <div class="problem"><div class="label">Practice problem</div>
+    <p>Your component uses <code>isLoading</code> and <code>data</code>. On error it sets <code>isLoading=false</code> but leaves <code>data=null</code>, so it renders a blank list forever. What's a sturdier model?</p>
+    <details class="solution"><summary>Show solution</summary><div class="sol-body">Use one <code>status</code> enum plus separate <code>data</code> and <code>error</code> fields. Then each render path is explicit and you can't fall into the "not loading, no data, no error shown" gap. Libraries like React Query (next lesson) give you this for free.</div></details>
+  </div>
+  <div class="links"><div class="label">Go deeper</div><ul>
+    <li><a href="https://kentcdodds.com/blog/stop-using-isloading-booleans" target="_blank">Kent C. Dodds — Stop using isLoading booleans</a></li>
+  </ul></div>
+</section>
+
+<section class="lesson" id="l37" data-keywords="server state react query tanstack swr cache caching dedupe refetch stale while revalidate background sync mutation invalidate async data library">
+  <div class="tag"><span class="n">37</span>data</div>
+  <h2>Server state &amp; React Query</h2>
+  <div class="oneliner"><strong>In one line:</strong> data that lives on a server isn't really your component's state — it's a cache of someone else's state, and tools like TanStack Query (React Query) manage that cache so you stop hand-rolling fetch + loading + error + refetch every time.</div>
+  <p>The big mental shift: <strong>server state is different from UI state.</strong> It can go stale, it's shared across components, and it needs caching, deduplication, retries, and background refresh. Doing all that by hand with <code>useEffect</code> gets repetitive and buggy. A query library gives you a <code>useQuery</code> hook that returns <code>data</code>, <code>isLoading</code>, and <code>error</code>, caches by key, dedupes identical requests, and refetches in the background to keep things fresh.</p>
+  <div class="analogy"><div class="label">Everyday analogy</div><p>A library branch holding copies of books owned by a central archive. The branch caches popular books, lends the same copy to many readers, and quietly swaps in updated editions — so you don't drive to the archive every time.</p></div>
+  <table class="compare">
+    <thead><tr><th>Hand-rolled <code>useEffect</code> fetch</th><th>Query library (TanStack Query / SWR)</th></tr></thead>
+    <tbody>
+      <tr><td>You write loading/error/race logic each time</td><td>Built in, consistent everywhere</td></tr>
+      <tr><td>Two components fetching same URL → two requests</td><td>Deduped &amp; shared from one cache</td></tr>
+      <tr><td>No caching — refetch on every mount</td><td>Cached by key, instant on revisit</td></tr>
+      <tr><td>Manual refetch / no background updates</td><td>Stale-while-revalidate, auto refetch</td></tr>
+    </tbody>
+  </table>
+  <div class="codeblock"><div class="code-label"><span>jsx · the whole fetch lifecycle in a few lines</span><button class="copybtn" data-copy="rquery">Copy</button></div><pre id="code-rquery"><span class="kw">function</span> <span class="fn">Profile</span>({ id }) {
+  <span class="kw">const</span> { data, isLoading, error } = <span class="fn">useQuery</span>({
+    queryKey: [<span class="st">"user"</span>, id],          <span class="cm">// cache identity</span>
+    queryFn: () =&gt; <span class="fn">fetch</span>(<span class="st">`/api/user/`</span> + id).<span class="fn">then</span>(r =&gt; r.<span class="fn">json</span>()),
+  });
+  <span class="kw">if</span> (isLoading) <span class="kw">return</span> <span class="tg">&lt;</span><span class="nm">Spinner</span> <span class="tg">/&gt;</span>;
+  <span class="kw">if</span> (error)     <span class="kw">return</span> <span class="tg">&lt;</span><span class="nm">Error</span> <span class="tg">/&gt;</span>;
+  <span class="kw">return</span> <span class="tg">&lt;</span><span class="nm">h1</span><span class="tg">&gt;</span>{data.name}<span class="tg">&lt;/</span><span class="nm">h1</span><span class="tg">&gt;</span>;
+}</pre></div>
+  <div class="problem"><div class="label">Common pitfall</div>
+    <p>People try to copy fetched data into <code>useState</code> "to be safe," then sync it with effects. Why is that usually a mistake?</p>
+    <details class="solution"><summary>Show solution</summary><div class="sol-body">You'd be duplicating the cache into local state and then fighting to keep them in sync — exactly the bug-prone work the library exists to remove. Read directly from the query's <code>data</code>; only put genuinely local UI state (a toggle, a draft input) in <code>useState</code>.</div></details>
+  </div>
+  <div class="deeper">Freshness note: TanStack Query is the de-facto standard for client-side server-state in mid-2026; SWR is a lighter alternative, and frameworks with Server Components (L38) shift some of this work to the server. The <em>concept</em> — server data is a cache, not state — is what's durable.</div>
+  <div class="links"><div class="label">Go deeper</div><ul>
+    <li><a href="https://tanstack.com/query/latest" target="_blank">TanStack Query — docs</a></li>
+    <li><a href="https://react.dev/learn/you-might-not-need-an-effect" target="_blank">react.dev — You Might Not Need an Effect</a></li>
+  </ul></div>
+</section>
+
+<div class="unit-title" data-unit-section="Unit 10 · The ecosystem"><h3>Unit 10 · The ecosystem</h3></div>
+
+<section class="lesson" id="l38" data-keywords="vite nextjs framework spa single page application server side rendering ssr ssg react server components rsc routing build tool which to use bundler">
+  <div class="tag"><span class="n">38</span>ecosystem</div>
+  <h2>Vite vs. Next.js — which to reach for</h2>
+  <div class="oneliner"><strong>In one line:</strong> Vite builds a fast plain-React single-page app and gets out of your way; Next.js is a full framework that adds server rendering, routing, and data conventions — pick based on whether you need a server.</div>
+  <p>React itself is just the rendering library; you need a tool around it. <strong>Vite</strong> gives you a lightning-fast dev server and a build step for a client-rendered SPA — ideal for dashboards, internal tools, and apps that live behind a login. <strong>Next.js</strong> is opinionated: file-based routing, server-side rendering and static generation for SEO, and React Server Components that run on the server and ship less JavaScript. If you need great SEO, server data fetching, or a marketing-plus-app site, a framework earns its weight; if you just need a snappy app shell, Vite is lighter.</p>
+  <div class="analogy"><div class="label">Everyday analogy</div><p>Vite is a high-quality engine you drop into your own chassis. Next.js is a finished car — engine, wheels, dashboard, and a recommended way to drive — faster to ship, but you adopt its conventions.</p></div>
+  <table class="compare">
+    <thead><tr><th>Reach for Vite when…</th><th>Reach for Next.js (or a full framework) when…</th></tr></thead>
+    <tbody>
+      <tr><td>App is behind a login; SEO doesn't matter</td><td>You need SEO / social previews / fast first paint</td></tr>
+      <tr><td>You want a minimal, client-only SPA</td><td>You want server rendering &amp; Server Components</td></tr>
+      <tr><td>You'll pick your own router &amp; data layer</td><td>You want routing, data, and caching built in</td></tr>
+      <tr><td>Dashboards, internal tools, prototypes</td><td>Content sites, e-commerce, app + marketing</td></tr>
+    </tbody>
+  </table>
+  <div class="example"><div class="label">Server Components in one breath</div><p>React Server Components (RSC) render on the server and send HTML (plus a little data) instead of shipping their code to the browser. They can read a database directly and can't use state or effects; you mark interactive bits as Client Components with <code>"use client"</code>. Frameworks like Next.js are how most people use RSC today.</p></div>
+  <div class="problem"><div class="label">Practice problem</div>
+    <p>You're building an internal admin panel — login required, no public pages, lots of interactive tables. Vite or Next.js?</p>
+    <details class="solution"><summary>Show solution</summary><div class="sol-body">Vite is the natural fit: SEO is irrelevant behind a login, and you want a fast, client-rendered SPA without a framework's server conventions. You'd add a router (e.g. React Router) and a data layer (e.g. TanStack Query) yourself. Next.js wouldn't be wrong, just heavier than needed.</div></details>
+  </div>
+  <div class="deeper">Freshness note: as of mid-2026 the official react.dev guidance points beginners toward a framework (Next.js, React Router/Remix, Expo for native) for full apps, with Vite popular for SPAs. Names and defaults move — confirm current recommendations on react.dev before committing a new project.</div>
+  <div class="links"><div class="label">Go deeper</div><ul>
+    <li><a href="https://react.dev/learn/start-a-new-react-project" target="_blank">react.dev — Start a New Project</a></li>
+    <li><a href="https://vite.dev/" target="_blank">Vite</a></li>
+    <li><a href="https://nextjs.org/" target="_blank">Next.js</a></li>
+  </ul></div>
+</section>
+
+<section class="lesson" id="l39" data-keywords="state management libraries redux zustand jotai context global state when to use which store atoms flux boilerplate client state shared">
+  <div class="tag"><span class="n">39</span>ecosystem</div>
+  <h2>State libraries — and when you need one</h2>
+  <div class="oneliner"><strong>In one line:</strong> most apps don't need a global state library — start with local state and Context; reach for Zustand, Redux, or Jotai only when truly shared <em>client</em> state gets painful to pass around.</div>
+  <p>First, separate the two kinds of state: <strong>server state</strong> (cached data from an API — use a query library, L37) and <strong>client state</strong> (UI things like a sidebar toggle, a wizard step, a shopping cart). Global state libraries are for the latter, when it's shared widely. The honest default is: <code>useState</code> for local, lift it up (L15) when shared, Context (L25) for low-frequency global values like theme or auth. Only when client state is large, frequently updated, and spread across the tree does a dedicated store pay off.</p>
+  <div class="analogy"><div class="label">Everyday analogy</div><p>You don't rent a warehouse to store a few boxes. A closet (local state) handles most things; a shared garage (Context) handles the rest; you only rent the warehouse (a state library) when you genuinely have warehouse-scale stuff.</p></div>
+  <table class="compare">
+    <thead><tr><th>Library</th><th>Feel / when it fits</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Context + useReducer</strong></td><td>Built into React; fine for modest shared state, no dependency</td></tr>
+      <tr><td><strong>Zustand</strong></td><td>Tiny, minimal boilerplate; a simple shared store you read with a hook</td></tr>
+      <tr><td><strong>Jotai / Recoil-style</strong></td><td>Atom-based; granular updates, good when many small independent pieces</td></tr>
+      <tr><td><strong>Redux (Toolkit)</strong></td><td>Structured, predictable, great devtools; shines in large teams/apps</td></tr>
+    </tbody>
+  </table>
+  <div class="problem"><div class="label">Common pitfall</div>
+    <p>A team puts <em>all</em> their fetched API data into Redux and writes effects to keep it synced. Why is that often the wrong tool?</p>
+    <details class="solution"><summary>Show solution</summary><div class="sol-body">That's server state masquerading as client state. A query library (L37) already caches, dedupes, and refetches it. Reserve the state library for genuine client state; you'll write far less sync code and avoid stale-cache bugs.</div></details>
+  </div>
+  <div class="deeper">Freshness note: in mid-2026, Zustand is the popular lightweight pick, Redux Toolkit remains the structured standard, and "do you even need a library?" is still the right first question. Popularity shifts — these are snapshots, not endorsements.</div>
+  <div class="links"><div class="label">Go deeper</div><ul>
+    <li><a href="https://react.dev/learn/scaling-up-with-reducer-and-context" target="_blank">react.dev — Scaling Up with Reducer and Context</a></li>
+    <li><a href="https://zustand.docs.pmnd.rs/" target="_blank">Zustand</a></li>
+    <li><a href="https://redux-toolkit.js.org/" target="_blank">Redux Toolkit</a></li>
+  </ul></div>
+</section>
+
+<section class="lesson" id="l40" data-keywords="styling approaches css modules tailwind css in js styled components utility classes scoped which to use plain css vanilla extract design system">
+  <div class="tag"><span class="n">40</span>ecosystem</div>
+  <h2>Styling approaches</h2>
+  <div class="oneliner"><strong>In one line:</strong> there's no single "React way" to style — CSS Modules, Tailwind, and CSS-in-JS all work; they trade off between familiarity, scoping, and how close styles sit to your markup.</div>
+  <p>React renders <code>className</code> strings; how you produce those is up to you. The main families: <strong>plain CSS / CSS Modules</strong> (real CSS files, with Modules giving you locally-scoped class names so styles don't leak), <strong>utility-first (Tailwind)</strong> (compose tiny class names right in the JSX — fast to write, styles live with markup), and <strong>CSS-in-JS</strong> (write styles in JavaScript, co-located and dynamic, e.g. styled-components — though runtime CSS-in-JS has fallen out of favor for performance). Pick for your team's comfort and your need for scoping and dynamism, not for fashion.</p>
+  <div class="analogy"><div class="label">Everyday analogy</div><p>Ways to label moving boxes: a separate inventory sheet (CSS files), stickers right on each box (Tailwind utilities), or a smart label that changes text based on contents (CSS-in-JS). All get the boxes labeled; they differ in where the labels live and how dynamic they are.</p></div>
+  <table class="compare">
+    <thead><tr><th>Approach</th><th>Trade-off</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Plain CSS / CSS Modules</strong></td><td>Familiar, zero runtime; Modules add automatic scoping</td></tr>
+      <tr><td><strong>Tailwind (utility-first)</strong></td><td>Very fast to build, styles co-located; verbose class strings</td></tr>
+      <tr><td><strong>CSS-in-JS (styled-components)</strong></td><td>Dynamic &amp; co-located; runtime cost — prefer zero-runtime options</td></tr>
+      <tr><td><strong>Component libraries (MUI, shadcn/ui)</strong></td><td>Pre-built styled components; less control, faster to ship</td></tr>
+    </tbody>
+  </table>
+  <div class="problem"><div class="label">Practice problem</div>
+    <p>A solo developer wants to ship a small app fast, doesn't enjoy naming CSS classes, and is fine with verbose markup. Which approach fits?</p>
+    <details class="solution"><summary>Show solution</summary><div class="sol-body">Tailwind suits that profile well: no class-naming, styles right in the JSX, quick iteration. A team that prefers separation of concerns and has a designer might lean to CSS Modules instead. There's no wrong answer — match it to who's building and maintaining it.</div></details>
+  </div>
+  <div class="deeper">Freshness note: as of mid-2026 Tailwind and CSS Modules dominate new projects, runtime CSS-in-JS has cooled (especially with Server Components), and "zero-runtime" CSS-in-JS tools are rising. Verify the current landscape before standardizing a stack.</div>
+  <div class="links"><div class="label">Go deeper</div><ul>
+    <li><a href="https://tailwindcss.com/" target="_blank">Tailwind CSS</a></li>
+    <li><a href="https://github.com/css-modules/css-modules" target="_blank">CSS Modules</a></li>
+  </ul></div>
+</section>
+
+<div class="unit-title" data-unit-section="Next steps"><h3>Next steps</h3></div>
+
+<section class="lesson" id="resources" data-keywords="resources next steps build path practice project portfolio learn roadmap docs react dev where to go from here checklist tutorial">
+  <div class="tag"><span class="n">★</span>wrap-up</div>
+  <h2>Where to go from here</h2>
+  <div class="oneliner"><strong>In one line:</strong> you now have the mental model — the fastest way to make it stick is to build one real thing, looking up specifics as you hit them.</div>
+  <p>The forty lessons above cover the durable core: components and JSX, props and one-way data flow, state and reactivity, effects, the hooks toolbox, rendering and performance, patterns, data fetching, and the ecosystem choices. The concepts are stable; the tooling moves. Treat <a href="https://react.dev" target="_blank">react.dev</a> as the source of truth for current APIs and recommendations, and learn the rest by shipping.</p>
+  <div class="example"><div class="label">The fastest path that actually works</div>
+  <table class="compare">
+    <thead><tr><th>#</th><th>Do this</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Scaffold a project (Vite for an SPA, or a framework per L38) and get "hello world" on screen</td></tr>
+      <tr><td>2</td><td>Build a small app with real state — a todo list, then a version that fetches from an API</td></tr>
+      <tr><td>3</td><td>Add the three data states (loading / error / success, L36) and lift state where two parts share it (L15)</td></tr>
+      <tr><td>4</td><td>Refactor: extract a custom hook (L27), memoize a hot path only after measuring (L26, L30)</td></tr>
+      <tr><td>5</td><td>Deploy it and put it on GitHub — a single shipped project teaches more than ten tutorials</td></tr>
+    </tbody>
+  </table></div>
+  <div class="links"><div class="label">Keep these open</div><ul>
+    <li><a href="https://react.dev/learn" target="_blank">react.dev — Learn React (official, beginner-friendly)</a></li>
+    <li><a href="https://react.dev/reference/react" target="_blank">react.dev — API Reference</a></li>
+    <li><a href="https://react.dev/learn/thinking-in-react" target="_blank">react.dev — Thinking in React</a></li>
+  </ul></div>
+  <div class="deeper">Reminder: when a lesson here and react.dev disagree on a fast-moving specific (a framework default, a recommended library), trust react.dev — this guide's job was to give you the model to understand <em>why</em>.</div>
+</section>
+
+<footer>React field guide — built concept by concept, mid-2026. The model is durable; verify fast-moving specifics against react.dev.</footer>
+</main>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+// ---- Search ----
+const search = document.getElementById('search');
+const lessons = Array.from(document.querySelectorAll('section.lesson'));
+const unitTitles = Array.from(document.querySelectorAll('.unit-title'));
+const navLinks = Array.from(document.querySelectorAll('#nav a'));
+const navUnitLabels = Array.from(document.querySelectorAll('#nav [data-unit]'));
+const countEl = document.getElementById('searchCount');
+const noResults = document.getElementById('noResults');
+
+function clearHighlights(el){
+  el.querySelectorAll('mark').forEach(m => {
+    m.replaceWith(document.createTextNode(m.textContent));
+  });
+  el.normalize();
+}
+function highlight(el, term){
+  if(!term) return;
+  const rx = new RegExp('('+term.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi');
+  const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, {
+    acceptNode: n => (n.parentNode && ['SCRIPT','STYLE','MARK'].includes(n.parentNode.tagName)) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT
+  });
+  const nodes = [];
+  while(walker.nextNode()) nodes.push(walker.currentNode);
+  nodes.forEach(node => {
+    if(rx.test(node.nodeValue)){
+      const span = document.createElement('span');
+      span.innerHTML = node.nodeValue.replace(rx,'<mark>$1</mark>');
+      node.replaceWith(span);
+      while(span.firstChild) span.parentNode.insertBefore(span.firstChild, span);
+      span.remove();
+    }
+  });
+}
+
+search.addEventListener('input', () => {
+  const term = search.value.trim().toLowerCase();
+  lessons.forEach(clearHighlights);
+  let matches = 0;
+  const matchedIds = new Set();
+
+  lessons.forEach(sec => {
+    const text = (sec.textContent + ' ' + (sec.dataset.keywords||'')).toLowerCase();
+    const hit = term === '' || text.includes(term);
+    sec.classList.toggle('hidden', !hit);
+    if(hit && term !== ''){ matches++; matchedIds.add(sec.id); highlight(sec, term); }
+  });
+
+  // nav filtering
+  navLinks.forEach(a => {
+    const id = a.getAttribute('href').slice(1);
+    a.classList.toggle('hidden-nav', term !== '' && !matchedIds.has(id));
+  });
+  navUnitLabels.forEach(lbl => {
+    if(term === ''){ lbl.style.display=''; return; }
+    // hide a unit label if all following links until next label are hidden
+    let n = lbl.nextElementSibling, anyVisible=false;
+    while(n && !n.hasAttribute('data-unit')){
+      if(n.tagName==='A' && !n.classList.contains('hidden-nav')) anyVisible=true;
+      n = n.nextElementSibling;
+    }
+    lbl.style.display = anyVisible ? '' : 'none';
+  });
+
+  unitTitles.forEach(t => t.classList.toggle('hidden', term !== ''));
+
+  if(term === ''){
+    countEl.textContent = '';
+    noResults.style.display = 'none';
+  } else {
+    countEl.textContent = matches + (matches===1?' match':' matches');
+    noResults.style.display = matches===0 ? 'block' : 'none';
+  }
+});
+
+// pressing Enter jumps to first match
+search.addEventListener('keydown', e => {
+  if(e.key==='Enter'){
+    const first = lessons.find(s => !s.classList.contains('hidden'));
+    if(first) first.scrollIntoView({behavior:'smooth', block:'start'});
+  }
+});
+
+// ---- safe storage (works when downloaded; degrades gracefully if sandboxed) ----
+const store = {
+  get(k){ try { return localStorage.getItem(k); } catch(e){ return this._m && this._m[k]; } },
+  set(k,v){ try { localStorage.setItem(k,v); } catch(e){ this._m = this._m||{}; this._m[k]=v; } },
+  _m:{}
+};
+
+// ---- progress tracking: a checkbox per lesson + sticky progress bar ----
+(function(){
+  const realLessons = lessons.filter(s => s.id && s.id.startsWith('l') && s.id!=='log');
+  // build the progress bar at top of main
+  const main = document.querySelector('main');
+  const hero = document.querySelector('header.hero');
+  const wrap = document.createElement('div');
+  wrap.className = 'progress-wrap';
+  wrap.innerHTML = '<div class="progress-bar"><div class="progress-fill" id="pfill"></div></div><div class="progress-label" id="plabel"></div>';
+  hero.insertAdjacentElement('afterend', wrap);
+  const fill = document.getElementById('pfill');
+  const label = document.getElementById('plabel');
+
+  function refresh(){
+    let done = 0;
+    realLessons.forEach(s => { if(store.get('done:'+s.id)==='1') done++; });
+    const pct = Math.round(done/realLessons.length*100);
+    fill.style.width = pct + '%';
+    label.innerHTML = '<strong>' + pct + '% complete</strong> · ' + done + ' of ' + realLessons.length + ' lessons';
+  }
+
+  realLessons.forEach(s => {
+    const done = store.get('done:'+s.id)==='1';
+    const box = document.createElement('label');
+    box.className = 'lesson-check';
+    box.innerHTML = '<input type="checkbox" '+(done?'checked':'')+'> Mark this lesson complete';
+    const cb = box.querySelector('input');
+    cb.addEventListener('change', () => { store.set('done:'+s.id, cb.checked?'1':'0'); refresh(); });
+    s.appendChild(box);
+  });
+  refresh();
+})();
+
+// ---- per-unit quizzes (interactive, instant feedback) ----
+const quizzes = {
+  l5: {title:"Unit 1 quiz — foundations", qs:[
+    {q:"What is a React component, most simply?", opts:["A CSS file","A function that returns UI (JSX)","A database table","A browser API"], a:1, why:"A component is a function returning what to show."},
+    {q:"JSX is…", opts:["A new language replacing JS","HTML written in a .html file","Syntax sugar that compiles to JS function calls","A styling system"], a:2, why:"JSX compiles to React.createElement / jsx() calls."},
+    {q:"The Virtual DOM mainly lets React…", opts:["Skip JavaScript entirely","Diff a lightweight tree and update only what changed","Store data on the server","Make CSS faster"], a:1, why:"It diffs the new tree vs the old and patches the minimum."}
+  ]},
+  l9: {title:"Unit 2 quiz — props & data flow", qs:[
+    {q:"Props are…", opts:["Mutable inside the child","Read-only inputs passed parent → child","Global variables","Stored in localStorage"], a:1, why:"A child receives props as read-only inputs."},
+    {q:"React data flow is…", opts:["Two-way by default","One-way: down via props, up via callbacks","Random","Bottom-up only"], a:1, why:"Data flows down; children talk up through callbacks."},
+    {q:"A good list key is…", opts:["The array index","Math.random() each render","A stable unique id from the data","The item's text"], a:2, why:"Stable ids let React match items across renders."}
+  ]},
+  l15: {title:"Unit 3 quiz — state & reactivity", qs:[
+    {q:"Calling setState does what?", opts:["Mutates the variable instantly","Schedules a re-render with the new value","Reloads the page","Nothing until refresh"], a:1, why:"State updates are scheduled; the component re-renders."},
+    {q:"3× setCount(count + 1) in one handler ends at…", opts:["+3","+1 (same snapshot)","0","crashes"], a:1, why:"All three read the same snapshot of count → +1."},
+    {q:"To update an object/array in state you should…", opts:["Mutate it in place","Create a new copy with the change","Use a plain variable","Call setState twice"], a:1, why:"Treat state as immutable — make a new object/array."}
+  ]},
+  l18: {title:"Unit 4 quiz — events & forms", qs:[
+    {q:"In React you handle a click with…", opts:["onclick=\"fn()\" string","onClick={fn} (a function reference)","addEventListener only","a CSS class"], a:1, why:"Pass the function itself, in camelCase."},
+    {q:"A controlled input gets its value from…", opts:["The DOM","Component state","The URL","A ref only"], a:1, why:"value={state} + onChange makes state the source of truth."},
+    {q:"onChange + setState + re-render means the input…", opts:["Lags one keystroke behind","Always mirrors state exactly","Ignores typing","Resets randomly"], a:1, why:"Each keystroke updates state, which re-renders the value."}
+  ]},
+  l22: {title:"Unit 5 quiz — effects", qs:[
+    {q:"useEffect is for…", opts:["Calculating values during render","Synchronizing with things outside React (network, DOM, subscriptions)","Replacing useState","Styling"], a:1, why:"Effects sync your component with external systems."},
+    {q:"An empty dependency array [] means the effect runs…", opts:["Every render","Once after mount","Never","Only on unmount"], a:1, why:"[] → run once on mount (and cleanup on unmount)."},
+    {q:"A returned function from useEffect is…", opts:["The render output","Cleanup, run before re-run and on unmount","Ignored","The dependency list"], a:1, why:"Cleanup tears down the previous effect."}
+  ]},
+  l28: {title:"Unit 6 quiz — hooks toolbox", qs:[
+    {q:"useRef is best for…", opts:["Values that should re-render the UI","A mutable value that persists without causing re-renders (e.g. a DOM node)","Fetching data","Global theme"], a:1, why:"Refs hold mutable values/DOM refs without re-rendering."},
+    {q:"useMemo / useCallback exist to…", opts:["Always speed things up","Cache a value/function so it isn't recomputed/recreated every render","Replace state","Fetch data"], a:1, why:"They memoize — useful on genuinely expensive or referential paths."},
+    {q:"The Rules of Hooks say call hooks…", opts:["Anywhere, any order","Only at the top level, in the same order every render","Inside loops for flexibility","Only in class components"], a:1, why:"Top-level, unconditional, stable order — that's how React matches them."}
+  ]},
+  l31: {title:"Unit 7 quiz — rendering & performance", qs:[
+    {q:"A component re-renders when…", opts:["Any global variable changes","Its state changes, its parent re-renders, or its context changes","The mouse moves","Always, every second"], a:1, why:"State, parent re-render, or consumed context trigger it."},
+    {q:"React.memo helps by…", opts:["Caching API calls","Skipping a child's re-render if its props didn't change","Memoizing state","Speeding up CSS"], a:1, why:"memo bails out of re-render when props are unchanged."},
+    {q:"The first rule of performance work is…", opts:["Memoize everything up front","Measure first, then optimize the real hot path","Avoid components","Use class components"], a:1, why:"Premature memoization adds complexity; profile first."}
+  ]},
+  l34: {title:"Unit 8 quiz — patterns", qs:[
+    {q:"{count && <Badge/>} can render a stray 0 because…", opts:["Badge is broken","0 is falsy and React renders the number 0","React hates numbers","count is a string"], a:1, why:"Guard with a real boolean: count > 0 && …"},
+    {q:"'Composition over configuration' means…", opts:["Add a prop for every option","Combine small pieces via children/slots","Use one giant component","Avoid components"], a:1, why:"Let callers compose, keeping the prop API small."},
+    {q:"State should generally live…", opts:["Always at the top","In the lowest component that needs it; lift only when shared","In global state always","In the DOM"], a:1, why:"Colocate; lift to the closest common parent when shared."}
+  ]},
+  l37: {title:"Unit 9 quiz — talking to a server", qs:[
+    {q:"Fetching data in an Effect needs guarding against…", opts:["CSS leaks","Race conditions from out-of-order responses","Too many components","Dark mode"], a:1, why:"Use an ignore flag in cleanup so stale responses are dropped."},
+    {q:"Robust async UI should render…", opts:["Only the success case","Loading, error, AND success (plus empty)","Just a spinner forever","Nothing until done"], a:1, why:"Handle every state, not just the happy path."},
+    {q:"Server state (cached API data) is best handled by…", opts:["Copying it into useState and syncing with effects","A query library (e.g. TanStack Query) that caches & refetches","localStorage","A global variable"], a:1, why:"It's a cache — let a query library manage it."}
+  ]},
+  l40: {title:"Unit 10 quiz — the ecosystem", qs:[
+    {q:"Reach for Next.js (over plain Vite) mainly when you need…", opts:["A login-only dashboard","SEO, server rendering, and built-in routing/data","Fewer files","No server at all"], a:1, why:"Frameworks earn their weight for SSR/SEO/server data."},
+    {q:"The right first question about a state library is…", opts:["Which one is trendiest?","Do I even need one? (local state + Context often suffice)","Redux or nothing","How big is the bundle?"], a:1, why:"Most apps start fine with local state and Context."},
+    {q:"There is one official 'React way' to style:", opts:["True — only CSS-in-JS","False — CSS Modules, Tailwind, CSS-in-JS all work","True — only Tailwind","True — inline styles only"], a:1, why:"React just needs className; pick what fits your team."}
+  ]}
+};
+Object.keys(quizzes).forEach(afterId => {
+  const sec = document.getElementById(afterId);
+  if(!sec) return;
+  const data = quizzes[afterId];
+  const box = document.createElement('div');
+  box.className = 'quiz';
+  let html = '<h4>✓ '+data.title+'</h4><p style="font-size:13px;color:var(--ink-soft);margin:0">Tap an answer — instant feedback.</p>';
+  data.qs.forEach((item, qi) => {
+    html += '<div class="q">'+(qi+1)+'. '+item.q+'</div>';
+    item.opts.forEach((opt, oi) => {
+      html += '<button class="opt" data-q="'+qi+'" data-o="'+oi+'">'+opt+'</button>';
+    });
+    html += '<div class="feedback" id="fb-'+afterId+'-'+qi+'"></div>';
+  });
+  html += '<div class="qscore" id="score-'+afterId+'"></div>';
+  box.innerHTML = html;
+  sec.insertAdjacentElement('afterend', box);
+
+  const answered = {};
+  box.querySelectorAll('.opt').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const qi = +btn.dataset.q, oi = +btn.dataset.o;
+      const item = data.qs[qi];
+      if(answered[qi]) return; // lock after first answer
+      answered[qi] = true;
+      const fb = document.getElementById('fb-'+afterId+'-'+qi);
+      // mark buttons
+      box.querySelectorAll('.opt[data-q="'+qi+'"]').forEach(b => {
+        if(+b.dataset.o === item.a) b.classList.add('correct');
+        else if(b===btn) b.classList.add('wrong');
+        b.style.cursor='default';
+      });
+      fb.textContent = (oi===item.a ? '✓ Correct. ' : '✗ Not quite. ') + item.why;
+      // score
+      const correctCount = Object.keys(answered).filter(k => {
+        const sel = box.querySelector('.opt[data-q="'+k+'"].correct');
+        const wrongPicked = box.querySelector('.opt[data-q="'+k+'"].wrong');
+        return sel && !wrongPicked;
+      }).length;
+      // simpler: recount by tracking
+      let right=0; data.qs.forEach((it,i)=>{ if(answered[i]){ const w=box.querySelector('.opt[data-q="'+i+'"].wrong'); if(!w) right++; }});
+      const total = Object.keys(answered).length;
+      const sc = document.getElementById('score-'+afterId);
+      if(total===data.qs.length) sc.textContent = 'Score: '+right+' / '+data.qs.length;
+    });
+  });
+});
+
+// ---- copy buttons for code blocks ----
+document.querySelectorAll('.copybtn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const el = document.getElementById('code-'+btn.dataset.copy);
+    if(!el) return;
+    const text = el.innerText;
+    try { navigator.clipboard.writeText(text); btn.textContent='Copied!'; setTimeout(()=>btn.textContent='Copy',1500); }
+    catch(e){ btn.textContent='Select & copy'; }
+  });
+});
+
+// ---- interactive: React live demos (vanilla JS that mimics React behavior) ----
+function flash(el){ if(!el) return; el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); }
+
+// ---- l4: state change -> re-render -> screen updates ----
+(function(){
+  var root=document.getElementById('rr-root');
+  if(!root) return;
+  var out=document.getElementById('rr-count'), rds=document.getElementById('rr-renders');
+  var inc=document.getElementById('rr-inc'), reset=document.getElementById('rr-reset');
+  var count=0, renders=1;
+  function paint(){ out.textContent=count; rds.textContent=renders; flash(root); }
+  inc.addEventListener('click',function(){ count++; renders++; paint(); });
+  reset.addEventListener('click',function(){ count=0; renders=1; out.textContent=count; rds.textContent=renders; });
+})();
+
+// ---- l10: state (re-renders) vs a plain variable (changes silently) ----
+(function(){
+  var root=document.getElementById('us-root');
+  if(!root) return;
+  var out=document.getElementById('us-count'), shadow=document.getElementById('us-shadow');
+  var bState=document.getElementById('us-state'), bPlain=document.getElementById('us-plain');
+  var note=document.getElementById('us-note');
+  var stateCount=0, plainVar=0;
+  bState.addEventListener('click',function(){
+    stateCount++;                 // setState -> React re-renders
+    out.textContent=stateCount;   // screen catches up
+    shadow.textContent='plain variable is actually at: '+plainVar; // a render reads its latest value
+    flash(root);
+    note.textContent='setState → re-render. The screen updates — and notice it now shows the plain variable\u2019s real value too, because a render reads the latest of everything.';
+  });
+  bPlain.addEventListener('click',function(){
+    plainVar++;                   // mutates memory, but nothing tells React to re-render
+    note.textContent='plainVar is now '+plainVar+' in memory — but there was no setState, so React did NOT re-render. The screen is stale until something else triggers one.';
+  });
+})();
+
+// ---- l11: stale snapshot (+1) vs functional updater (+3) ----
+(function(){
+  var out=document.getElementById('snap-count');
+  if(!out) return;
+  var meta=document.getElementById('snap-meta'), note=document.getElementById('snap-note');
+  var bStale=document.getElementById('snap-stale'), bFresh=document.getElementById('snap-fresh'), bReset=document.getElementById('snap-reset');
+  var count=0;
+  bStale.addEventListener('click',function(){
+    var snap=count;               // all three calls read the SAME snapshot
+    count=snap+1;                 // last write wins → +1, not +3
+    out.textContent=count;
+    meta.textContent='3× setCount(count + 1) — all read count = '+snap+' → ended at '+count;
+    note.textContent='Each call computed '+snap+' + 1. They all used the same snapshot, so the result is +1, not +3.';
+    flash(out.parentNode);
+  });
+  bFresh.addEventListener('click',function(){
+    count=count+3;                // c => c+1, three times, each builds on the last
+    out.textContent=count;
+    meta.textContent='3× setCount(c => c + 1) — each builds on the latest → +3';
+    note.textContent='The updater form gets the freshest value each time, so three +1s really stack to +3.';
+    flash(out.parentNode);
+  });
+  bReset.addEventListener('click',function(){ count=0; out.textContent=0; meta.textContent='tap a button below'; note.textContent=''; });
+})();
+
+// ---- l17: controlled input mirrors state every keystroke ----
+(function(){
+  var input=document.getElementById('ctl-input');
+  if(!input) return;
+  var out=document.getElementById('ctl-out');
+  input.addEventListener('input',function(){
+    out.textContent='state.value = "'+input.value+'"';
+  });
+})();
+
+// ---- l20: does the effect re-run? (dependency array) ----
+(function(){
+  var modeBox=document.getElementById('dep-mode');
+  if(!modeBox) return;
+  var cEl=document.getElementById('dep-count'), oEl=document.getElementById('dep-other');
+  var pill=document.getElementById('dep-pill'), runsEl=document.getElementById('dep-runs');
+  var bC=document.getElementById('dep-c'), bO=document.getElementById('dep-o'), bReset=document.getElementById('dep-reset');
+  var note=document.getElementById('dep-note');
+  var count=0, other=0, runs=0;
+  function mode(){ var r=modeBox.querySelector('input[name="depmode"]:checked'); return r?r.value:'count'; }
+  function depsLabel(){ var m=mode(); return m==='count'?'[count]':(m==='empty'?'[]':'(no array)'); }
+  function setPill(ran){
+    pill.classList.remove('eff-ran','eff-skip');
+    if(ran){ pill.classList.add('eff-ran'); pill.textContent='effect ran'; }
+    else { pill.classList.add('eff-skip'); pill.textContent='effect skipped'; }
+  }
+  function mount(){
+    count=0; other=0; runs=1; cEl.textContent=0; oEl.textContent=0; runsEl.textContent=runs;
+    setPill(true);
+    note.textContent='Mounted with deps '+depsLabel()+'. The effect always runs once on mount.';
+  }
+  function render(changed){
+    if(changed==='count'){ count++; cEl.textContent=count; } else { other++; oEl.textContent=other; }
+    var m=mode(), ran=false;
+    if(m==='none') ran=true;                       // no array → runs after every render
+    else if(m==='empty') ran=false;                // [] → mount only
+    else if(m==='count') ran=(changed==='count');  // [count] → only when count changed
+    if(ran){ runs++; runsEl.textContent=runs; }
+    setPill(ran);
+    if(ran) note.textContent='Re-rendered ('+changed+' changed). deps '+depsLabel()+' → a listed value changed, so the effect re-ran. Total runs: '+runs+'.';
+    else note.textContent='Re-rendered ('+changed+' changed). deps '+depsLabel()+' → nothing in the list changed, so the effect was skipped. Total runs: '+runs+'.';
+  }
+  bC.addEventListener('click',function(){ render('count'); });
+  bO.addEventListener('click',function(){ render('other'); });
+  bReset.addEventListener('click',mount);
+  modeBox.addEventListener('change',function(){
+    mount();
+    note.textContent='Changed the dependency array to '+depsLabel()+' — that\u2019s an edit to the code, so think of it as a fresh mount. The effect ran once.';
+  });
+  mount();
+})();
+
+// ---- l29: re-renders flow DOWN from where state changed ----
+(function(){
+  var note=document.getElementById('tree-note');
+  if(!document.getElementById('tn-app')) return;
+  var nodes={ app:document.getElementById('tn-app'), parent:document.getElementById('tn-parent'), a:document.getElementById('tn-a'), b:document.getElementById('tn-b') };
+  var descendants={ app:['app','parent','a','b'], parent:['parent','a','b'], a:['a'] };
+  var labels={ app:'App', parent:'Parent', a:'Child A' };
+  function clear(){ for(var k in nodes){ if(nodes[k]) nodes[k].classList.remove('lit'); } }
+  function light(which){
+    clear();
+    var list=descendants[which]||[which];
+    list.forEach(function(k){ if(nodes[k]) nodes[k].classList.add('lit'); });
+    var names=list.map(function(k){ return nodes[k]?nodes[k].textContent:k; }).join(', ');
+    note.textContent='setState in '+labels[which]+' → '+labels[which]+' re-renders, and re-rendering flows DOWN to its children: '+names+'. Components above it are untouched.';
+  }
+  document.querySelectorAll('#l29 [data-set]').forEach(function(btn){
+    btn.addEventListener('click',function(){ light(btn.getAttribute('data-set')); });
+  });
+})();
+
+// ---- theme toggle (persists when file is opened locally) ----
+(function(){
+  const btn = document.getElementById('themeBtn');
+  const root = document.documentElement;
+  function apply(t){
+    if(t==='dark'){ root.setAttribute('data-theme','dark'); btn.textContent='☀️ Light mode'; }
+    else { root.removeAttribute('data-theme'); btn.textContent='🌙 Dark mode'; }
+  }
+  apply(store.get('theme')||'light');
+  btn.addEventListener('click', () => {
+    const now = root.getAttribute('data-theme')==='dark' ? 'light' : 'dark';
+    store.set('theme', now); apply(now);
+  });
+})();
+
+// ---- back to top ----
+(function(){
+  const b = document.getElementById('backtop');
+  window.addEventListener('scroll', () => {
+    b.classList.toggle('show', window.scrollY > 500);
+  });
+  b.addEventListener('click', () => window.scrollTo({top:0, behavior:'smooth'}));
+})();
+
+// ---- mobile drawer ----
+(function(){
+  const aside = document.querySelector('aside');
+  const burger = document.getElementById('hamburger');
+  const overlay = document.getElementById('overlay');
+  function open(){ aside.classList.add('open'); overlay.classList.add('show'); burger.textContent='✕'; }
+  function close(){ aside.classList.remove('open'); overlay.classList.remove('show'); burger.textContent='☰'; }
+  burger.addEventListener('click', () => {
+    aside.classList.contains('open') ? close() : open();
+  });
+  overlay.addEventListener('click', close);
+  document.querySelectorAll('#nav a').forEach(a => a.addEventListener('click', () => {
+    if(window.innerWidth <= 880) close();
+  }));
+})();
+
+// ---- scroll-spy: highlight current lesson in sidebar ----
+(function(){
+  const spy = {};
+  document.querySelectorAll('#nav a').forEach(a => { spy[a.getAttribute('href').slice(1)] = a; });
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(en => {
+      if(en.isIntersecting){
+        Object.values(spy).forEach(a => a.classList.remove('active'));
+        const link = spy[en.target.id];
+        if(link){
+          link.classList.add('active');
+          // keep active link visible in the sidebar (desktop only)
+          if(window.innerWidth > 880) link.scrollIntoView({block:'nearest'});
+        }
+      }
+    });
+  }, {rootMargin:'-15% 0px -75% 0px'});
+  document.querySelectorAll('section.lesson').forEach(s => obs.observe(s));
+})();
+});
+</script>
+<button id="backtop" aria-label="Back to top">↑</button>
+</body>
+</html>

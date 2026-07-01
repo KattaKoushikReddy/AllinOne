@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<title>Study Hub</title>
+<style>
+:root{
+  --bg:#fbfbfd; --surface:#ffffff; --surface-2:#f5f5f7;
+  --text:#1d1d1f; --text-2:#6e6e73; --text-3:#86868b;
+  --hairline:#d2d2d7; --hairline-2:#e8e8ed;
+  --accent:#0071e3; --accent-press:#0058b9; --link:#0066cc;
+  --accent-soft:#ebf3ff;
+  --r:20px; --r-sm:12px; --r-xs:8px; --pill:980px;
+  --shadow:0 1px 3px rgba(0,0,0,.04),0 8px 24px rgba(0,0,0,.04);
+  --shadow-hover:0 8px 16px rgba(0,0,0,.06),0 24px 48px rgba(0,0,0,.1);
+  --shadow-modal:0 20px 60px rgba(0,0,0,.18),0 4px 16px rgba(0,0,0,.1);
+  --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Inter","Helvetica Neue",Helvetica,Arial,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+}
+[data-theme="dark"]{
+  --bg:#000000; --surface:#1c1c1e; --surface-2:#1c1c1e;
+  --text:#f5f5f7; --text-2:#a1a1a6; --text-3:#86868b;
+  --hairline:#38383a; --hairline-2:#2c2c2e;
+  --accent:#2997ff; --accent-press:#0a84ff; --link:#2997ff;
+  --accent-soft:rgba(41,151,255,.16);
+  --shadow:0 1px 3px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.4);
+  --shadow-hover:0 8px 16px rgba(0,0,0,.5),0 24px 48px rgba(0,0,0,.55);
+  --shadow-modal:0 20px 60px rgba(0,0,0,.6),0 4px 16px rgba(0,0,0,.4);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+body{
+  margin:0;background:var(--bg);color:var(--text);font-family:var(--font);
+  font-size:17px;line-height:1.47;letter-spacing:-0.003em;
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+  transition:background .3s,color .3s;
+}
+a{color:var(--link);text-decoration:none}
+::selection{background:var(--accent-soft)}
+button{font-family:inherit}
+
+.wrap{max-width:1120px;margin:0 auto;padding:0 28px}
+
+/* ---------- utility bar ---------- */
+.utilbar{display:flex;justify-content:flex-end;padding:22px 0 0;position:relative;z-index:2}
+.themebtn{
+  width:38px;height:38px;border-radius:11px;border:1px solid var(--hairline-2);background:var(--surface);
+  color:var(--text-2);cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:background .15s,border-color .15s,color .15s;
+}
+.themebtn:hover{background:var(--surface-2);color:var(--text)}
+.themebtn svg{width:17px;height:17px}
+.themebtn .moon{display:none}
+[data-theme="dark"] .themebtn .sun{display:none}
+[data-theme="dark"] .themebtn .moon{display:block}
+
+/* ---------- constellation ---------- */
+.constellation{position:relative;height:150px;margin:0 auto -14px;max-width:1000px;overflow:hidden}
+.constellation svg{width:100%;height:100%;display:block}
+.const-line{stroke:var(--hairline);stroke-width:1.2;opacity:.7}
+.const-node{transform-origin:center;animation:floatY 6s ease-in-out infinite}
+.const-node circle{filter:drop-shadow(0 2px 6px rgba(0,0,0,.12))}
+@keyframes floatY{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+
+/* ---------- hero ---------- */
+.hero{position:relative;padding:8px 0 30px;text-align:center;overflow:hidden}
+.glow{
+  position:absolute;top:-200px;left:50%;transform:translateX(-50%);width:900px;height:480px;
+  background:radial-gradient(ellipse at center, var(--accent-soft), transparent 70%);
+  pointer-events:none;z-index:0;opacity:.9;
+}
+.hero-inner{position:relative;z-index:1}
+.eyebrow{font-family:var(--mono);font-size:12.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);margin:0 0 18px}
+.hero h1{font-size:clamp(38px,6.4vw,68px);font-weight:800;letter-spacing:-0.03em;line-height:1.04;margin:0 0 18px}
+.hero h1 .grad{background:linear-gradient(120deg,var(--accent),#5e5ce6 60%,#c2185b);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{font-size:19px;color:var(--text-2);max-width:520px;margin:0 auto;line-height:1.5}
+
+.progress-pill{
+  display:inline-flex;align-items:center;gap:10px;margin-top:26px;padding:8px 16px 8px 8px;
+  background:var(--surface);border:1px solid var(--hairline-2);border-radius:var(--pill);box-shadow:var(--shadow);
+}
+.progress-ring{flex:none}
+.progress-pill span{font-size:13px;color:var(--text-2);font-weight:500}
+.progress-pill b{color:var(--text)}
+
+/* ---------- search trigger ---------- */
+.search-row{display:flex;justify-content:center;margin:30px 0 6px}
+.search-trigger{
+  display:flex;align-items:center;gap:10px;width:100%;max-width:480px;
+  padding:15px 16px;border:1px solid var(--hairline);border-radius:var(--pill);
+  background:var(--surface);color:var(--text-3);font-size:15.5px;cursor:pointer;
+  transition:border-color .15s,box-shadow .15s,transform .1s;box-shadow:var(--shadow);
+}
+.search-trigger:hover{border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-soft),var(--shadow)}
+.search-trigger:active{transform:scale(.99)}
+.search-trigger svg{flex:none;color:var(--text-3)}
+.search-trigger span{flex:1;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kbd-hint{
+  display:flex;align-items:center;gap:2px;font-family:var(--mono);font-size:11.5px;color:var(--text-3);
+  background:var(--surface-2);border-radius:6px;padding:3px 7px;flex:none;
+}
+
+/* ---------- sections ---------- */
+.section{padding:56px 0 8px}
+.section-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:24px;gap:12px}
+.section-head h2{font-size:24px;font-weight:800;letter-spacing:-0.02em;margin:0}
+.section-head .count{font-size:13px;color:var(--text-3)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:18px}
+
+/* ---------- jump back in ---------- */
+.jump{
+  display:block;border-radius:24px;overflow:hidden;box-shadow:var(--shadow);
+  transition:transform .2s cubic-bezier(.2,.8,.2,1),box-shadow .2s;position:relative;
+}
+.jump:hover{transform:translateY(-3px);box-shadow:var(--shadow-hover)}
+.jump-panel{
+  padding:28px 30px;display:flex;align-items:center;gap:22px;position:relative;overflow:hidden;
+  background:linear-gradient(135deg,var(--tint),var(--tint-dark));color:#fff;
+}
+.jump-panel::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 85% 20%, rgba(255,255,255,.25), transparent 55%)}
+.jump-badge{
+  width:60px;height:60px;border-radius:16px;background:rgba(255,255,255,.2);display:flex;align-items:center;
+  justify-content:center;flex:none;position:relative;z-index:1;backdrop-filter:blur(6px);
+}
+.jump-badge svg{width:30px;height:30px;color:#fff}
+.jump-text{flex:1;min-width:0;position:relative;z-index:1}
+.jump-label{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;opacity:.85;margin:0 0 5px}
+.jump-title{font-size:22px;font-weight:800;letter-spacing:-0.02em;margin:0}
+.jump-desc{font-size:14px;opacity:.92;margin:6px 0 0;max-width:60ch}
+.jump-arrow{
+  flex:none;width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,.22);display:flex;
+  align-items:center;justify-content:center;color:#fff;transition:background .15s,transform .15s;position:relative;z-index:1;
+}
+.jump:hover .jump-arrow{background:rgba(255,255,255,.34);transform:translateX(3px)}
+.jump-arrow svg{width:18px;height:18px}
+
+/* ---------- card ---------- */
+@keyframes cardIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.card{
+  display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--hairline-2);
+  border-radius:var(--r);box-shadow:var(--shadow);transition:transform .2s cubic-bezier(.2,.8,.2,1),box-shadow .2s;
+  overflow:hidden;position:relative;animation:cardIn .5s cubic-bezier(.2,.8,.2,1) backwards;
+}
+.card:hover{transform:translateY(-4px);box-shadow:var(--shadow-hover)}
+.card:active{transform:translateY(-1px)}
+.card-visual{
+  height:96px;position:relative;display:flex;align-items:flex-start;justify-content:space-between;
+  padding:16px;background:linear-gradient(135deg,var(--tint),var(--tint-dark));overflow:hidden;
+}
+.card-visual::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 90% 15%, rgba(255,255,255,.28), transparent 55%)}
+.card-visual svg{width:26px;height:26px;color:#fff;position:relative;z-index:1}
+.card-visual .tag{
+  font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#fff;
+  background:rgba(255,255,255,.24);backdrop-filter:blur(4px);padding:4px 9px;border-radius:6px;position:relative;z-index:1;
+}
+.card-check{
+  position:absolute;top:16px;right:16px;width:22px;height:22px;border-radius:50%;background:#fff;
+  display:none;align-items:center;justify-content:center;color:var(--tint);z-index:2;box-shadow:0 1px 3px rgba(0,0,0,.2);
+}
+.card.visited .card-check{display:flex}
+.card.visited .card-visual .tag{display:none}
+.card-check svg{width:12px;height:12px}
+.card-body{padding:18px 20px 20px;display:flex;flex-direction:column;gap:8px;flex:1}
+.card h3{font-size:17px;font-weight:700;letter-spacing:-0.01em;margin:0;color:var(--text)}
+.card p{font-size:13.5px;color:var(--text-2);line-height:1.5;margin:0;flex:1}
+.card .meta{font-size:12px;color:var(--text-3);display:flex;align-items:center;gap:6px;margin-top:4px;font-weight:600}
+.card .meta svg{width:13px;height:13px;flex:none}
+.card.visited .meta{color:var(--tint)}
+a.card{color:inherit}
+
+/* ---------- command palette ---------- */
+.overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.44);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+  z-index:100;display:none;align-items:flex-start;justify-content:center;padding-top:12vh;
+}
+.overlay.show{display:flex}
+.palette{
+  width:100%;max-width:560px;max-height:70vh;background:var(--surface);border-radius:18px;
+  box-shadow:var(--shadow-modal);display:flex;flex-direction:column;overflow:hidden;border:1px solid var(--hairline-2);
+  animation:pop .16s cubic-bezier(.2,.8,.2,1);
+}
+@keyframes pop{from{opacity:0;transform:scale(.97) translateY(-6px)}to{opacity:1;transform:none}}
+.palette-input-row{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--hairline-2)}
+.palette-input-row svg{flex:none;color:var(--text-3)}
+.palette-input-row input{
+  flex:1;border:none;outline:none;background:none;font-family:inherit;font-size:16px;color:var(--text);
+}
+.palette-input-row input::placeholder{color:var(--text-3)}
+.palette-esc{font-family:var(--mono);font-size:11px;color:var(--text-3);background:var(--surface-2);border-radius:6px;padding:3px 6px;flex:none}
+.palette-list{overflow-y:auto;padding:8px}
+.palette-item{
+  display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;cursor:pointer;scroll-margin:8px;
+}
+.palette-item .p-badge{
+  width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex:none;
+  background:linear-gradient(135deg,var(--tint),var(--tint-dark));
+}
+.palette-item .p-badge svg{width:17px;height:17px;color:#fff}
+.palette-item-text{flex:1;min-width:0}
+.palette-item-text b{display:block;font-size:14.5px;font-weight:600;color:var(--text)}
+.palette-item-text span{display:block;font-size:12.5px;color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.palette-item.active{background:var(--accent-soft)}
+.palette-item .tag{flex:none;font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--text-3);background:var(--surface-2);padding:4px 8px;border-radius:6px}
+.palette-empty{padding:30px 18px;text-align:center;color:var(--text-3);font-size:14px}
+.palette-foot{display:flex;gap:14px;padding:10px 18px;border-top:1px solid var(--hairline-2);font-size:11.5px;color:var(--text-3)}
+.palette-foot span{display:flex;align-items:center;gap:5px}
+.palette-foot kbd{font-family:var(--mono);background:var(--surface-2);border-radius:5px;padding:2px 5px}
+
+/* ---------- footer ---------- */
+footer{margin-top:70px;padding:28px 0 60px;text-align:center;color:var(--text-3);font-size:12.5px;border-top:1px solid var(--hairline-2)}
+
+@media (max-width:600px){
+  .hero{padding:4px 0 20px}
+  .section{padding:40px 0 8px}
+  .grid{grid-template-columns:1fr}
+  .constellation{height:100px;margin-bottom:-8px}
+  .jump-panel{flex-direction:column;text-align:center;padding:26px 22px}
+  .jump-arrow{display:none}
+  .overlay{padding-top:8vh;align-items:flex-start}
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="utilbar">
+    <button class="themebtn" id="themeBtn" aria-label="Toggle dark mode" title="Toggle dark mode">
+      <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.6M12 18.9v2.6M4.6 4.6l1.8 1.8M17.6 17.6l1.8 1.8M2.5 12h2.6M18.9 12h2.6M4.6 19.4l1.8-1.8M17.6 6.4l1.8-1.8"/></svg>
+      <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8Z"/></svg>
+    </button>
+  </div>
+
+  <div class="constellation" id="constellation"></div>
+
+  <header class="hero">
+    <div class="glow"></div>
+    <div class="hero-inner">
+      <p class="eyebrow" id="greeting">Personal study hub</p>
+      <h1>Everything you're <span class="grad">learning</span>,<br>in one place.</h1>
+      <p>Eight resources, one front door. Pick up a course or jump straight to a reference.</p>
+      <div class="progress-pill">
+        <svg class="progress-ring" width="30" height="30" viewBox="0 0 30 30">
+          <circle cx="15" cy="15" r="12" fill="none" stroke="var(--hairline-2)" stroke-width="3"/>
+          <circle id="progressArc" cx="15" cy="15" r="12" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round" stroke-dasharray="75.4" stroke-dashoffset="75.4" transform="rotate(-90 15 15)"/>
+        </svg>
+        <span><b id="visitedCount">0</b> of 8 explored</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="search-row">
+    <button class="search-trigger" id="openPalette">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <span>Search AI, Java, React, DSA…</span>
+      <span class="kbd-hint" id="kbdHint">⌘K</span>
+    </button>
+  </div>
+
+  <section class="section" id="section-jump">
+    <div class="section-head">
+      <h2 id="jumpHeading">Jump back in</h2>
+    </div>
+    <div id="jumpSlot"></div>
+  </section>
+
+  <section class="section" id="section-courses">
+    <div class="section-head">
+      <h2>Courses</h2>
+      <span class="count">Work through, one lesson at a time</span>
+    </div>
+    <div class="grid" id="grid-courses"></div>
+  </section>
+
+  <section class="section" id="section-refs">
+    <div class="section-head">
+      <h2>References &amp; manuals</h2>
+      <span class="count">Jump in, look something up</span>
+    </div>
+    <div class="grid" id="grid-refs"></div>
+  </section>
+
+  <footer>8 resources · built for one learner</footer>
+</div>
+
+<!-- ---------- command palette ---------- -->
+<div class="overlay" id="overlay">
+  <div class="palette" id="palette">
+    <div class="palette-input-row">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input id="paletteInput" type="text" placeholder="Search AI, Java, React, DSA…" autocomplete="off">
+      <span class="palette-esc">esc</span>
+    </div>
+    <div class="palette-list" id="paletteList"></div>
+    <div class="palette-foot">
+      <span><kbd>↑↓</kbd> navigate</span>
+      <span><kbd>↵</kbd> open</span>
+      <span><kbd>esc</kbd> close</span>
+    </div>
+  </div>
+</div>
+
+<script>
+const resources = [
+  {
+    href:"Ai_Learn.html", title:"AI → Agents", kind:"course", tag:"AI",
+    desc:"A from-scratch course on how AI actually works — from the neuron up to tool use, memory, RAG and MCP.",
+    tint:"#0071e3",
+    icon:'<circle cx="6" cy="6" r="2.2"/><circle cx="6" cy="18" r="2.2"/><circle cx="18" cy="12" r="2.6"/><path d="M8 6.8L15.5 11M8 17.2L15.5 13"/>'
+  },
+  {
+    href:"java_course.html", title:"Java, from scratch", kind:"course", tag:"Java",
+    desc:"A from-zero course through Java — syntax, OOP, collections and the JVM, one idea at a time.",
+    tint:"#c97b22",
+    icon:'<path d="M6 10h12v6a5 5 0 0 1-5 5h-2a5 5 0 0 1-5-5v-6Z"/><path d="M18 11h1.5a2.5 2.5 0 0 1 0 5H18"/><path d="M9 3c-1 1.4.5 2-.2 3.4M13 3c-1 1.4.5 2-.2 3.4"/>'
+  },
+  {
+    href:"react-from-scratch.html", title:"React", kind:"course", tag:"Web",
+    desc:"From first component to shipping — props, state, hooks and re-renders explained one idea at a time.",
+    tint:"#0f9bab",
+    icon:'<ellipse cx="12" cy="12" rx="9.5" ry="4"/><ellipse cx="12" cy="12" rx="9.5" ry="4" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="9.5" ry="4" transform="rotate(120 12 12)"/><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/>'
+  },
+  {
+    href:"spring.html", title:"Spring, end to end", kind:"course", tag:"Java",
+    desc:"A from-scratch course through Spring and Spring Boot — beans, JPA, @Transactional and shipping a real app.",
+    tint:"#6db33f",
+    icon:'<path d="M12 21c-4-1-7-4-7-9 0-4 3-7 7-9 4 2 7 5 7 9 0 5-3 8-7 9Z"/><path d="M12 21V8"/>'
+  },
+  {
+    href:"api.html", title:"REST APIs", kind:"course", tag:"APIs",
+    desc:"Zero to job-ready on REST — verbs, status codes, auth, pagination, versioning and real design tradeoffs.",
+    tint:"#0071e3",
+    icon:'<rect x="3" y="8" width="6" height="8" rx="1.5"/><rect x="15" y="8" width="6" height="8" rx="1.5"/><path d="M9 12h6"/>'
+  },
+  {
+    href:"Ai_Roadmap.html", title:"Synapse", kind:"reference", tag:"AI",
+    desc:"An interactive roadmap through AI — 8 stages, 18 topics, side-by-side comparisons and a full glossary.",
+    tint:"#7c6fe0",
+    icon:'<circle cx="6" cy="6" r="2.4"/><circle cx="6" cy="18" r="2.4"/><circle cx="18" cy="6" r="2.4"/><circle cx="18" cy="18" r="2.4"/><circle cx="12" cy="12" r="2.4"/><path d="M7.7 7.7L10.3 10.3M7.7 16.3L10.3 13.7M16.3 7.7L13.7 10.3M16.3 16.3L13.7 13.7"/>'
+  },
+  {
+    href:"dsa-field-manual.html", title:"The DSA Field Manual", kind:"reference", tag:"DSA",
+    desc:"Concepts, runnable Python, memory hooks, interview questions and a decision engine for picking the right structure.",
+    tint:"#127D82",
+    icon:'<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>'
+  },
+  {
+    href:"java-handbook.html", title:"The Java Handbook", kind:"reference", tag:"Java",
+    desc:"Learn Java with code — a lookup-friendly handbook covering the language with runnable examples throughout.",
+    tint:"#9a5b00",
+    icon:'<path d="M4 5.5c2-1 5-1.2 8 0v13c-3-1.2-6-1-8 0v-13Z"/><path d="M20 5.5c-2-1-5-1.2-8 0v13c3-1.2 6-1 8 0v-13Z"/>'
+  }
+];
+
+function hexToRgb(hex){
+  hex = hex.replace('#','');
+  return [parseInt(hex.substring(0,2),16), parseInt(hex.substring(2,4),16), parseInt(hex.substring(4,6),16)];
+}
+function hexToRgba(hex, a){ const [r,g,b] = hexToRgb(hex); return `rgba(${r},${g},${b},${a})`; }
+function darken(hex, amt){
+  const [r,g,b] = hexToRgb(hex);
+  const d = v => Math.max(0, Math.round(v * (1 - amt)));
+  return `rgb(${d(r)},${d(g)},${d(b)})`;
+}
+
+/* ---------- constellation ---------- */
+(function(){
+  const el = document.getElementById("constellation");
+  const positions = [
+    [60,90],[160,45],[270,100],[380,40],[500,95],[620,42],[740,98],[850,55]
+  ];
+  const links = [[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,7],[1,3],[4,6]];
+  let svg = `<svg viewBox="0 0 900 140" preserveAspectRatio="xMidYMid meet">`;
+  links.forEach(([a,b])=>{
+    svg += `<line class="const-line" x1="${positions[a][0]}" y1="${positions[a][1]}" x2="${positions[b][0]}" y2="${positions[b][1]}"/>`;
+  });
+  resources.forEach((r,i)=>{
+    const [x,y] = positions[i];
+    const dur = (5 + (i % 4)).toFixed(1);
+    const delay = (i * 0.35).toFixed(2);
+    svg += `<g class="const-node" style="animation-duration:${dur}s;animation-delay:-${delay}s"><circle cx="${x}" cy="${y}" r="6" fill="${r.tint}"/><circle cx="${x}" cy="${y}" r="10" fill="${hexToRgba(r.tint,0.18)}"/></g>`;
+  });
+  svg += `</svg>`;
+  el.innerHTML = svg;
+})();
+
+/* ---------- theme ---------- */
+const isMac = /Mac|iPhone|iPod|iPad/.test(navigator.platform || navigator.userAgent);
+document.getElementById("kbdHint").textContent = isMac ? "⌘K" : "Ctrl K";
+
+const themeBtn = document.getElementById("themeBtn");
+function setTheme(t){ document.documentElement.setAttribute("data-theme", t); try{ localStorage.setItem("studyhub_theme", t); }catch(e){} }
+let savedTheme = "light";
+try{ savedTheme = localStorage.getItem("studyhub_theme") || (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"); }catch(e){}
+setTheme(savedTheme);
+themeBtn.addEventListener("click", ()=>{
+  setTheme(document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark");
+});
+
+/* ---------- greeting ---------- */
+(function(){
+  const h = new Date().getHours();
+  const g = h < 5 ? "Good night" : h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening";
+  document.getElementById("greeting").textContent = g + " — personal study hub";
+})();
+
+/* ---------- visited tracking ---------- */
+function getVisited(){ try{ return JSON.parse(localStorage.getItem("studyhub_visited") || "[]"); }catch(e){ return []; } }
+function markVisited(href){
+  try{
+    const v = getVisited();
+    if(!v.includes(href)){ v.push(href); localStorage.setItem("studyhub_visited", JSON.stringify(v)); }
+    localStorage.setItem("studyhub_last", href);
+  }catch(e){}
+}
+
+/* ---------- progress ring ---------- */
+(function(){
+  const v = getVisited().filter(h => resources.some(r => r.href === h));
+  const n = v.length;
+  document.getElementById("visitedCount").textContent = n;
+  const circumference = 75.4;
+  const offset = circumference - (circumference * (n/8));
+  document.getElementById("progressArc").setAttribute("stroke-dashoffset", offset.toFixed(1));
+})();
+
+/* ---------- card rendering ---------- */
+function badgeSVG(r){
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${r.icon}</svg>`;
+}
+function miniBadge(r){
+  return `<div class="p-badge" style="--tint:${r.tint};--tint-dark:${darken(r.tint,0.25)}">${badgeSVG(r)}</div>`;
+}
+
+function cardHTML(r, visited, i){
+  return `<a class="card${visited ? ' visited' : ''}" href="${r.href}" style="--tint:${r.tint};--tint-dark:${darken(r.tint,0.3)};animation-delay:${i*45}ms" data-href="${r.href}">
+    <div class="card-visual">
+      ${badgeSVG(r)}
+      <span class="tag">${r.tag}</span>
+      <div class="card-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg></div>
+    </div>
+    <div class="card-body">
+      <h3>${r.title}</h3>
+      <p>${r.desc}</p>
+      <div class="meta">
+        ${visited
+          ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg> Continue'
+          : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg> ' + (r.kind === "course" ? "Open the course" : "Open the reference")
+        }
+      </div>
+    </div>
+  </a>`;
+}
+
+const visited = getVisited();
+const coursesEl = document.getElementById("grid-courses");
+const refsEl = document.getElementById("grid-refs");
+let ci = 0, ri = 0;
+resources.forEach(r=>{
+  if(r.kind === "course"){ coursesEl.insertAdjacentHTML("beforeend", cardHTML(r, visited.includes(r.href), ci)); ci++; }
+  else { refsEl.insertAdjacentHTML("beforeend", cardHTML(r, visited.includes(r.href), ri)); ri++; }
+});
+document.querySelectorAll(".card").forEach(el=>{
+  el.addEventListener("click", ()=> markVisited(el.dataset.href));
+});
+
+/* ---------- jump back in ---------- */
+(function(){
+  let lastHref = null;
+  try{ lastHref = localStorage.getItem("studyhub_last"); }catch(e){}
+  const slot = document.getElementById("jumpSlot");
+  const heading = document.getElementById("jumpHeading");
+  const last = resources.find(r => r.href === lastHref);
+  const featured = last || resources[0];
+  if(!last) heading.textContent = "New here? Start with this one";
+  slot.innerHTML = `<a class="jump" href="${featured.href}" data-href="${featured.href}">
+    <div class="jump-panel" style="--tint:${featured.tint};--tint-dark:${darken(featured.tint,0.35)}">
+      <div class="jump-badge">${badgeSVG(featured)}</div>
+      <div class="jump-text">
+        <p class="jump-label">${last ? "Continue where you left off" : "Recommended first course"}</p>
+        <h3 class="jump-title">${featured.title}</h3>
+        <p class="jump-desc">${featured.desc}</p>
+      </div>
+      <div class="jump-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></div>
+    </div>
+  </a>`;
+  slot.querySelector(".jump").addEventListener("click", (e)=> markVisited(e.currentTarget.dataset.href));
+})();
+
+/* ---------- command palette ---------- */
+const overlay = document.getElementById("overlay");
+const paletteInput = document.getElementById("paletteInput");
+const paletteList = document.getElementById("paletteList");
+let activeIndex = 0;
+let filtered = resources.slice();
+
+function renderPalette(){
+  if(filtered.length === 0){
+    paletteList.innerHTML = `<div class="palette-empty">No matches — try a different word, like a topic or language.</div>`;
+    return;
+  }
+  paletteList.innerHTML = filtered.map((r,i)=>`
+    <div class="palette-item${i === activeIndex ? ' active' : ''}" data-href="${r.href}" data-i="${i}">
+      ${miniBadge(r)}
+      <div class="palette-item-text"><b>${r.title}</b><span>${r.desc}</span></div>
+      <span class="tag">${r.tag}</span>
+    </div>`).join("");
+  paletteList.querySelectorAll(".palette-item").forEach(el=>{
+    el.addEventListener("mouseenter", ()=>{ activeIndex = +el.dataset.i; renderPalette(); });
+    el.addEventListener("click", ()=>{ markVisited(el.dataset.href); location.href = el.dataset.href; });
+  });
+  const activeEl = paletteList.querySelector(".palette-item.active");
+  if(activeEl) activeEl.scrollIntoView({block:"nearest"});
+}
+
+function openPalette(){
+  overlay.classList.add("show");
+  paletteInput.value = "";
+  filtered = resources.slice();
+  activeIndex = 0;
+  renderPalette();
+  setTimeout(()=> paletteInput.focus(), 10);
+}
+function closePalette(){ overlay.classList.remove("show"); }
+
+document.getElementById("openPalette").addEventListener("click", openPalette);
+overlay.addEventListener("mousedown", (e)=>{ if(e.target === overlay) closePalette(); });
+
+paletteInput.addEventListener("input", ()=>{
+  const q = paletteInput.value.trim().toLowerCase();
+  filtered = resources.filter(r =>
+    !q || r.title.toLowerCase().includes(q) || r.tag.toLowerCase().includes(q) || r.desc.toLowerCase().includes(q)
+  );
+  activeIndex = 0;
+  renderPalette();
+});
+
+document.addEventListener("keydown", (e)=>{
+  const metaK = (e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k";
+  if(metaK){ e.preventDefault(); overlay.classList.contains("show") ? closePalette() : openPalette(); return; }
+  if(!overlay.classList.contains("show")) return;
+  if(e.key === "Escape"){ closePalette(); }
+  else if(e.key === "ArrowDown"){ e.preventDefault(); if(filtered.length){ activeIndex = (activeIndex + 1) % filtered.length; renderPalette(); } }
+  else if(e.key === "ArrowUp"){ e.preventDefault(); if(filtered.length){ activeIndex = (activeIndex - 1 + filtered.length) % filtered.length; renderPalette(); } }
+  else if(e.key === "Enter"){ e.preventDefault(); const r = filtered[activeIndex]; if(r){ markVisited(r.href); location.href = r.href; } }
+});
+</script>
+</body>
+</html>
